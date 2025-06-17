@@ -38,3 +38,4 @@ node_modules
 
 /client-dashboard-proposal/
 /.claude/
+/.vscode/
