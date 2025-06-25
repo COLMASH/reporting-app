@@ -1,4 +1,4 @@
-import { User as AppUser } from '@/types/auth'
+import { User as AppUser } from '@/features/auth/types'
 
 declare module 'next-auth' {
     interface Session {

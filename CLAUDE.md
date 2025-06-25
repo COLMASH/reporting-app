@@ -4,71 +4,49 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a Next.js 15 reporting application for Malatesta Group, using:
+Reporting application for Malatesta Group using Next.js 15, TypeScript, and NextAuth v5.
 
-- Next.js 15.3.3 with App Router and Turbopack
-- React 19 with TypeScript
-- TanStack Query for data fetching and state management
-- NextAuth v5 (beta) for authentication
-- Tailwind CSS v4 for styling
-- Zustand for global state management
+## Critical Guidelines
 
-## Essential Commands
+### Code Style
+
+- **Use functional programming** - NO classes or OOP patterns
+- **Named exports only** - Avoid default exports
+- **No `any` types** - Use `unknown` or proper types
+- **Use route constants** - Never hardcode paths like '/dashboard'
+
+### Development Workflow
+
+- **Run `npm run format` then `npm run build` after major changes** to ensure formatting and compilation
+- **Use path aliases** - `@/*` for imports
+- **Test with `npm run test-all`** before committing
+
+### Architecture Principles
+
+- **Feature-based folder structure** - See README for details
+- **Functional services** - Export functions, not classes
+- **Centralized constants** - Routes in `src/routes/`
+- **Type safety first** - Define all interfaces
+
+### Authentication
+
+- NextAuth v5 with JWT sessions (30 min)
+- FastAPI backend: `https://reporting-app-back-dev.onrender.com`
+- Protected routes via middleware
+
+### State Management
+
+- **Server state**: TanStack Query
+- **Client state**: Zustand (when needed)
+- **Forms**: React Hook Form + Zod
+
+### Essential Commands
 
 ```bash
-# Development
-npm run dev          # Start development server with Turbopack
-
-# Code Quality
-npm run lint         # Run Next.js linting
-npm run check-types  # TypeScript type checking
-npm run check-lint   # ESLint checking
-npm run check-format # Prettier format checking
-npm run format       # Auto-format code with Prettier
-
-# Building
-npm run build        # Production build
-npm run start        # Start production server
-
-# Pre-commit Testing
-npm run test-all     # Run all checks: format, lint, types, and build
+npm run dev       # Development
+npm run format    # Format code with Prettier
+npm run build     # Check compilation
+npm run test-all  # Run all checks
 ```
 
-## Architecture
-
-### Directory Structure
-
-- `/src/app/` - Next.js App Router pages and API routes
-    - `layout.tsx` - Root layout with Providers wrapper
-    - `providers.tsx` - Client-side providers (TanStack Query)
-    - `/api/auth/[...nextauth]/` - NextAuth API routes
-- `/src/auth.ts` - NextAuth configuration (currently minimal)
-- `/src/lib/` - Shared utilities and business logic
-    - `/hooks/` - Custom React hooks
-    - `/stores/` - Zustand state stores
-    - `/utils/` - Utility functions (includes `cn.ts` for classnames)
-- `/src/ui/` - UI components and styles
-- `/src/middleware.ts` - Next.js middleware
-
-### Path Aliases
-
-- `@/*` maps to `./src/*` for clean imports
-
-### Pre-commit Hooks
-
-Husky runs automatic checks before commits:
-
-1. Prettier formatting check
-2. ESLint standards check
-3. TypeScript type checking
-4. Production build verification
-
-All checks must pass before committing. Use `npm run format` to auto-fix formatting issues.
-
-### Key Dependencies
-
-- **TanStack Query**: Configured with 60s stale time, window focus refetch disabled
-- **NextAuth v5**: Authentication setup (providers to be configured)
-- **Tailwind CSS v4**: PostCSS-based styling with prettier plugin
-- **Lucide React**: Icon library
-- **CVA & clsx**: Utility libraries for component variants and classnames
+Remember: Always prefer functional patterns and run `format` before `build`.

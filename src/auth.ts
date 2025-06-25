@@ -1,7 +1,8 @@
 import NextAuth from 'next-auth'
 import Credentials from 'next-auth/providers/credentials'
-import { AuthService } from '@/lib/auth-service'
-import { loginSchema } from '@/types/auth'
+import { login, getUserInfo, verifyToken } from '@/features/auth/services/auth'
+import { loginSchema } from '@/features/auth/types'
+import { ROUTES } from '@/routes'
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
     providers: [
@@ -19,8 +20,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                         return null
                     }
 
-                    const tokenResponse = await AuthService.login(parsedCredentials.data)
-                    const user = await AuthService.getUserInfo(tokenResponse.access_token)
+                    const tokenResponse = await login(parsedCredentials.data)
+                    const user = await getUserInfo(tokenResponse.access_token)
 
                     return {
                         ...user,
@@ -62,7 +63,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
             // Access token has expired, try to verify it with backend
             try {
-                const user = await AuthService.verifyToken(token.accessToken as string)
+                const user = await verifyToken(token.accessToken as string)
                 return {
                     ...token,
                     ...user
@@ -97,8 +98,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         }
     },
     pages: {
-        signIn: '/',
-        error: '/'
+        signIn: ROUTES.HOME,
+        error: ROUTES.HOME
     },
     debug: process.env.NODE_ENV === 'development'
 })

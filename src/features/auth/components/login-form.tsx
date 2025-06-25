@@ -5,7 +5,8 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { signIn } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { LoginFormData, loginSchema } from '@/types/auth'
+import { LoginFormData, loginSchema } from '@/features/auth/types'
+import { ROUTES } from '@/routes'
 
 export function LoginForm() {
     const router = useRouter()
@@ -34,7 +35,7 @@ export function LoginForm() {
             if (result?.error) {
                 setError('Invalid email or password')
             } else {
-                router.push('/dashboard')
+                router.push(ROUTES.DASHBOARD)
                 router.refresh()
             }
         } catch {

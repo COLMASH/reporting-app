@@ -1,10 +1,11 @@
 'use client'
 
 import { signOut } from 'next-auth/react'
+import { ROUTES } from '@/routes'
 
 export function LogoutButton() {
     const handleLogout = async () => {
-        await signOut({ redirect: true, callbackUrl: '/' })
+        await signOut({ redirect: true, callbackUrl: ROUTES.HOME })
     }
 
     return (
