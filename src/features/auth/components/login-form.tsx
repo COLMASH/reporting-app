@@ -33,12 +33,16 @@ export function LoginForm() {
             })
 
             if (result?.error) {
+                // eslint-disable-next-line no-console
+                console.warn('Login form error:', result.error)
                 setError('Invalid email or password')
             } else {
                 router.push(ROUTES.DASHBOARD)
                 router.refresh()
             }
-        } catch {
+        } catch (error) {
+            // eslint-disable-next-line no-console
+            console.error('Unexpected login form error:', error)
             setError('An unexpected error occurred')
         } finally {
             setIsLoading(false)

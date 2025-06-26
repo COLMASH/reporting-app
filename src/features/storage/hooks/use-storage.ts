@@ -40,6 +40,8 @@ export const useUploadFile = () => {
             toast.success('File uploaded successfully')
         },
         onError: error => {
+            // eslint-disable-next-line no-console
+            console.error('Upload mutation error:', error)
             toast.error(error instanceof Error ? error.message : 'Failed to upload file')
         }
     })
@@ -71,7 +73,9 @@ export const useDeleteFile = () => {
             // Return a context object with the snapshotted value
             return { previousFiles, userId }
         },
-        onError: (_, { userId }, context) => {
+        onError: (error, { userId }, context) => {
+            // eslint-disable-next-line no-console
+            console.error('Delete mutation error:', error)
             // If the mutation fails, use the context returned from onMutate to roll back
             if (context?.previousFiles) {
                 queryClient.setQueryData(storageKeys.files(userId), context.previousFiles)

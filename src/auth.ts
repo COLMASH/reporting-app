@@ -17,6 +17,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                     const parsedCredentials = loginSchema.safeParse(credentials)
 
                     if (!parsedCredentials.success) {
+                        // eslint-disable-next-line no-console
+                        console.warn(
+                            'Invalid login credentials format:',
+                            parsedCredentials.error.flatten()
+                        )
                         return null
                     }
 
@@ -28,7 +33,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                         accessToken: tokenResponse.access_token,
                         tokenExpiry: Date.now() + tokenResponse.expires_in * 1000
                     }
-                } catch {
+                } catch (error) {
+                    // eslint-disable-next-line no-console
+                    console.error('NextAuth authorize error:', error)
                     return null
                 }
             }
@@ -68,8 +75,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                     ...token,
                     ...user
                 }
-            } catch {
+            } catch (error) {
                 // Token is invalid, force sign out
+                // eslint-disable-next-line no-console
+                console.warn('Token refresh failed:', error)
                 return { ...token, error: 'RefreshAccessTokenError' }
             }
         },

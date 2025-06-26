@@ -11,7 +11,23 @@ export function Providers({ children }: { children: React.ReactNode }) {
                 defaultOptions: {
                     queries: {
                         staleTime: 60 * 1000,
-                        refetchOnWindowFocus: false
+                        refetchOnWindowFocus: false,
+                        retry: (failureCount, error) => {
+                            // Don't retry on 4xx errors
+                            if (error instanceof Error && 'status' in error) {
+                                const status = (error as unknown as { status: number }).status
+                                if (status >= 400 && status < 500) {
+                                    return false
+                                }
+                            }
+                            return failureCount < 3
+                        }
+                    },
+                    mutations: {
+                        onError: error => {
+                            // eslint-disable-next-line no-console
+                            console.error('Mutation error:', error)
+                        }
                     }
                 }
             })

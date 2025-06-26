@@ -39,6 +39,13 @@ export const uploadFile = async (
         }
 
         if (error) {
+            // eslint-disable-next-line no-console
+            console.error('File upload failed:', {
+                error,
+                fileName: sanitizedName,
+                userId,
+                bucket: BUCKET_NAME
+            })
             throw error
         }
 
@@ -57,6 +64,8 @@ export const uploadFile = async (
 
         return uploadedFile
     } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error('Unexpected upload error:', error)
         const storageError: StorageError = {
             message: error instanceof Error ? error.message : 'Failed to upload file',
             code:
@@ -77,6 +86,12 @@ export const listFiles = async (userId: string): Promise<UploadedFile[]> => {
         })
 
         if (error) {
+            // eslint-disable-next-line no-console
+            console.error('Failed to list files:', {
+                error,
+                userId,
+                bucket: BUCKET_NAME
+            })
             throw error
         }
 
@@ -103,6 +118,8 @@ export const listFiles = async (userId: string): Promise<UploadedFile[]> => {
 
         return files
     } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error('Unexpected list files error:', error)
         const storageError: StorageError = {
             message: error instanceof Error ? error.message : 'Failed to list files',
             code:
@@ -119,9 +136,17 @@ export const deleteFile = async (filePath: string): Promise<void> => {
         const { error } = await supabase.storage.from(BUCKET_NAME).remove([filePath])
 
         if (error) {
+            // eslint-disable-next-line no-console
+            console.error('Failed to delete file:', {
+                error,
+                filePath,
+                bucket: BUCKET_NAME
+            })
             throw error
         }
     } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error('Unexpected delete file error:', error)
         const storageError: StorageError = {
             message: error instanceof Error ? error.message : 'Failed to delete file',
             code:
@@ -146,11 +171,20 @@ export const getSignedUrl = async (filePath: string, expiresIn = 3600): Promise<
             .createSignedUrl(filePath, expiresIn)
 
         if (error) {
+            // eslint-disable-next-line no-console
+            console.error('Failed to create signed URL:', {
+                error,
+                filePath,
+                bucket: BUCKET_NAME,
+                expiresIn
+            })
             throw error
         }
 
         return data.signedUrl
     } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error('Unexpected signed URL error:', error)
         const storageError: StorageError = {
             message: error instanceof Error ? error.message : 'Failed to create signed URL',
             code:

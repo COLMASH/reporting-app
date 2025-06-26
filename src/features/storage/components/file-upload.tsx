@@ -49,6 +49,8 @@ export const FileUpload = ({ userId }: FileUploadProps) => {
                     prev ? { ...prev, progress: 100, status: 'completed' } : null
                 )
             } catch (error) {
+                // eslint-disable-next-line no-console
+                console.error('File upload error:', error)
                 const errorMessage =
                     error instanceof Error ? error.message : 'Failed to upload file'
                 setUploadProgress(prev =>
