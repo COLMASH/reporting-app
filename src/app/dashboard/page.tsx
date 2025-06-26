@@ -1,5 +1,6 @@
 import { auth } from '@/auth'
 import { LogoutButton } from '@/features/auth/components/logout-button'
+import { StorageDashboard } from '@/features/storage/components/storage-dashboard'
 
 export default async function DashboardPage() {
     const session = await auth()
@@ -19,7 +20,7 @@ export default async function DashboardPage() {
                 </div>
             </div>
 
-            <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+            <main className="mx-auto max-w-7xl space-y-8 px-4 py-8 sm:px-6 lg:px-8">
                 <div className="rounded-lg bg-white px-5 py-6 shadow sm:px-6">
                     <div className="border-b border-gray-200 pb-5">
                         <h3 className="text-lg leading-6 font-medium text-gray-900">
@@ -63,6 +64,8 @@ export default async function DashboardPage() {
                         </div>
                     </div>
                 </div>
+
+                <StorageDashboard userId={session.user.id} />
             </main>
         </div>
     )

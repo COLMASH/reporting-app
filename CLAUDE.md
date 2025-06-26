@@ -14,6 +14,7 @@ Reporting application for Malatesta Group using Next.js 15, TypeScript, and Next
 - **Named exports only** - Avoid default exports
 - **No `any` types** - Use `unknown` or proper types
 - **Use route constants** - Never hardcode paths like '/dashboard'
+- **Direct imports only** - No barrel imports (index.ts re-exports)
 
 ### Development Workflow
 
@@ -36,9 +37,14 @@ Reporting application for Malatesta Group using Next.js 15, TypeScript, and Next
 
 ### State Management
 
-- **Server state**: TanStack Query
+- **Server state**: TanStack Query (ALWAYS use for client-side data fetching)
 - **Client state**: Zustand (when needed)
 - **Forms**: React Hook Form + Zod
+
+### UI Development
+
+- **ALWAYS use `cn` utility** for Tailwind class logic
+- Never concatenate classes manually - use `cn()` from `@/lib/utils/cn`
 
 ### Essential Commands
 
