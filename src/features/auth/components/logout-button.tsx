@@ -1,11 +1,20 @@
 'use client'
 
 import { signOut } from 'next-auth/react'
+import { useRouter } from 'next/navigation'
 import { ROUTES } from '@/routes'
 
 export function LogoutButton() {
+    const router = useRouter()
+
     const handleLogout = async () => {
-        await signOut({ redirect: true, callbackUrl: ROUTES.HOME })
+        try {
+            await signOut({ redirect: true, callbackUrl: ROUTES.HOME })
+        } catch (error) {
+            // eslint-disable-next-line no-console
+            console.error('Logout error:', error)
+            router.push(ROUTES.HOME)
+        }
     }
 
     return (

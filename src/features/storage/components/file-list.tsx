@@ -12,7 +12,7 @@ export const FileList = ({ userId }: FileListProps) => {
     const { data: files = [], isLoading, error } = useFiles(userId)
     const deleteFileMutation = useDeleteFile()
 
-    const handleDelete = async (file: UploadedFile) => {
+    const handleDelete = (file: UploadedFile) => {
         if (!confirm(`Are you sure you want to delete ${file.name}?`)) {
             return
         }
