@@ -43,8 +43,12 @@ Reporting application for Malatesta Group using Next.js 15, TypeScript, and Next
 
 ### UI Development
 
-- **ALWAYS use `cn` utility** for Tailwind class logic
-- Never concatenate classes manually - use `cn()` from `@/lib/utils/cn`
+- **Theme System**:
+    - NEVER use hardcoded colors (e.g., `text-gray-500`, `bg-blue-600`)
+    - ALWAYS use semantic colors: `bg-background`, `text-foreground`, `text-muted-foreground`, etc.
+    - All color changes go in `globals.css` CSS variables only
+    - Use `cn()` utility ONLY for conditional logic, not static classes
+- **Dark Mode**: Automatic via CSS variables - components don't need theme logic
 
 ### Essential Commands
 

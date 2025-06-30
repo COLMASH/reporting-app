@@ -3,6 +3,7 @@
 import { FileUpload } from '@/features/storage/components/file-upload'
 import { FileList } from '@/features/storage/components/file-list'
 import { Toaster } from 'sonner'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
 interface StorageDashboardProps {
     userId: string
@@ -11,34 +12,32 @@ interface StorageDashboardProps {
 export const StorageDashboard = ({ userId }: StorageDashboardProps) => {
     return (
         <>
-            <Toaster position="top-right" />
+            <Toaster position="top-right" theme="system" />
 
-            <div className="rounded-lg bg-white px-5 py-6 shadow sm:px-6">
-                <div className="border-b border-gray-200 pb-5">
-                    <h3 className="text-lg leading-6 font-medium text-gray-900">File Upload</h3>
-                    <p className="mt-2 max-w-4xl text-sm text-gray-500">
+            <Card>
+                <CardHeader>
+                    <CardTitle className="text-lg sm:text-xl">File Upload</CardTitle>
+                    <CardDescription className="text-sm sm:text-base">
                         Upload and manage your files. Supported formats: JPEG, PNG, GIF, PDF, Excel,
                         CSV (max 10MB)
-                    </p>
-                </div>
-
-                <div className="mt-6">
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
                     <FileUpload userId={userId} />
-                </div>
-            </div>
+                </CardContent>
+            </Card>
 
-            <div className="rounded-lg bg-white px-5 py-6 shadow sm:px-6">
-                <div className="border-b border-gray-200 pb-5">
-                    <h3 className="text-lg leading-6 font-medium text-gray-900">Your Files</h3>
-                    <p className="mt-2 max-w-4xl text-sm text-gray-500">
+            <Card>
+                <CardHeader>
+                    <CardTitle className="text-lg sm:text-xl">Your Files</CardTitle>
+                    <CardDescription className="text-sm sm:text-base">
                         View and manage your uploaded files
-                    </p>
-                </div>
-
-                <div className="mt-6">
+                    </CardDescription>
+                </CardHeader>
+                <CardContent className="p-0">
                     <FileList userId={userId} />
-                </div>
-            </div>
+                </CardContent>
+            </Card>
         </>
     )
 }

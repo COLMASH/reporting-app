@@ -1,6 +1,8 @@
 import { auth } from '@/auth'
 import { LogoutButton } from '@/features/auth/components/logout-button'
 import { StorageDashboard } from '@/features/storage/components/storage-dashboard'
+import { ThemeToggle } from '@/components/common/theme-toggle'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
 export default async function DashboardPage() {
     const session = await auth()
@@ -10,62 +12,82 @@ export default async function DashboardPage() {
     }
 
     return (
-        <div className="min-h-screen bg-gray-100">
-            <div className="bg-white shadow">
+        <div className="bg-background min-h-screen">
+            <header className="border-border bg-card border-b">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                    <div className="flex h-16 items-center justify-between">
-                        <h1 className="text-xl font-semibold">Dashboard</h1>
-                        <LogoutButton />
-                    </div>
-                </div>
-            </div>
-
-            <main className="mx-auto max-w-7xl space-y-8 px-4 py-8 sm:px-6 lg:px-8">
-                <div className="rounded-lg bg-white px-5 py-6 shadow sm:px-6">
-                    <div className="border-b border-gray-200 pb-5">
-                        <h3 className="text-lg leading-6 font-medium text-gray-900">
-                            Welcome, {session.user.name || session.user.email}!
-                        </h3>
-                        <p className="mt-2 max-w-4xl text-sm text-gray-500">
-                            This is your dashboard. Your account details are shown below.
-                        </p>
-                    </div>
-
-                    <div className="mt-6 space-y-4">
-                        <div>
-                            <span className="text-sm font-medium text-gray-500">Email:</span>
-                            <p className="mt-1 text-sm text-gray-900">{session.user.email}</p>
-                        </div>
-                        {session.user.name && (
-                            <div>
-                                <span className="text-sm font-medium text-gray-500">Name:</span>
-                                <p className="mt-1 text-sm text-gray-900">{session.user.name}</p>
-                            </div>
-                        )}
-                        {session.user.company_name && (
-                            <div>
-                                <span className="text-sm font-medium text-gray-500">Company:</span>
-                                <p className="mt-1 text-sm text-gray-900">
-                                    {session.user.company_name}
-                                </p>
-                            </div>
-                        )}
-                        <div>
-                            <span className="text-sm font-medium text-gray-500">Role:</span>
-                            <p className="mt-1 text-sm text-gray-900 capitalize">
-                                {session.user.role}
-                            </p>
-                        </div>
-                        <div>
-                            <span className="text-sm font-medium text-gray-500">Status:</span>
-                            <p className="mt-1 text-sm text-gray-900">
-                                {session.user.is_active ? 'Active' : 'Inactive'}
-                            </p>
+                    <div className="flex h-14 items-center justify-between sm:h-16">
+                        <h1 className="text-lg font-semibold sm:text-xl">Dashboard</h1>
+                        <div className="flex items-center gap-2">
+                            <ThemeToggle />
+                            <LogoutButton />
                         </div>
                     </div>
                 </div>
+            </header>
 
-                <StorageDashboard userId={session.user.id} />
+            <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
+                <div className="grid gap-6">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="text-lg sm:text-xl">
+                                Welcome, {session.user.name || session.user.email}!
+                            </CardTitle>
+                            <CardDescription className="text-sm sm:text-base">
+                                This is your dashboard. Your account details are shown below.
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                                <div>
+                                    <span className="text-muted-foreground text-xs font-medium sm:text-sm">
+                                        Email
+                                    </span>
+                                    <p className="mt-1 text-sm break-all sm:text-base">
+                                        {session.user.email}
+                                    </p>
+                                </div>
+                                {session.user.name && (
+                                    <div>
+                                        <span className="text-muted-foreground text-xs font-medium sm:text-sm">
+                                            Name
+                                        </span>
+                                        <p className="mt-1 text-sm sm:text-base">
+                                            {session.user.name}
+                                        </p>
+                                    </div>
+                                )}
+                                {session.user.company_name && (
+                                    <div>
+                                        <span className="text-muted-foreground text-xs font-medium sm:text-sm">
+                                            Company
+                                        </span>
+                                        <p className="mt-1 text-sm sm:text-base">
+                                            {session.user.company_name}
+                                        </p>
+                                    </div>
+                                )}
+                                <div>
+                                    <span className="text-muted-foreground text-xs font-medium sm:text-sm">
+                                        Role
+                                    </span>
+                                    <p className="mt-1 text-sm capitalize sm:text-base">
+                                        {session.user.role}
+                                    </p>
+                                </div>
+                                <div>
+                                    <span className="text-muted-foreground text-xs font-medium sm:text-sm">
+                                        Status
+                                    </span>
+                                    <p className="mt-1 text-sm sm:text-base">
+                                        {session.user.is_active ? 'Active' : 'Inactive'}
+                                    </p>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <StorageDashboard userId={session.user.id} />
+                </div>
             </main>
         </div>
     )

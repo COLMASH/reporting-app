@@ -7,6 +7,7 @@ import { fileUploadSchema, ALLOWED_FILE_TYPES, MAX_FILE_SIZE } from '../types'
 import type { UploadProgress } from '../types'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils/cn'
+import { Upload } from 'lucide-react'
 
 interface FileUploadProps {
     userId: string
@@ -85,46 +86,35 @@ export const FileUpload = ({ userId }: FileUploadProps) => {
             <div
                 {...getRootProps()}
                 className={cn(
-                    'relative cursor-pointer rounded-lg border-2 border-dashed p-6 text-center transition-colors duration-200',
+                    'relative cursor-pointer rounded-lg border-2 border-dashed p-4 text-center transition-all duration-200 sm:p-6',
                     isDragActive
-                        ? 'border-blue-500 bg-blue-50'
-                        : 'border-gray-300 hover:border-gray-400',
+                        ? 'border-primary bg-primary/5 dark:bg-primary/10'
+                        : 'border-border hover:border-muted-foreground/50',
                     uploadFileMutation.isPending && 'cursor-not-allowed opacity-50'
                 )}
             >
                 <input {...getInputProps()} />
 
-                <svg
-                    className="mx-auto h-12 w-12 text-gray-400"
-                    stroke="currentColor"
-                    fill="none"
-                    viewBox="0 0 48 48"
-                    aria-hidden="true"
-                >
-                    <path
-                        d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
-                        strokeWidth={2}
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                    />
-                </svg>
+                <Upload className="text-muted-foreground mx-auto h-10 w-10 sm:h-12 sm:w-12" />
 
-                <p className="mt-2 text-sm text-gray-600">
+                <p className="text-foreground mt-2 text-sm sm:text-base">
                     {isDragActive
                         ? 'Drop the file here'
                         : 'Drag and drop a file here, or click to select'}
                 </p>
 
-                <p className="mt-1 text-xs text-gray-500">
+                <p className="text-muted-foreground mt-1 text-xs sm:text-sm">
                     Supported: JPEG, PNG, GIF, PDF, Excel, CSV (max 10MB)
                 </p>
             </div>
 
             {uploadProgress && (
                 <div className="mt-4">
-                    <div className="flex items-center justify-between text-sm">
-                        <span className="font-medium">{uploadProgress.fileName}</span>
-                        <span className="text-gray-500">
+                    <div className="flex items-center justify-between text-xs sm:text-sm">
+                        <span className="max-w-[200px] truncate font-medium sm:max-w-none">
+                            {uploadProgress.fileName}
+                        </span>
+                        <span className="text-muted-foreground">
                             {uploadProgress.status === 'uploading' && `${uploadProgress.progress}%`}
                             {uploadProgress.status === 'completed' && '✓ Completed'}
                             {uploadProgress.status === 'error' && '✗ Error'}
@@ -132,16 +122,16 @@ export const FileUpload = ({ userId }: FileUploadProps) => {
                     </div>
 
                     {uploadProgress.status === 'uploading' && (
-                        <div className="mt-1 h-2 w-full rounded-full bg-gray-200">
+                        <div className="bg-secondary mt-2 h-2 w-full rounded-full">
                             <div
-                                className="h-2 rounded-full bg-blue-600 transition-all duration-300"
+                                className="bg-primary h-2 rounded-full transition-all duration-300"
                                 style={{ width: `${uploadProgress.progress}%` }}
                             />
                         </div>
                     )}
 
                     {uploadProgress.error && (
-                        <p className="mt-1 text-xs text-red-600">{uploadProgress.error}</p>
+                        <p className="text-destructive mt-1 text-xs">{uploadProgress.error}</p>
                     )}
                 </div>
             )}
