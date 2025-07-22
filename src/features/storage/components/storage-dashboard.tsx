@@ -5,11 +5,7 @@ import { FileList } from '@/features/storage/components/file-list'
 import { Toaster } from 'sonner'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
-interface StorageDashboardProps {
-    userId: string
-}
-
-export const StorageDashboard = ({ userId }: StorageDashboardProps) => {
+export const StorageDashboard = () => {
     return (
         <>
             <Toaster position="top-right" theme="system" />
@@ -18,12 +14,11 @@ export const StorageDashboard = ({ userId }: StorageDashboardProps) => {
                 <CardHeader>
                     <CardTitle className="text-lg sm:text-xl">File Upload</CardTitle>
                     <CardDescription className="text-sm sm:text-base">
-                        Upload and manage your files. Supported formats: JPEG, PNG, GIF, PDF, Excel,
-                        CSV (max 10MB)
+                        Upload Excel files for analysis. Supported formats: .xlsx, .xls (max 50MB)
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <FileUpload userId={userId} />
+                    <FileUpload />
                 </CardContent>
             </Card>
 
@@ -35,7 +30,7 @@ export const StorageDashboard = ({ userId }: StorageDashboardProps) => {
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="p-0">
-                    <FileList userId={userId} />
+                    <FileList />
                 </CardContent>
             </Card>
         </>

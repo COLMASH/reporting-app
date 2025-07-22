@@ -103,6 +103,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                 created_at: new Date().toISOString()
             }
 
+            // Include accessToken in session for API calls
+            session.accessToken = token.accessToken as string
+
             return session
         }
     },

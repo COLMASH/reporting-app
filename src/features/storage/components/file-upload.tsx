@@ -3,137 +3,154 @@
 import { useCallback, useState } from 'react'
 import { useDropzone } from 'react-dropzone'
 import { useUploadFile } from '../hooks/use-storage'
-import { fileUploadSchema, ALLOWED_FILE_TYPES, MAX_FILE_SIZE } from '../types'
-import type { UploadProgress } from '../types'
+import { fileUploadSchema, ALLOWED_FILE_TYPES, MAX_FILE_SIZE, DataClassification } from '../types'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils/cn'
 import { Upload } from 'lucide-react'
+import { Label } from '@/components/ui/label'
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue
+} from '@/components/ui/select'
+import { Button } from '@/components/ui/button'
 
-interface FileUploadProps {
-    userId: string
-}
+const COMPANY_OPTIONS = ['ILV', 'Dovela', 'Pivert'] as const
 
-export const FileUpload = ({ userId }: FileUploadProps) => {
-    const [uploadProgress, setUploadProgress] = useState<UploadProgress | null>(null)
-    const uploadFileMutation = useUploadFile()
+export const FileUpload = () => {
+    const [companyName, setCompanyName] = useState('')
+    const [dataClassification, setDataClassification] = useState<DataClassification | ''>('')
+    const [selectedFile, setSelectedFile] = useState<File | null>(null)
+    const { mutate: uploadFile, isPending: isUploading } = useUploadFile()
 
-    const handleFileUpload = useCallback(
-        async (file: File) => {
-            if (!userId) {
-                toast.error('You must be logged in to upload files')
-                return
+    const handleFileUpload = useCallback(async () => {
+        if (!selectedFile || !companyName) {
+            toast.error('Please select a file and company name')
+            return
+        }
+
+        try {
+            // Validate file
+            const validationResult = fileUploadSchema.safeParse({
+                file: selectedFile,
+                companyName,
+                dataClassification: dataClassification || undefined
+            })
+
+            if (!validationResult.success) {
+                throw new Error(validationResult.error.errors[0].message)
             }
 
-            try {
-                // Validate file
-                const validationResult = fileUploadSchema.safeParse({ file })
-                if (!validationResult.success) {
-                    throw new Error(validationResult.error.errors[0].message)
-                }
+            uploadFile({
+                file: selectedFile,
+                companyName,
+                dataClassification: dataClassification || undefined
+            })
 
-                setUploadProgress({
-                    fileId: `temp-${Date.now()}`,
-                    fileName: file.name,
-                    progress: 0,
-                    status: 'uploading'
-                })
+            // Reset form on successful upload
+            setSelectedFile(null)
+            setCompanyName('')
+            setDataClassification('')
+        } catch (error) {
+            // eslint-disable-next-line no-console
+            console.error('File upload error:', error)
+            const errorMessage = error instanceof Error ? error.message : 'Failed to upload file'
+            toast.error(errorMessage)
+        }
+    }, [selectedFile, companyName, dataClassification, uploadFile])
 
-                await uploadFileMutation.mutateAsync({
-                    file,
-                    userId,
-                    onProgress: progress => {
-                        setUploadProgress(prev => (prev ? { ...prev, progress } : null))
-                    }
-                })
-
-                setUploadProgress(prev =>
-                    prev ? { ...prev, progress: 100, status: 'completed' } : null
-                )
-            } catch (error) {
-                // eslint-disable-next-line no-console
-                console.error('File upload error:', error)
-                const errorMessage =
-                    error instanceof Error ? error.message : 'Failed to upload file'
-                setUploadProgress(prev =>
-                    prev ? { ...prev, status: 'error', error: errorMessage } : null
-                )
-            } finally {
-                setTimeout(() => setUploadProgress(null), 3000)
-            }
-        },
-        [userId, uploadFileMutation]
-    )
-
-    const onDrop = useCallback(
-        (acceptedFiles: File[]) => {
-            if (acceptedFiles.length > 0) {
-                handleFileUpload(acceptedFiles[0])
-            }
-        },
-        [handleFileUpload]
-    )
+    const onDrop = useCallback((acceptedFiles: File[]) => {
+        if (acceptedFiles.length > 0) {
+            setSelectedFile(acceptedFiles[0])
+        }
+    }, [])
 
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
         onDrop,
         accept: ALLOWED_FILE_TYPES,
         maxSize: MAX_FILE_SIZE,
         maxFiles: 1,
-        disabled: uploadFileMutation.isPending
+        disabled: isUploading
     })
 
     return (
-        <div className="w-full">
-            <div
-                {...getRootProps()}
-                className={cn(
-                    'relative cursor-pointer rounded-lg border-2 border-dashed p-4 text-center transition-all duration-200 sm:p-6',
-                    isDragActive
-                        ? 'border-primary bg-primary/5 dark:bg-primary/10'
-                        : 'border-border hover:border-muted-foreground/50',
-                    uploadFileMutation.isPending && 'cursor-not-allowed opacity-50'
-                )}
-            >
-                <input {...getInputProps()} />
-
-                <Upload className="text-muted-foreground mx-auto h-10 w-10 sm:h-12 sm:w-12" />
-
-                <p className="text-foreground mt-2 text-sm sm:text-base">
-                    {isDragActive
-                        ? 'Drop the file here'
-                        : 'Drag and drop a file here, or click to select'}
-                </p>
-
-                <p className="text-muted-foreground mt-1 text-xs sm:text-sm">
-                    Supported: JPEG, PNG, GIF, PDF, Excel, CSV (max 10MB)
-                </p>
+        <div className="w-full space-y-4">
+            <div>
+                <Label htmlFor="company-name" className="mb-2">
+                    Company Name *
+                </Label>
+                <Select value={companyName} onValueChange={setCompanyName} disabled={isUploading}>
+                    <SelectTrigger id="company-name">
+                        <SelectValue placeholder="Select company" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {COMPANY_OPTIONS.map(company => (
+                            <SelectItem key={company} value={company}>
+                                {company}
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
             </div>
 
-            {uploadProgress && (
-                <div className="mt-4">
-                    <div className="flex items-center justify-between text-xs sm:text-sm">
-                        <span className="max-w-[200px] truncate font-medium sm:max-w-none">
-                            {uploadProgress.fileName}
-                        </span>
-                        <span className="text-muted-foreground">
-                            {uploadProgress.status === 'uploading' && `${uploadProgress.progress}%`}
-                            {uploadProgress.status === 'completed' && '✓ Completed'}
-                            {uploadProgress.status === 'error' && '✗ Error'}
-                        </span>
-                    </div>
+            <div>
+                <Label htmlFor="data-classification" className="mb-2">
+                    Data Classification (Optional)
+                </Label>
+                <Select
+                    value={dataClassification}
+                    onValueChange={value => setDataClassification(value as DataClassification | '')}
+                    disabled={isUploading}
+                >
+                    <SelectTrigger id="data-classification">
+                        <SelectValue placeholder="Select classification" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="portfolio">Portfolio</SelectItem>
+                        <SelectItem value="operations">Operations</SelectItem>
+                        <SelectItem value="project_management">Project Management</SelectItem>
+                        <SelectItem value="finance">Finance</SelectItem>
+                        <SelectItem value="other">Other</SelectItem>
+                    </SelectContent>
+                </Select>
+            </div>
 
-                    {uploadProgress.status === 'uploading' && (
-                        <div className="bg-secondary mt-2 h-2 w-full rounded-full">
-                            <div
-                                className="bg-primary h-2 rounded-full transition-all duration-300"
-                                style={{ width: `${uploadProgress.progress}%` }}
-                            />
-                        </div>
+            <div>
+                <Label>Upload Excel File *</Label>
+                <div
+                    {...getRootProps()}
+                    className={cn(
+                        'relative mt-1 cursor-pointer rounded-lg border-2 border-dashed p-4 text-center transition-all duration-200 sm:p-6',
+                        isDragActive
+                            ? 'border-primary bg-primary/5 dark:bg-primary/10'
+                            : 'border-border hover:border-muted-foreground/50',
+                        isUploading && 'cursor-not-allowed opacity-50'
                     )}
+                >
+                    <input {...getInputProps()} />
 
-                    {uploadProgress.error && (
-                        <p className="text-destructive mt-1 text-xs">{uploadProgress.error}</p>
-                    )}
+                    <Upload className="text-muted-foreground mx-auto h-10 w-10 sm:h-12 sm:w-12" />
+
+                    <p className="text-foreground mt-2 text-sm sm:text-base">
+                        {isDragActive
+                            ? 'Drop the Excel file here'
+                            : selectedFile
+                              ? `Selected: ${selectedFile.name}`
+                              : 'Drag and drop an Excel file here, or click to select'}
+                    </p>
+
+                    <p className="text-muted-foreground mt-1 text-xs sm:text-sm">
+                        Only Excel files (.xlsx, .xls) up to 50MB
+                    </p>
                 </div>
+            </div>
+
+            {selectedFile && companyName && (
+                <Button onClick={handleFileUpload} disabled={isUploading} className="w-full">
+                    {isUploading ? 'Uploading...' : 'Upload File'}
+                </Button>
             )}
         </div>
     )

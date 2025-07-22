@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useFiles, useDeleteFile } from '../hooks/use-storage'
-import type { UploadedFile } from '../types'
+import type { FileResponse } from '../types'
 import { cn } from '@/lib/utils/cn'
 import { Button } from '@/components/ui/button'
 import {
@@ -13,26 +13,22 @@ import {
     DialogHeader,
     DialogTitle
 } from '@/components/ui/dialog'
-import { Trash2, ExternalLink, Loader2 } from 'lucide-react'
+import { Trash2, FileSpreadsheet, Loader2 } from 'lucide-react'
 
-interface FileListProps {
-    userId: string
-}
-
-export const FileList = ({ userId }: FileListProps) => {
-    const { data: files = [], isLoading, error } = useFiles(userId)
-    const deleteFileMutation = useDeleteFile()
+export const FileList = () => {
+    const { data: files = [], isLoading, error } = useFiles()
+    const { mutate: deleteFile, isPending: isDeleting } = useDeleteFile()
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
-    const [fileToDelete, setFileToDelete] = useState<UploadedFile | null>(null)
+    const [fileToDelete, setFileToDelete] = useState<FileResponse | null>(null)
 
-    const handleDeleteClick = (file: UploadedFile) => {
+    const handleDeleteClick = (file: FileResponse) => {
         setFileToDelete(file)
         setDeleteDialogOpen(true)
     }
 
     const handleConfirmDelete = () => {
         if (fileToDelete) {
-            deleteFileMutation.mutate({ filePath: fileToDelete.id, userId })
+            deleteFile(fileToDelete.id)
             setDeleteDialogOpen(false)
             setFileToDelete(null)
         }
@@ -52,13 +48,27 @@ export const FileList = ({ userId }: FileListProps) => {
     }
 
     const formatDate = (dateString: string): string => {
-        return new Date(dateString).toLocaleDateString('en-US', {
+        // Ensure the timestamp is interpreted as UTC if it doesn't have timezone info
+        const date = new Date(
+            dateString.includes('Z') || dateString.includes('+') ? dateString : dateString + 'Z'
+        )
+        return date.toLocaleDateString('en-US', {
             year: 'numeric',
             month: 'short',
             day: 'numeric',
             hour: '2-digit',
-            minute: '2-digit'
+            minute: '2-digit',
+            timeZone: 'UTC',
+            timeZoneName: 'short'
         })
+    }
+
+    const getClassificationLabel = (classification?: string): string => {
+        if (!classification) return 'N/A'
+        return classification
+            .split('_')
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(' ')
     }
 
     if (isLoading) {
@@ -80,7 +90,7 @@ export const FileList = ({ userId }: FileListProps) => {
     if (files.length === 0) {
         return (
             <div className="text-muted-foreground px-4 py-8 text-center">
-                No files uploaded yet. Upload your first file to get started!
+                No files uploaded yet. Upload your first Excel file to get started!
             </div>
         )
     }
@@ -95,9 +105,15 @@ export const FileList = ({ userId }: FileListProps) => {
                                 File Name
                             </th>
                             <th className="text-muted-foreground hidden px-4 py-3 text-left text-xs font-medium tracking-wider uppercase sm:table-cell">
-                                Size
+                                Company
                             </th>
                             <th className="text-muted-foreground hidden px-4 py-3 text-left text-xs font-medium tracking-wider uppercase md:table-cell">
+                                Classification
+                            </th>
+                            <th className="text-muted-foreground hidden px-4 py-3 text-left text-xs font-medium tracking-wider uppercase lg:table-cell">
+                                Size
+                            </th>
+                            <th className="text-muted-foreground hidden px-4 py-3 text-left text-xs font-medium tracking-wider uppercase xl:table-cell">
                                 Uploaded
                             </th>
                             <th className="text-muted-foreground px-4 py-3 text-right text-xs font-medium tracking-wider uppercase">
@@ -109,55 +125,48 @@ export const FileList = ({ userId }: FileListProps) => {
                         {files.map(file => (
                             <tr key={file.id} className="hover:bg-muted/50 transition-colors">
                                 <td className="px-4 py-3">
-                                    <div>
-                                        <p className="max-w-[200px] truncate text-sm font-medium sm:max-w-[300px] md:max-w-none">
-                                            {file.name}
-                                        </p>
-                                        <p className="text-muted-foreground text-xs sm:hidden">
-                                            {formatFileSize(file.size)}
-                                        </p>
-                                        <p className="text-muted-foreground text-xs md:hidden">
-                                            {formatDate(file.uploadedAt)}
-                                        </p>
+                                    <div className="flex items-center">
+                                        <FileSpreadsheet className="text-muted-foreground mr-2 h-4 w-4 flex-shrink-0" />
+                                        <div>
+                                            <p className="max-w-[200px] truncate text-sm font-medium sm:max-w-[300px] md:max-w-none">
+                                                {file.original_filename}
+                                            </p>
+                                            <p className="text-muted-foreground text-xs sm:hidden">
+                                                {file.company_name} •{' '}
+                                                {formatFileSize(file.file_size)}
+                                            </p>
+                                        </div>
                                     </div>
                                 </td>
                                 <td className="text-muted-foreground hidden px-4 py-3 text-sm sm:table-cell">
-                                    {formatFileSize(file.size)}
+                                    {file.company_name}
                                 </td>
                                 <td className="text-muted-foreground hidden px-4 py-3 text-sm md:table-cell">
-                                    {formatDate(file.uploadedAt)}
+                                    <span className="bg-muted rounded-md px-2 py-1 text-xs">
+                                        {getClassificationLabel(file.data_classification)}
+                                    </span>
+                                </td>
+                                <td className="text-muted-foreground hidden px-4 py-3 text-sm lg:table-cell">
+                                    {formatFileSize(file.file_size)}
+                                </td>
+                                <td className="text-muted-foreground hidden px-4 py-3 text-sm xl:table-cell">
+                                    {formatDate(file.created_at)}
                                 </td>
                                 <td className="px-4 py-3">
-                                    <div className="flex justify-end gap-1 sm:gap-2">
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            className="h-8 w-8 p-0 sm:h-9 sm:w-auto sm:px-3"
-                                            asChild
-                                        >
-                                            <a
-                                                href={file.url}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                title="View file"
-                                            >
-                                                <ExternalLink className="h-4 w-4" />
-                                                <span className="ml-2 hidden sm:inline">View</span>
-                                            </a>
-                                        </Button>
+                                    <div className="flex justify-end">
                                         <Button
                                             variant="ghost"
                                             size="sm"
                                             onClick={() => handleDeleteClick(file)}
-                                            disabled={deleteFileMutation.isPending}
+                                            disabled={isDeleting}
                                             className={cn(
                                                 'h-8 w-8 p-0 sm:h-9 sm:w-auto sm:px-3',
                                                 'text-destructive hover:text-destructive hover:bg-destructive/10',
-                                                deleteFileMutation.isPending && 'opacity-50'
+                                                isDeleting && 'opacity-50'
                                             )}
                                             title="Delete file"
                                         >
-                                            {deleteFileMutation.isPending ? (
+                                            {isDeleting ? (
                                                 <Loader2 className="h-4 w-4 animate-spin" />
                                             ) : (
                                                 <>
@@ -181,8 +190,8 @@ export const FileList = ({ userId }: FileListProps) => {
                     <DialogHeader>
                         <DialogTitle>Delete file</DialogTitle>
                         <DialogDescription>
-                            Are you sure you want to delete &ldquo;{fileToDelete?.name}&rdquo;? This
-                            action cannot be undone.
+                            Are you sure you want to delete &ldquo;{fileToDelete?.original_filename}
+                            &rdquo;? This action cannot be undone.
                         </DialogDescription>
                     </DialogHeader>
                     <DialogFooter>
@@ -192,9 +201,9 @@ export const FileList = ({ userId }: FileListProps) => {
                         <Button
                             variant="destructive"
                             onClick={handleConfirmDelete}
-                            disabled={deleteFileMutation.isPending}
+                            disabled={isDeleting}
                         >
-                            {deleteFileMutation.isPending ? (
+                            {isDeleting ? (
                                 <>
                                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                                     Deleting...

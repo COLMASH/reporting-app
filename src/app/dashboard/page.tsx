@@ -86,7 +86,7 @@ export default async function DashboardPage() {
                         </CardContent>
                     </Card>
 
-                    <StorageDashboard userId={session.user.id} />
+                    <StorageDashboard />
                 </div>
             </main>
         </div>
