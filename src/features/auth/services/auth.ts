@@ -1,7 +1,6 @@
 import { LoginFormData, TokenResponse, User } from '@/features/auth/types'
-import { getApiUrl } from '@/lib/utils/api-url'
 
-const API_URL = getApiUrl()
+const API_URL = process.env.NEXT_PUBLIC_API_URL || ''
 
 export async function login(credentials: LoginFormData): Promise<TokenResponse> {
     try {

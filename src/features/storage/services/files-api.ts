@@ -1,7 +1,6 @@
 import { FileResponse, FileListResponse, DataClassification } from '@/features/storage/types'
-import { getApiUrl } from '@/lib/utils/api-url'
 
-const API_URL = getApiUrl()
+const API_URL = process.env.NEXT_PUBLIC_API_URL || ''
 
 interface UploadFileParams {
     file: File
