@@ -12,6 +12,8 @@ import {
 } from 'redux-persist'
 import storage from 'redux-persist/lib/storage'
 import { filesApi } from './services/filesApi'
+import { reportingAnalysesApi } from './services/reportingAnalysesApi'
+import { resultsApi } from './services/resultsApi'
 import themeSlice from './features/themeSlice'
 
 const persistConfig = {
@@ -23,7 +25,9 @@ const persistConfig = {
 
 const rootReducer = combineReducers({
     themeSlice,
-    [filesApi.reducerPath]: filesApi.reducer
+    [filesApi.reducerPath]: filesApi.reducer,
+    [reportingAnalysesApi.reducerPath]: reportingAnalysesApi.reducer,
+    [resultsApi.reducerPath]: resultsApi.reducer
 })
 
 const persistedReducer = persistReducer(persistConfig, rootReducer)
@@ -35,7 +39,7 @@ export const store = configureStore({
             serializableCheck: {
                 ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER]
             }
-        }).concat([filesApi.middleware])
+        }).concat([filesApi.middleware, reportingAnalysesApi.middleware, resultsApi.middleware])
 })
 
 export const persistor = persistStore(store)

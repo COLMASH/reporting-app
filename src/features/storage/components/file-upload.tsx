@@ -60,10 +60,20 @@ export const FileUpload = () => {
             setCompanyName('')
             setDataClassification('')
         } catch (error) {
+            // Error is already handled by baseQuery for API errors
+            // This catch block handles validation errors from fileUploadSchema
+            if (error instanceof Error && error.message) {
+                // Only show toast for validation errors (not API errors)
+                const isValidationError =
+                    error.message.includes('Company name is required') ||
+                    error.message.includes('File size') ||
+                    error.message.includes('Only Excel files')
+                if (isValidationError) {
+                    toast.error(error.message)
+                }
+            }
             // eslint-disable-next-line no-console
             console.error('File upload error:', error)
-            const errorMessage = error instanceof Error ? error.message : 'Failed to upload file'
-            toast.error(errorMessage)
         }
     }, [selectedFile, companyName, dataClassification, uploadFile])
 

@@ -7,16 +7,18 @@ export type DataClassification =
     | 'finance'
     | 'other'
 
+export type FileStatus = 'uploaded' | 'processing' | 'completed' | 'failed'
+
 export interface FileResponse {
     id: string
     filename: string
     original_filename: string
-    file_size: number
-    mime_type: string
+    file_size: number | null
+    mime_type: string | null
     file_extension: string
     company_name: string
     data_classification?: DataClassification
-    status: string
+    status: FileStatus
     created_at: string
     supabase_path: string
     anthropic_file_id?: string

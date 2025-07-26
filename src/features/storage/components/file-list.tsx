@@ -36,9 +36,9 @@ export const FileList = () => {
                 setDeleteDialogOpen(false)
                 setFileToDelete(null)
             } catch (error) {
+                // Error is already handled by baseQuery
                 // eslint-disable-next-line no-console
                 console.error('Delete error:', error)
-                toast.error('Failed to delete file')
             }
         }
     }
@@ -48,8 +48,8 @@ export const FileList = () => {
         setFileToDelete(null)
     }
 
-    const formatFileSize = (bytes: number): string => {
-        if (bytes === 0) return '0 Bytes'
+    const formatFileSize = (bytes: number | null): string => {
+        if (!bytes || bytes === 0) return '0 Bytes'
         const k = 1024
         const sizes = ['Bytes', 'KB', 'MB', 'GB']
         const i = Math.floor(Math.log(bytes) / Math.log(k))
