@@ -1,10 +1,10 @@
 'use client'
 
 import { useEffect } from 'react'
-import { useThemeStore } from '@/store/theme'
+import { useAppSelector } from '@/redux/hooks'
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-    const theme = useThemeStore(state => state.theme)
+    const theme = useAppSelector(state => state.themeSlice.theme)
 
     useEffect(() => {
         const root = document.documentElement

@@ -1,9 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import { useFiles, useDeleteFile } from '../hooks/use-storage'
-import type { FileResponse } from '../types'
-import { cn } from '@/lib/utils/cn'
+import { useGetFilesQuery, useDeleteFileMutation } from '@/redux/services/filesApi'
+import type { FileResponse } from '@/redux/services/filesApi'
+import { toast } from 'sonner'
+import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import {
     Dialog,
@@ -16,8 +17,9 @@ import {
 import { Trash2, FileSpreadsheet, Loader2 } from 'lucide-react'
 
 export const FileList = () => {
-    const { data: files = [], isLoading, error } = useFiles()
-    const { mutate: deleteFile, isPending: isDeleting } = useDeleteFile()
+    const { data, isLoading, error } = useGetFilesQuery()
+    const [deleteFile, { isLoading: isDeleting }] = useDeleteFileMutation()
+    const files = data?.files || []
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
     const [fileToDelete, setFileToDelete] = useState<FileResponse | null>(null)
 
@@ -26,11 +28,18 @@ export const FileList = () => {
         setDeleteDialogOpen(true)
     }
 
-    const handleConfirmDelete = () => {
+    const handleConfirmDelete = async () => {
         if (fileToDelete) {
-            deleteFile(fileToDelete.id)
-            setDeleteDialogOpen(false)
-            setFileToDelete(null)
+            try {
+                await deleteFile(fileToDelete.id).unwrap()
+                toast.success('File deleted successfully')
+                setDeleteDialogOpen(false)
+                setFileToDelete(null)
+            } catch (error) {
+                // eslint-disable-next-line no-console
+                console.error('Delete error:', error)
+                toast.error('Failed to delete file')
+            }
         }
     }
 

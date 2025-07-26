@@ -27,6 +27,14 @@ export interface FileListResponse {
     total: number
 }
 
+export interface UploadFileRequest {
+    file: File
+    companyName: string
+    dataClassification?: DataClassification
+}
+
+export type UploadFileResponse = FileResponse
+
 export interface UploadProgress {
     fileId: string
     fileName: string
@@ -40,15 +48,21 @@ export interface StorageError {
     code?: string
 }
 
+export const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
+export const ALLOWED_FILE_TYPES = {
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'],
+    'application/vnd.ms-excel': ['.xls']
+}
+
 export const fileUploadSchema = z.object({
     file: z
         .instanceof(File)
-        .refine(file => file.size <= 50 * 1024 * 1024, 'File size must be less than 50MB')
+        .refine(
+            file => file.size <= MAX_FILE_SIZE,
+            `File size must be less than ${MAX_FILE_SIZE / (1024 * 1024)}MB`
+        )
         .refine(file => {
-            const allowedTypes = [
-                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                'application/vnd.ms-excel'
-            ]
+            const allowedTypes = Object.keys(ALLOWED_FILE_TYPES)
             return allowedTypes.includes(file.type)
         }, 'Only Excel files (.xlsx, .xls) are allowed'),
     companyName: z.string().min(1, 'Company name is required'),
@@ -58,9 +72,3 @@ export const fileUploadSchema = z.object({
 })
 
 export type FileUploadData = z.infer<typeof fileUploadSchema>
-
-export const MAX_FILE_SIZE = 50 * 1024 * 1024 // 50MB
-export const ALLOWED_FILE_TYPES = {
-    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'],
-    'application/vnd.ms-excel': ['.xls']
-}

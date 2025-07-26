@@ -2,10 +2,15 @@
 
 import { useCallback, useState } from 'react'
 import { useDropzone } from 'react-dropzone'
-import { useUploadFile } from '../hooks/use-storage'
-import { fileUploadSchema, ALLOWED_FILE_TYPES, MAX_FILE_SIZE, DataClassification } from '../types'
+import { useUploadFileMutation } from '@/redux/services/filesApi'
+import {
+    fileUploadSchema,
+    ALLOWED_FILE_TYPES,
+    MAX_FILE_SIZE,
+    type DataClassification
+} from '@/redux/services/filesApi'
 import { toast } from 'sonner'
-import { cn } from '@/lib/utils/cn'
+import { cn } from '@/lib/utils'
 import { Upload } from 'lucide-react'
 import { Label } from '@/components/ui/label'
 import {
@@ -23,7 +28,7 @@ export const FileUpload = () => {
     const [companyName, setCompanyName] = useState('')
     const [dataClassification, setDataClassification] = useState<DataClassification | ''>('')
     const [selectedFile, setSelectedFile] = useState<File | null>(null)
-    const { mutate: uploadFile, isPending: isUploading } = useUploadFile()
+    const [uploadFile, { isLoading: isUploading }] = useUploadFileMutation()
 
     const handleFileUpload = useCallback(async () => {
         if (!selectedFile || !companyName) {
@@ -43,13 +48,14 @@ export const FileUpload = () => {
                 throw new Error(validationResult.error.errors[0].message)
             }
 
-            uploadFile({
+            await uploadFile({
                 file: selectedFile,
                 companyName,
                 dataClassification: dataClassification || undefined
-            })
+            }).unwrap()
 
             // Reset form on successful upload
+            toast.success('File uploaded successfully')
             setSelectedFile(null)
             setCompanyName('')
             setDataClassification('')
@@ -142,7 +148,7 @@ export const FileUpload = () => {
                     </p>
 
                     <p className="text-muted-foreground mt-1 text-xs sm:text-sm">
-                        Only Excel files (.xlsx, .xls) up to 50MB
+                        Only Excel files (.xlsx, .xls) up to {MAX_FILE_SIZE / (1024 * 1024)}MB
                     </p>
                 </div>
             </div>
