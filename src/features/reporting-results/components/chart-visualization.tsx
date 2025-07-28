@@ -5,6 +5,8 @@ import {
     Chart as ChartJS,
     CategoryScale,
     LinearScale,
+    LogarithmicScale,
+    TimeScale,
     PointElement,
     LineElement,
     BarElement,
@@ -19,6 +21,9 @@ import {
     PieController,
     DoughnutController,
     RadarController,
+    ScatterController,
+    PolarAreaController,
+    BubbleController,
     type ChartType
 } from 'chart.js'
 import { Chart } from 'react-chartjs-2'
@@ -32,10 +37,12 @@ import type {
 } from '@/redux/services/reportingAnalysesApi'
 import type { ChartOptions as ChartJSOptions } from 'chart.js'
 
-// Register Chart.js components
+// Register all Chart.js components
 ChartJS.register(
     CategoryScale,
     LinearScale,
+    LogarithmicScale,
+    TimeScale,
     PointElement,
     LineElement,
     BarElement,
@@ -49,7 +56,10 @@ ChartJS.register(
     BarController,
     PieController,
     DoughnutController,
-    RadarController
+    RadarController,
+    ScatterController,
+    PolarAreaController,
+    BubbleController
 )
 
 interface ChartVisualizationProps {
