@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useState } from 'react'
+import { useCallback, useState, useEffect } from 'react'
 import { useDropzone } from 'react-dropzone'
 import { useUploadFileMutation } from '@/redux/services/filesApi'
 import {
@@ -21,14 +21,20 @@ import {
     SelectValue
 } from '@/components/ui/select'
 import { Button } from '@/components/ui/button'
-
-const COMPANY_OPTIONS = ['ILV', 'Dovela', 'Pivert'] as const
+import { useSession } from 'next-auth/react'
 
 export const FileUpload = () => {
+    const { data: session } = useSession()
     const [companyName, setCompanyName] = useState('')
     const [dataClassification, setDataClassification] = useState<DataClassification | ''>('')
     const [selectedFile, setSelectedFile] = useState<File | null>(null)
     const [uploadFile, { isLoading: isUploading }] = useUploadFileMutation()
+
+    useEffect(() => {
+        if (session?.user?.company_name) {
+            setCompanyName(session.user.company_name)
+        }
+    }, [session])
 
     const handleFileUpload = useCallback(async () => {
         if (!selectedFile || !companyName) {
@@ -97,16 +103,12 @@ export const FileUpload = () => {
                 <Label htmlFor="company-name" className="mb-2">
                     Company Name *
                 </Label>
-                <Select value={companyName} onValueChange={setCompanyName} disabled={isUploading}>
+                <Select value={companyName} onValueChange={setCompanyName} disabled>
                     <SelectTrigger id="company-name">
-                        <SelectValue placeholder="Select company" />
+                        <SelectValue placeholder="Loading company..." />
                     </SelectTrigger>
                     <SelectContent>
-                        {COMPANY_OPTIONS.map(company => (
-                            <SelectItem key={company} value={company}>
-                                {company}
-                            </SelectItem>
-                        ))}
+                        {companyName && <SelectItem value={companyName}>{companyName}</SelectItem>}
                     </SelectContent>
                 </Select>
             </div>

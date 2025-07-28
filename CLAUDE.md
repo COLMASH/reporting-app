@@ -50,6 +50,35 @@ Reporting application for Malatesta Group using Next.js 15, TypeScript, and Next
     - Use `cn()` utility ONLY for conditional logic, not static classes
 - **Dark Mode**: Automatic via CSS variables - components don't need theme logic
 
+### Using the cn() utility function
+
+The `cn()` function from `@/lib/utils` should be used for conditional classes ONLY:
+
+```typescript
+// ✅ CORRECT - Object syntax for conditional classes
+className={cn('base-classes', {
+    'conditional-class-1': condition1,
+    'conditional-class-2': condition2,
+    'conditional-class-3': !condition1
+})}
+
+// ✅ CORRECT - Boolean conditional
+className={cn(
+    'base-classes',
+    isActive && 'active-classes',
+    isDisabled && 'disabled-classes'
+)}
+
+// ❌ WRONG - Don't use for static classes
+className={cn('static-class-1 static-class-2')}
+
+// ❌ WRONG - Don't use template literals
+className={`base ${condition ? 'class1' : 'class2'}`}
+
+// ❌ WRONG - Don't use ternary inside cn
+className={cn('base', condition ? 'class1' : 'class2')}
+```
+
 ### Essential Commands
 
 ```bash

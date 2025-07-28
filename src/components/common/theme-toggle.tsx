@@ -19,16 +19,16 @@ export function ThemeToggle() {
             aria-label="Toggle theme"
         >
             <Sun
-                className={cn(
-                    'h-4 w-4 transition-all sm:h-5 sm:w-5',
-                    theme === 'dark' ? 'scale-0 rotate-90' : 'scale-100 rotate-0'
-                )}
+                className={cn('h-4 w-4 transition-all sm:h-5 sm:w-5', {
+                    'scale-0 rotate-90': theme === 'dark',
+                    'scale-100 rotate-0': theme !== 'dark'
+                })}
             />
             <Moon
-                className={cn(
-                    'absolute h-4 w-4 transition-all sm:h-5 sm:w-5',
-                    theme === 'dark' ? 'scale-100 rotate-0' : 'scale-0 -rotate-90'
-                )}
+                className={cn('absolute h-4 w-4 transition-all sm:h-5 sm:w-5', {
+                    'scale-100 rotate-0': theme === 'dark',
+                    'scale-0 -rotate-90': theme !== 'dark'
+                })}
             />
         </Button>
     )
