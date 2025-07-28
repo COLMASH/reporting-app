@@ -1,7 +1,7 @@
 'use client'
 
 import { Lightbulb, Target } from 'lucide-react'
-import { AnalysisResultCard } from './AnalysisResultCard'
+import { AnalysisResultCard } from './analysis-result-card'
 import { cn } from '@/lib/utils'
 
 interface RecommendationsListProps {

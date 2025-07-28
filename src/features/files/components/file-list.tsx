@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useGetFilesQuery, useDeleteFileMutation } from '@/redux/services/filesApi'
 import type { FileResponse } from '@/redux/services/filesApi'
+import type { AnalysisResponse } from '@/redux/services/reportingAnalysesApi'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -15,6 +16,8 @@ import {
     DialogTitle
 } from '@/components/ui/dialog'
 import { Trash2, FileSpreadsheet, Loader2 } from 'lucide-react'
+import { AnalysesDropdown } from '@/features/reporting-results/components/analyses-dropdown'
+import { AnalysisResultsDialog } from '@/features/reporting-results/components/analysis-results-dialog'
 
 export const FileList = () => {
     const { data, isLoading, error } = useGetFilesQuery()
@@ -22,6 +25,9 @@ export const FileList = () => {
     const files = data?.files || []
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
     const [fileToDelete, setFileToDelete] = useState<FileResponse | null>(null)
+    const [selectedAnalysis, setSelectedAnalysis] = useState<AnalysisResponse | null>(null)
+    const [selectedFileName, setSelectedFileName] = useState<string | undefined>(undefined)
+    const [analysisDialogOpen, setAnalysisDialogOpen] = useState(false)
 
     const handleDeleteClick = (file: FileResponse) => {
         setFileToDelete(file)
@@ -46,6 +52,12 @@ export const FileList = () => {
     const handleCancelDelete = () => {
         setDeleteDialogOpen(false)
         setFileToDelete(null)
+    }
+
+    const handleAnalysisSelect = (analysis: AnalysisResponse, fileName: string) => {
+        setSelectedAnalysis(analysis)
+        setSelectedFileName(fileName)
+        setAnalysisDialogOpen(true)
     }
 
     const formatFileSize = (bytes: number | null): string => {
@@ -125,6 +137,9 @@ export const FileList = () => {
                             <th className="text-muted-foreground hidden px-4 py-3 text-left text-xs font-medium tracking-wider uppercase xl:table-cell">
                                 Uploaded
                             </th>
+                            <th className="text-muted-foreground hidden px-4 py-3 text-center text-xs font-medium tracking-wider uppercase lg:table-cell">
+                                Analyses
+                            </th>
                             <th className="text-muted-foreground px-4 py-3 text-right text-xs font-medium tracking-wider uppercase">
                                 Actions
                             </th>
@@ -160,6 +175,14 @@ export const FileList = () => {
                                 </td>
                                 <td className="text-muted-foreground hidden px-4 py-3 text-sm xl:table-cell">
                                     {formatDate(file.created_at)}
+                                </td>
+                                <td className="hidden px-4 py-3 lg:table-cell">
+                                    <AnalysesDropdown
+                                        fileId={file.id}
+                                        onAnalysisSelect={analysis =>
+                                            handleAnalysisSelect(analysis, file.original_filename)
+                                        }
+                                    />
                                 </td>
                                 <td className="px-4 py-3">
                                     <div className="flex justify-end">
@@ -224,6 +247,13 @@ export const FileList = () => {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+
+            <AnalysisResultsDialog
+                open={analysisDialogOpen}
+                onOpenChange={setAnalysisDialogOpen}
+                analysis={selectedAnalysis}
+                fileName={selectedFileName}
+            />
         </>
     )
 }

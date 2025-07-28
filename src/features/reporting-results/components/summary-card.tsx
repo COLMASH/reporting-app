@@ -1,7 +1,7 @@
 'use client'
 
 import { FileText } from 'lucide-react'
-import { AnalysisResultCard } from './AnalysisResultCard'
+import { AnalysisResultCard } from './analysis-result-card'
 
 interface SummaryCardProps {
     summary: string

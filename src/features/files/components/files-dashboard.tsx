@@ -1,11 +1,11 @@
 'use client'
 
-import { FileUpload } from '@/features/storage/components/file-upload'
-import { FileList } from '@/features/storage/components/file-list'
+import { FileUpload } from '@/features/files/components/file-upload'
+import { FileList } from '@/features/files/components/file-list'
 import { Toaster } from 'sonner'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
-export const StorageDashboard = () => {
+export const FilesDashboard = () => {
     return (
         <>
             <Toaster position="top-right" theme="system" />

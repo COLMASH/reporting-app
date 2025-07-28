@@ -49,24 +49,26 @@ export const MetricsGrid = ({ metrics, className }: MetricsGridProps) => {
     return (
         <div
             className={cn(
-                'grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4',
+                'grid grid-cols-1 gap-3 sm:grid-cols-2 md:gap-4 lg:grid-cols-3 2xl:grid-cols-4',
                 className
             )}
         >
             {metrics.map((metric, index) => (
                 <div
                     key={index}
-                    className="bg-card group border-border relative overflow-hidden rounded-lg border p-6 transition-all hover:shadow-md/50 hover:shadow-md"
+                    className="bg-card group border-border relative overflow-hidden rounded-lg border p-4 transition-shadow hover:shadow-md/50 hover:shadow-md sm:p-5 md:p-6"
                 >
                     {/* Background gradient effect on hover */}
                     <div className="to-primary/5 absolute inset-0 bg-gradient-to-br from-transparent opacity-0 transition-opacity group-hover:opacity-100" />
 
                     <div className="relative">
-                        <div className="mb-4 flex items-start justify-between">
-                            <span className="text-2xl">{getCategoryIcon(metric.category)}</span>
+                        <div className="mb-3 flex items-start justify-between sm:mb-4">
+                            <span className="text-xl sm:text-2xl">
+                                {getCategoryIcon(metric.category)}
+                            </span>
                             <div
                                 className={cn(
-                                    'flex items-center gap-1 text-sm font-medium',
+                                    'flex items-center gap-0.5 text-xs font-medium sm:gap-1 sm:text-sm',
                                     getTrendColor(metric.trend, metric.category)
                                 )}
                             >
@@ -75,19 +77,21 @@ export const MetricsGrid = ({ metrics, className }: MetricsGridProps) => {
                             </div>
                         </div>
 
-                        <h3 className="text-muted-foreground mb-2 text-sm font-medium tracking-wider uppercase">
+                        <h3 className="text-muted-foreground mb-1.5 text-xs font-medium tracking-wider uppercase sm:mb-2 sm:text-sm">
                             {metric.name}
                         </h3>
 
-                        <p className="text-foreground text-2xl font-bold">{metric.value}</p>
+                        <p className="text-foreground text-xl font-bold sm:text-2xl">
+                            {metric.value}
+                        </p>
 
                         {/* Trend indicator arrow */}
                         <div className="absolute right-2 bottom-2 opacity-10">
                             {metric.trend === 'up' && (
-                                <ArrowUp className="text-foreground h-12 w-12" />
+                                <ArrowUp className="text-foreground h-8 w-8 sm:h-10 sm:w-10 md:h-12 md:w-12" />
                             )}
                             {metric.trend === 'down' && (
-                                <ArrowDown className="text-foreground h-12 w-12" />
+                                <ArrowDown className="text-foreground h-8 w-8 sm:h-10 sm:w-10 md:h-12 md:w-12" />
                             )}
                         </div>
                     </div>

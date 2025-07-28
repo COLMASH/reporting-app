@@ -1,5 +1,5 @@
 import { auth } from '@/auth'
-import { StorageDashboard } from '@/features/storage/components/storage-dashboard'
+import { FilesDashboard } from '@/features/files/components/files-dashboard'
 import { ThemeToggle } from '@/components/common/theme-toggle'
 import { UserAvatar } from '@/features/auth/components/user-avatar'
 
@@ -25,7 +25,7 @@ export default async function DashboardPage() {
             </header>
 
             <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
-                <StorageDashboard />
+                <FilesDashboard />
             </main>
         </div>
     )

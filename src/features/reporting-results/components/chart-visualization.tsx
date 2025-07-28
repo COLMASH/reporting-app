@@ -17,7 +17,7 @@ import {
     type ChartType
 } from 'chart.js'
 import { Chart } from 'react-chartjs-2'
-import { AnalysisResultCard } from './AnalysisResultCard'
+import { AnalysisResultCard } from './analysis-result-card'
 import { cn } from '@/lib/utils'
 import { Download, Maximize2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'

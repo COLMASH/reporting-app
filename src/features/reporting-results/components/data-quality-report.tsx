@@ -1,7 +1,7 @@
 'use client'
 
 import { AlertCircle, CheckCircle, FileSpreadsheet, XCircle } from 'lucide-react'
-import { AnalysisResultCard } from './AnalysisResultCard'
+import { AnalysisResultCard } from './analysis-result-card'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import type { DataQuality } from '@/redux/services/reportingAnalysesApi'

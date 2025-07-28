@@ -2,11 +2,11 @@
 
 import { useGetAnalysisResultsQuery } from '@/redux/services/resultsApi'
 import { Loader2 } from 'lucide-react'
-import { ChartVisualization } from './ChartVisualization'
-import { MetricsGrid } from './MetricsGrid'
-import { DataQualityReport } from './DataQualityReport'
-import { SummaryCard } from './SummaryCard'
-import { RecommendationsList } from './RecommendationsList'
+import { ChartVisualization } from './chart-visualization'
+import { MetricsGrid } from './metrics-grid'
+import { DataQualityReport } from './data-quality-report'
+import { SummaryCard } from './summary-card'
+import { RecommendationsList } from './recommendations-list'
 import type { Visualization, KeyMetric, DataQuality } from '@/redux/services/reportingAnalysesApi'
 
 interface AnalysisResultsProps {
@@ -80,14 +80,16 @@ export const AnalysisResults = ({ analysisId }: AnalysisResultsProps) => {
     })
 
     return (
-        <div className="space-y-8">
+        <div className="space-y-6 sm:space-y-8">
             {/* Summary Section */}
             {summary && <SummaryCard summary={summary} />}
 
             {/* Key Metrics Section */}
             {keyMetrics.length > 0 && (
                 <div>
-                    <h2 className="text-foreground mb-4 text-2xl font-semibold">Key Metrics</h2>
+                    <h2 className="text-foreground mb-3 text-xl font-semibold sm:mb-4 sm:text-2xl">
+                        Key Metrics
+                    </h2>
                     <MetricsGrid metrics={keyMetrics} />
                 </div>
             )}
@@ -95,10 +97,10 @@ export const AnalysisResults = ({ analysisId }: AnalysisResultsProps) => {
             {/* Visualizations Section */}
             {visualizations.length > 0 && (
                 <div>
-                    <h2 className="text-foreground mb-4 text-2xl font-semibold">
+                    <h2 className="text-foreground mb-3 text-xl font-semibold sm:mb-4 sm:text-2xl">
                         Data Visualizations
                     </h2>
-                    <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                    <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-2">
                         {visualizations.map((viz, index) => (
                             <ChartVisualization
                                 key={index}
@@ -117,7 +119,7 @@ export const AnalysisResults = ({ analysisId }: AnalysisResultsProps) => {
             {/* Data Quality Section */}
             {dataQuality && (
                 <div>
-                    <h2 className="text-foreground mb-4 text-2xl font-semibold">
+                    <h2 className="text-foreground mb-3 text-xl font-semibold sm:mb-4 sm:text-2xl">
                         Data Quality Analysis
                     </h2>
                     <DataQualityReport dataQuality={dataQuality} />
@@ -127,7 +129,7 @@ export const AnalysisResults = ({ analysisId }: AnalysisResultsProps) => {
             {/* Recommendations Section */}
             {recommendations.length > 0 && (
                 <div>
-                    <h2 className="text-foreground mb-4 text-2xl font-semibold">
+                    <h2 className="text-foreground mb-3 text-xl font-semibold sm:mb-4 sm:text-2xl">
                         Strategic Recommendations
                     </h2>
                     <RecommendationsList recommendations={recommendations} />
