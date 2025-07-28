@@ -2,7 +2,7 @@
 
 import { useGetAnalysisResultsQuery } from '@/redux/services/resultsApi'
 import { Loader2 } from 'lucide-react'
-import { ChartVisualization } from './chart-visualization'
+import { ChartWrapper } from './chart-wrapper'
 import { MetricsGrid } from './metrics-grid'
 import { DataQualityReport } from './data-quality-report'
 import { SummaryCard } from './summary-card'
@@ -102,7 +102,7 @@ export const AnalysisResults = ({ analysisId }: AnalysisResultsProps) => {
                     </h2>
                     <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-2">
                         {visualizations.map((viz, index) => (
-                            <ChartVisualization
+                            <ChartWrapper
                                 key={index}
                                 chartType={viz.chart_type}
                                 title={viz.title}

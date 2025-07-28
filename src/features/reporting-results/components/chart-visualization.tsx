@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
     Chart as ChartJS,
     CategoryScale,
@@ -14,12 +14,17 @@ import {
     Tooltip,
     Legend,
     Filler,
+    LineController,
+    BarController,
+    PieController,
+    DoughnutController,
+    RadarController,
     type ChartType
 } from 'chart.js'
 import { Chart } from 'react-chartjs-2'
 import { AnalysisResultCard } from './analysis-result-card'
 import { cn } from '@/lib/utils'
-import { Download, Maximize2 } from 'lucide-react'
+import { Download, Maximize2, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import type {
     ChartData as ImportedChartData,
@@ -39,7 +44,12 @@ ChartJS.register(
     Title,
     Tooltip,
     Legend,
-    Filler
+    Filler,
+    LineController,
+    BarController,
+    PieController,
+    DoughnutController,
+    RadarController
 )
 
 interface ChartVisualizationProps {
@@ -64,6 +74,7 @@ export const ChartVisualization = ({
     height = 'h-80'
 }: ChartVisualizationProps) => {
     const chartRef = useRef<ChartJS | null>(null)
+    const [chartError, setChartError] = useState<string | null>(null)
 
     // Default options with dark mode support
     const defaultOptions: ChartJSOptions = {
@@ -123,22 +134,30 @@ export const ChartVisualization = ({
 
     // Apply theme colors to datasets if not specified
     useEffect(() => {
-        if (data.datasets) {
-            data.datasets.forEach((dataset, index) => {
-                if (!dataset.backgroundColor) {
-                    const chartColors = [
-                        'oklch(var(--chart-1))',
-                        'oklch(var(--chart-2))',
-                        'oklch(var(--chart-3))',
-                        'oklch(var(--chart-4))',
-                        'oklch(var(--chart-5))'
-                    ]
-                    dataset.backgroundColor = chartColors[index % chartColors.length]
-                }
-                if (!dataset.borderColor && chartType !== 'pie' && chartType !== 'doughnut') {
-                    dataset.borderColor = dataset.backgroundColor
-                }
-            })
+        try {
+            if (data.datasets) {
+                data.datasets.forEach((dataset, index) => {
+                    if (!dataset.backgroundColor) {
+                        const chartColors = [
+                            'oklch(var(--chart-1))',
+                            'oklch(var(--chart-2))',
+                            'oklch(var(--chart-3))',
+                            'oklch(var(--chart-4))',
+                            'oklch(var(--chart-5))'
+                        ]
+                        dataset.backgroundColor = chartColors[index % chartColors.length]
+                    }
+                    if (!dataset.borderColor && chartType !== 'pie' && chartType !== 'doughnut') {
+                        dataset.borderColor = dataset.backgroundColor
+                    }
+                })
+            }
+            // Reset error when data changes successfully
+            setChartError(null)
+        } catch (error) {
+            // eslint-disable-next-line no-console
+            console.error('Error preparing chart data:', error)
+            setChartError('Failed to prepare chart data')
         }
     }, [data, chartType])
 
@@ -185,14 +204,22 @@ export const ChartVisualization = ({
         >
             <div className="p-6">
                 <div className={cn('relative', height)}>
-                    <Chart
-                        ref={instance => {
-                            chartRef.current = instance as ChartJS | null
-                        }}
-                        type={chartType}
-                        data={data as ImportedChartData}
-                        options={mergedOptions}
-                    />
+                    {chartError ? (
+                        <div className="flex h-full flex-col items-center justify-center text-center">
+                            <AlertCircle className="text-destructive mb-2 h-8 w-8" />
+                            <p className="text-muted-foreground text-sm">Failed to render chart</p>
+                            <p className="text-muted-foreground text-xs">{chartError}</p>
+                        </div>
+                    ) : (
+                        <Chart
+                            ref={instance => {
+                                chartRef.current = instance as ChartJS | null
+                            }}
+                            type={chartType}
+                            data={data as ImportedChartData}
+                            options={mergedOptions}
+                        />
+                    )}
                 </div>
                 {insights && insights.length > 0 && (
                     <div className="border-border mt-6 space-y-2 border-t pt-4">
