@@ -15,16 +15,18 @@ import { filesApi } from './services/filesApi'
 import { reportingAnalysesApi } from './services/reportingAnalysesApi'
 import { resultsApi } from './services/resultsApi'
 import themeSlice from './features/themeSlice'
+import activeAnalysesSlice from './features/activeAnalysesSlice'
 
 const persistConfig = {
     key: 'root',
     version: 1,
     storage,
-    whitelist: ['themeSlice'] // Only persist theme
+    whitelist: ['themeSlice', 'activeAnalysesSlice'] // Persist theme and active analyses
 }
 
 const rootReducer = combineReducers({
     themeSlice,
+    activeAnalysesSlice,
     [filesApi.reducerPath]: filesApi.reducer,
     [reportingAnalysesApi.reducerPath]: reportingAnalysesApi.reducer,
     [resultsApi.reducerPath]: resultsApi.reducer

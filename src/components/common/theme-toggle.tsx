@@ -2,12 +2,12 @@
 
 import { Moon, Sun } from 'lucide-react'
 import { useAppSelector, useAppDispatch } from '@/redux/hooks'
-import { toggleTheme } from '@/redux/features/themeSlice'
+import { toggleTheme, selectTheme } from '@/redux/features/themeSlice'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
 export function ThemeToggle() {
-    const theme = useAppSelector(state => state.themeSlice.theme)
+    const theme = useAppSelector(selectTheme)
     const dispatch = useAppDispatch()
 
     return (

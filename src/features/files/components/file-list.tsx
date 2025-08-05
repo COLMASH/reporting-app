@@ -18,6 +18,9 @@ import {
 import { Trash2, FileSpreadsheet, Loader2 } from 'lucide-react'
 import { AnalysesDropdown } from '@/features/reporting-results/components/analyses-dropdown'
 import { AnalysisResultsDialog } from '@/features/reporting-results/components/analysis-results-dialog'
+import { CreateAnalysisDialog } from '@/features/reporting-results/components/create-analysis-dialog'
+import { useAppDispatch } from '@/redux/hooks'
+import { addActiveAnalysis } from '@/redux/features/activeAnalysesSlice'
 
 export const FileList = () => {
     const { data, isLoading, error } = useGetFilesQuery()
@@ -28,6 +31,12 @@ export const FileList = () => {
     const [selectedAnalysis, setSelectedAnalysis] = useState<AnalysisResponse | null>(null)
     const [selectedFileName, setSelectedFileName] = useState<string | undefined>(undefined)
     const [analysisDialogOpen, setAnalysisDialogOpen] = useState(false)
+    const [createAnalysisOpen, setCreateAnalysisOpen] = useState(false)
+    const [selectedFileForAnalysis, setSelectedFileForAnalysis] = useState<FileResponse | null>(
+        null
+    )
+    const [refreshTrigger, setRefreshTrigger] = useState(0)
+    const dispatch = useAppDispatch()
 
     const handleDeleteClick = (file: FileResponse) => {
         setFileToDelete(file)
@@ -58,6 +67,16 @@ export const FileList = () => {
         setSelectedAnalysis(analysis)
         setSelectedFileName(fileName)
         setAnalysisDialogOpen(true)
+    }
+
+    const handleCreateAnalysis = (file: FileResponse) => {
+        setSelectedFileForAnalysis(file)
+        setCreateAnalysisOpen(true)
+    }
+
+    const handleAnalysisCreated = (analysisId: string) => {
+        dispatch(addActiveAnalysis(analysisId))
+        setRefreshTrigger(prev => prev + 1)
     }
 
     const formatFileSize = (bytes: number | null): string => {
@@ -119,28 +138,28 @@ export const FileList = () => {
     return (
         <>
             <div className="overflow-x-auto">
-                <table className="w-full">
+                <table className="w-full min-w-max">
                     <thead>
                         <tr className="border-border border-b">
-                            <th className="text-muted-foreground px-4 py-3 text-left text-xs font-medium tracking-wider uppercase">
+                            <th className="text-muted-foreground px-4 py-3 text-left text-xs font-medium tracking-wider whitespace-nowrap uppercase">
                                 File Name
                             </th>
-                            <th className="text-muted-foreground hidden px-4 py-3 text-left text-xs font-medium tracking-wider uppercase sm:table-cell">
+                            <th className="text-muted-foreground px-4 py-3 text-left text-xs font-medium tracking-wider whitespace-nowrap uppercase">
                                 Company
                             </th>
-                            <th className="text-muted-foreground hidden px-4 py-3 text-left text-xs font-medium tracking-wider uppercase md:table-cell">
+                            <th className="text-muted-foreground px-4 py-3 text-left text-xs font-medium tracking-wider whitespace-nowrap uppercase">
                                 Classification
                             </th>
-                            <th className="text-muted-foreground hidden px-4 py-3 text-left text-xs font-medium tracking-wider uppercase lg:table-cell">
+                            <th className="text-muted-foreground px-4 py-3 text-left text-xs font-medium tracking-wider whitespace-nowrap uppercase">
                                 Size
                             </th>
-                            <th className="text-muted-foreground hidden px-4 py-3 text-left text-xs font-medium tracking-wider uppercase xl:table-cell">
+                            <th className="text-muted-foreground px-4 py-3 text-left text-xs font-medium tracking-wider whitespace-nowrap uppercase">
                                 Uploaded
                             </th>
-                            <th className="text-muted-foreground hidden px-4 py-3 text-center text-xs font-medium tracking-wider uppercase lg:table-cell">
+                            <th className="text-muted-foreground px-4 py-3 text-center text-xs font-medium tracking-wider whitespace-nowrap uppercase">
                                 Analyses
                             </th>
-                            <th className="text-muted-foreground px-4 py-3 text-right text-xs font-medium tracking-wider uppercase">
+                            <th className="text-muted-foreground px-4 py-3 text-right text-xs font-medium tracking-wider whitespace-nowrap uppercase">
                                 Actions
                             </th>
                         </tr>
@@ -151,37 +170,33 @@ export const FileList = () => {
                                 <td className="px-4 py-3">
                                     <div className="flex items-center">
                                         <FileSpreadsheet className="text-muted-foreground mr-2 h-4 w-4 flex-shrink-0" />
-                                        <div>
-                                            <p className="max-w-[200px] truncate text-sm font-medium sm:max-w-[300px] md:max-w-none">
-                                                {file.original_filename}
-                                            </p>
-                                            <p className="text-muted-foreground text-xs sm:hidden">
-                                                {file.company_name} •{' '}
-                                                {formatFileSize(file.file_size)}
-                                            </p>
-                                        </div>
+                                        <p className="max-w-[200px] min-w-[150px] truncate text-sm font-medium">
+                                            {file.original_filename}
+                                        </p>
                                     </div>
                                 </td>
-                                <td className="text-muted-foreground hidden px-4 py-3 text-sm sm:table-cell">
+                                <td className="text-muted-foreground px-4 py-3 text-sm whitespace-nowrap">
                                     {file.company_name}
                                 </td>
-                                <td className="text-muted-foreground hidden px-4 py-3 text-sm md:table-cell">
+                                <td className="text-muted-foreground px-4 py-3 text-sm">
                                     <span className="bg-muted rounded-md px-2 py-1 text-xs">
                                         {getClassificationLabel(file.data_classification)}
                                     </span>
                                 </td>
-                                <td className="text-muted-foreground hidden px-4 py-3 text-sm lg:table-cell">
+                                <td className="text-muted-foreground px-4 py-3 text-sm whitespace-nowrap">
                                     {formatFileSize(file.file_size)}
                                 </td>
-                                <td className="text-muted-foreground hidden px-4 py-3 text-sm xl:table-cell">
+                                <td className="text-muted-foreground px-4 py-3 text-sm whitespace-nowrap">
                                     {formatDate(file.created_at)}
                                 </td>
-                                <td className="hidden px-4 py-3 lg:table-cell">
+                                <td className="px-4 py-3">
                                     <AnalysesDropdown
                                         fileId={file.id}
                                         onAnalysisSelect={analysis =>
                                             handleAnalysisSelect(analysis, file.original_filename)
                                         }
+                                        onCreateAnalysis={() => handleCreateAnalysis(file)}
+                                        refreshTrigger={refreshTrigger}
                                     />
                                 </td>
                                 <td className="px-4 py-3">
@@ -253,6 +268,13 @@ export const FileList = () => {
                 onOpenChange={setAnalysisDialogOpen}
                 analysis={selectedAnalysis}
                 fileName={selectedFileName}
+            />
+
+            <CreateAnalysisDialog
+                open={createAnalysisOpen}
+                onOpenChange={setCreateAnalysisOpen}
+                file={selectedFileForAnalysis}
+                onAnalysisCreated={handleAnalysisCreated}
             />
         </>
     )

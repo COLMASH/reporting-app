@@ -11,7 +11,7 @@ import {
 } from '@/redux/services/filesApi'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
-import { Upload } from 'lucide-react'
+import { Upload, X } from 'lucide-react'
 import { Label } from '@/components/ui/label'
 import {
     Select,
@@ -162,13 +162,39 @@ export const FileUpload = () => {
                     <p className="text-muted-foreground mt-1 text-xs sm:text-sm">
                         Only Excel files (.xlsx, .xls) up to {MAX_FILE_SIZE / (1024 * 1024)}MB
                     </p>
+
+                    {selectedFile && !isUploading && (
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="absolute top-2 right-2"
+                            onClick={e => {
+                                e.stopPropagation()
+                                setSelectedFile(null)
+                            }}
+                        >
+                            <X className="h-4 w-4" />
+                            <span className="sr-only">Clear selected file</span>
+                        </Button>
+                    )}
                 </div>
             </div>
 
             {selectedFile && companyName && (
-                <Button onClick={handleFileUpload} disabled={isUploading} className="w-full">
-                    {isUploading ? 'Uploading...' : 'Upload File'}
-                </Button>
+                <div className="flex gap-2">
+                    <Button
+                        onClick={() => setSelectedFile(null)}
+                        variant="outline"
+                        disabled={isUploading}
+                        className="flex-1"
+                    >
+                        Clear
+                    </Button>
+                    <Button onClick={handleFileUpload} disabled={isUploading} className="flex-1">
+                        {isUploading ? 'Uploading...' : 'Upload File'}
+                    </Button>
+                </div>
             )}
         </div>
     )

@@ -18,7 +18,10 @@ export const reportingAnalysesApi = createApi({
                 method: 'POST',
                 body
             }),
-            invalidatesTags: ['Analysis', 'File']
+            invalidatesTags: (_result, _error, arg) => [
+                'Analysis',
+                { type: 'File', id: arg.file_id }
+            ]
         }),
 
         // Get analysis by ID
@@ -42,13 +45,17 @@ export const reportingAnalysesApi = createApi({
             ]
         }),
 
-        // Cancel analysis (currently not implemented in backend)
-        cancelAnalysis: builder.mutation<void, string>({
+        // Delete analysis
+        deleteAnalysis: builder.mutation<void, string>({
             query: id => ({
                 url: `/api/v1/reporting_analysis/${id}`,
                 method: 'DELETE'
             }),
-            invalidatesTags: (result, error, id) => [{ type: 'Analysis', id }]
+            invalidatesTags: (result, error, id) => [
+                { type: 'Analysis', id },
+                { type: 'Analysis' },
+                { type: 'File' }
+            ]
         })
     })
 })
@@ -58,5 +65,5 @@ export const {
     useGetAnalysisQuery,
     useGetUserAnalysesQuery,
     useGetFileAnalysesQuery,
-    useCancelAnalysisMutation
+    useDeleteAnalysisMutation
 } = reportingAnalysesApi

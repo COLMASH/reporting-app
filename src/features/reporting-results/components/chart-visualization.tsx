@@ -29,8 +29,7 @@ import {
 import { Chart } from 'react-chartjs-2'
 import { AnalysisResultCard } from './analysis-result-card'
 import { cn } from '@/lib/utils'
-import { Download, Maximize2, AlertCircle } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { AlertCircle } from 'lucide-react'
 import type {
     ChartData as ImportedChartData,
     ChartOptions as ImportedChartOptions
@@ -171,46 +170,12 @@ export const ChartVisualization = ({
         }
     }, [data, chartType])
 
-    const handleDownload = () => {
-        if (chartRef.current) {
-            const url = chartRef.current.toBase64Image()
-            const link = document.createElement('a')
-            link.download = `${title.replace(/\s+/g, '-').toLowerCase()}.png`
-            link.href = url
-            link.click()
-        }
-    }
-
-    const handleFullscreen = () => {
-        // TODO: Implement fullscreen modal view
-    }
-
     return (
         <AnalysisResultCard
             title={title}
             description={description}
             className={className}
             contentClassName="p-0"
-            actions={
-                <>
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={handleFullscreen}
-                        className="h-8 w-8 p-0"
-                    >
-                        <Maximize2 className="h-4 w-4" />
-                    </Button>
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={handleDownload}
-                        className="h-8 w-8 p-0"
-                    >
-                        <Download className="h-4 w-4" />
-                    </Button>
-                </>
-            }
         >
             <div className="p-6">
                 <div className={cn('relative', height)}>
