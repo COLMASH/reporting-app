@@ -27,6 +27,14 @@ export interface FileResponse {
 export interface FileListResponse {
     files: FileResponse[]
     total: number
+    page: number
+    page_size: number
+    total_pages: number
+}
+
+export interface FileListParams {
+    page?: number
+    pageSize?: number
 }
 
 export interface UploadFileRequest {

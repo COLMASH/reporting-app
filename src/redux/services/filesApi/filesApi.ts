@@ -3,6 +3,7 @@ import { createBaseQuery } from '../baseQuery'
 import type {
     FileResponse,
     FileListResponse,
+    FileListParams,
     UploadFileRequest,
     UploadFileResponse
 } from './filesApi.types'
@@ -12,8 +13,18 @@ export const filesApi = createApi({
     baseQuery: createBaseQuery(),
     tagTypes: ['File'],
     endpoints: builder => ({
-        getFiles: builder.query<FileListResponse, void>({
-            query: () => '/api/v1/files/',
+        getFiles: builder.query<FileListResponse, FileListParams | void>({
+            query: params => {
+                const searchParams = new URLSearchParams()
+                if (params?.page) {
+                    searchParams.append('page', params.page.toString())
+                }
+                if (params?.pageSize) {
+                    searchParams.append('page_size', params.pageSize.toString())
+                }
+                const queryString = searchParams.toString()
+                return `/api/v1/files${queryString ? `?${queryString}` : ''}`
+            },
             providesTags: ['File']
         }),
         getFileDetails: builder.query<FileResponse, string>({

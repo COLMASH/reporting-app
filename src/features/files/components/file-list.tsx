@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import { useGetFilesQuery, useDeleteFileMutation } from '@/redux/services/filesApi'
 import type { FileResponse } from '@/redux/services/filesApi'
 import type { AnalysisResponse } from '@/redux/services/reportingAnalysesApi'
@@ -15,6 +15,23 @@ import {
     DialogHeader,
     DialogTitle
 } from '@/components/ui/dialog'
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow
+} from '@/components/ui/table'
+import {
+    Pagination,
+    PaginationContent,
+    PaginationEllipsis,
+    PaginationItem,
+    PaginationLink,
+    PaginationNext,
+    PaginationPrevious
+} from '@/components/ui/pagination'
 import { Trash2, FileSpreadsheet, Loader2 } from 'lucide-react'
 import { AnalysesDropdown } from '@/features/reporting-results/components/analyses-dropdown'
 import { AnalysisResultsDialog } from '@/features/reporting-results/components/analysis-results-dialog'
@@ -22,10 +39,22 @@ import { CreateAnalysisDialog } from '@/features/reporting-results/components/cr
 import { useAppDispatch } from '@/redux/hooks'
 import { addActiveAnalysis } from '@/redux/features/activeAnalysesSlice'
 
+const PAGE_SIZE_OPTIONS = [5, 10, 25, 50] as const
+const DEFAULT_PAGE_SIZE = 5
+
 export const FileList = () => {
-    const { data, isLoading, error } = useGetFilesQuery()
+    const [currentPage, setCurrentPage] = useState(1)
+    const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE)
+
+    const { data, isLoading, error } = useGetFilesQuery({
+        page: currentPage,
+        pageSize
+    })
+
     const [deleteFile, { isLoading: isDeleting }] = useDeleteFileMutation()
     const files = data?.files || []
+    const totalPages = data?.total_pages || 0
+
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
     const [fileToDelete, setFileToDelete] = useState<FileResponse | null>(null)
     const [selectedAnalysis, setSelectedAnalysis] = useState<AnalysisResponse | null>(null)
@@ -50,6 +79,11 @@ export const FileList = () => {
                 toast.success('File deleted successfully')
                 setDeleteDialogOpen(false)
                 setFileToDelete(null)
+
+                // If current page is empty after deletion, go to previous page
+                if (files.length === 1 && currentPage > 1) {
+                    setCurrentPage(currentPage - 1)
+                }
             } catch (error) {
                 // Error is already handled by baseQuery
                 // eslint-disable-next-line no-console
@@ -77,6 +111,20 @@ export const FileList = () => {
     const handleAnalysisCreated = (analysisId: string) => {
         dispatch(addActiveAnalysis(analysisId))
         setRefreshTrigger(prev => prev + 1)
+    }
+
+    const handlePageChange = useCallback(
+        (page: number) => {
+            if (page >= 1 && page <= totalPages) {
+                setCurrentPage(page)
+            }
+        },
+        [totalPages]
+    )
+
+    const handlePageSizeChange = (newPageSize: number) => {
+        setPageSize(newPageSize)
+        setCurrentPage(1) // Reset to first page when changing page size
     }
 
     const formatFileSize = (bytes: number | null): string => {
@@ -111,7 +159,93 @@ export const FileList = () => {
             .join(' ')
     }
 
-    if (isLoading) {
+    const paginationItems = useMemo(() => {
+        const items = []
+        const maxVisiblePages = 5
+
+        if (totalPages <= maxVisiblePages) {
+            // Show all pages if total is small
+            for (let i = 1; i <= totalPages; i++) {
+                items.push(
+                    <PaginationItem key={i}>
+                        <PaginationLink
+                            onClick={() => handlePageChange(i)}
+                            isActive={currentPage === i}
+                            className="cursor-pointer select-none"
+                        >
+                            {i}
+                        </PaginationLink>
+                    </PaginationItem>
+                )
+            }
+        } else {
+            // Always show first page
+            items.push(
+                <PaginationItem key={1}>
+                    <PaginationLink
+                        onClick={() => handlePageChange(1)}
+                        isActive={currentPage === 1}
+                        className="cursor-pointer select-none"
+                    >
+                        1
+                    </PaginationLink>
+                </PaginationItem>
+            )
+
+            // Show ellipsis if needed
+            if (currentPage > 3) {
+                items.push(
+                    <PaginationItem key="ellipsis-start">
+                        <PaginationEllipsis />
+                    </PaginationItem>
+                )
+            }
+
+            // Show pages around current page
+            const start = Math.max(2, currentPage - 1)
+            const end = Math.min(totalPages - 1, currentPage + 1)
+
+            for (let i = start; i <= end; i++) {
+                items.push(
+                    <PaginationItem key={i}>
+                        <PaginationLink
+                            onClick={() => handlePageChange(i)}
+                            isActive={currentPage === i}
+                            className="cursor-pointer select-none"
+                        >
+                            {i}
+                        </PaginationLink>
+                    </PaginationItem>
+                )
+            }
+
+            // Show ellipsis if needed
+            if (currentPage < totalPages - 2) {
+                items.push(
+                    <PaginationItem key="ellipsis-end">
+                        <PaginationEllipsis />
+                    </PaginationItem>
+                )
+            }
+
+            // Always show last page
+            items.push(
+                <PaginationItem key={totalPages}>
+                    <PaginationLink
+                        onClick={() => handlePageChange(totalPages)}
+                        isActive={currentPage === totalPages}
+                        className="cursor-pointer select-none"
+                    >
+                        {totalPages}
+                    </PaginationLink>
+                </PaginationItem>
+            )
+        }
+
+        return items
+    }, [currentPage, totalPages, handlePageChange])
+
+    if (isLoading && !data) {
         return (
             <div className="flex items-center justify-center p-8">
                 <Loader2 className="text-muted-foreground h-8 w-8 animate-spin" />
@@ -127,7 +261,7 @@ export const FileList = () => {
         )
     }
 
-    if (files.length === 0) {
+    if (!data || files.length === 0) {
         return (
             <div className="text-muted-foreground px-4 py-8 text-center">
                 No files uploaded yet. Upload your first Excel file to get started!
@@ -137,59 +271,51 @@ export const FileList = () => {
 
     return (
         <>
-            <div className="overflow-x-auto">
-                <table className="w-full min-w-max">
-                    <thead>
-                        <tr className="border-border border-b">
-                            <th className="text-muted-foreground px-4 py-3 text-left text-xs font-medium tracking-wider whitespace-nowrap uppercase">
-                                File Name
-                            </th>
-                            <th className="text-muted-foreground px-4 py-3 text-left text-xs font-medium tracking-wider whitespace-nowrap uppercase">
-                                Company
-                            </th>
-                            <th className="text-muted-foreground px-4 py-3 text-left text-xs font-medium tracking-wider whitespace-nowrap uppercase">
-                                Classification
-                            </th>
-                            <th className="text-muted-foreground px-4 py-3 text-left text-xs font-medium tracking-wider whitespace-nowrap uppercase">
-                                Size
-                            </th>
-                            <th className="text-muted-foreground px-4 py-3 text-left text-xs font-medium tracking-wider whitespace-nowrap uppercase">
-                                Uploaded
-                            </th>
-                            <th className="text-muted-foreground px-4 py-3 text-center text-xs font-medium tracking-wider whitespace-nowrap uppercase">
-                                Analyses
-                            </th>
-                            <th className="text-muted-foreground px-4 py-3 text-right text-xs font-medium tracking-wider whitespace-nowrap uppercase">
-                                Actions
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-border divide-y">
+            <div className="relative space-y-4">
+                {/* Loading overlay for page changes */}
+                {isLoading && data && (
+                    <div className="bg-background/50 absolute inset-0 z-10 flex items-center justify-center rounded-lg">
+                        <Loader2 className="text-muted-foreground h-6 w-6 animate-spin" />
+                    </div>
+                )}
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>File Name</TableHead>
+                            <TableHead>Company</TableHead>
+                            <TableHead>Classification</TableHead>
+                            <TableHead>Size</TableHead>
+                            <TableHead>Uploaded</TableHead>
+                            <TableHead className="text-center">Analyses</TableHead>
+                            <TableHead className="text-right">Actions</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
                         {files.map(file => (
-                            <tr key={file.id} className="hover:bg-muted/50 transition-colors">
-                                <td className="px-4 py-3">
+                            <TableRow key={file.id}>
+                                <TableCell>
                                     <div className="flex items-center">
                                         <FileSpreadsheet className="text-muted-foreground mr-2 h-4 w-4 flex-shrink-0" />
                                         <p className="max-w-[200px] min-w-[150px] truncate text-sm font-medium">
                                             {file.original_filename}
                                         </p>
                                     </div>
-                                </td>
-                                <td className="text-muted-foreground px-4 py-3 text-sm whitespace-nowrap">
+                                </TableCell>
+                                <TableCell className="text-muted-foreground">
                                     {file.company_name}
-                                </td>
-                                <td className="text-muted-foreground px-4 py-3 text-sm">
+                                </TableCell>
+                                <TableCell>
                                     <span className="bg-muted rounded-md px-2 py-1 text-xs">
                                         {getClassificationLabel(file.data_classification)}
                                     </span>
-                                </td>
-                                <td className="text-muted-foreground px-4 py-3 text-sm whitespace-nowrap">
+                                </TableCell>
+                                <TableCell className="text-muted-foreground">
                                     {formatFileSize(file.file_size)}
-                                </td>
-                                <td className="text-muted-foreground px-4 py-3 text-sm whitespace-nowrap">
+                                </TableCell>
+                                <TableCell className="text-muted-foreground">
                                     {formatDate(file.created_at)}
-                                </td>
-                                <td className="px-4 py-3">
+                                </TableCell>
+                                <TableCell>
                                     <AnalysesDropdown
                                         fileId={file.id}
                                         onAnalysisSelect={analysis =>
@@ -198,8 +324,8 @@ export const FileList = () => {
                                         onCreateAnalysis={() => handleCreateAnalysis(file)}
                                         refreshTrigger={refreshTrigger}
                                     />
-                                </td>
-                                <td className="px-4 py-3">
+                                </TableCell>
+                                <TableCell>
                                     <div className="flex justify-end">
                                         <Button
                                             variant="ghost"
@@ -209,7 +335,9 @@ export const FileList = () => {
                                             className={cn(
                                                 'h-8 w-8 p-0 sm:h-9 sm:w-auto sm:px-3',
                                                 'text-destructive hover:text-destructive hover:bg-destructive/10',
-                                                isDeleting && 'opacity-50'
+                                                {
+                                                    'opacity-50': isDeleting
+                                                }
                                             )}
                                             title="Delete file"
                                         >
@@ -225,11 +353,65 @@ export const FileList = () => {
                                             )}
                                         </Button>
                                     </div>
-                                </td>
-                            </tr>
+                                </TableCell>
+                            </TableRow>
                         ))}
-                    </tbody>
-                </table>
+                    </TableBody>
+                </Table>
+
+                {/* Pagination Controls */}
+                <div className="flex flex-col gap-4 px-2 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex items-center gap-2 px-4">
+                        <label
+                            htmlFor="page-size"
+                            className="text-muted-foreground text-sm whitespace-nowrap"
+                        >
+                            Show records:
+                        </label>
+                        <select
+                            id="page-size"
+                            value={pageSize}
+                            onChange={e => handlePageSizeChange(Number(e.target.value))}
+                            className="border-input bg-background h-8 w-16 cursor-pointer rounded-md border px-2 text-sm"
+                            aria-label="Page size selector"
+                        >
+                            {PAGE_SIZE_OPTIONS.map(size => (
+                                <option key={size} value={size}>
+                                    {size}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <Pagination
+                        className="mx-0 w-auto justify-center sm:justify-end"
+                        aria-label="Pagination navigation"
+                    >
+                        <PaginationContent>
+                            <PaginationItem>
+                                <PaginationPrevious
+                                    onClick={() => handlePageChange(currentPage - 1)}
+                                    className={cn(
+                                        'cursor-pointer select-none',
+                                        currentPage === 1 &&
+                                            'pointer-events-none cursor-default opacity-50'
+                                    )}
+                                />
+                            </PaginationItem>
+                            {paginationItems}
+                            <PaginationItem>
+                                <PaginationNext
+                                    onClick={() => handlePageChange(currentPage + 1)}
+                                    className={cn(
+                                        'cursor-pointer select-none',
+                                        currentPage === totalPages &&
+                                            'pointer-events-none cursor-default opacity-50'
+                                    )}
+                                />
+                            </PaginationItem>
+                        </PaginationContent>
+                    </Pagination>
+                </div>
             </div>
 
             <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
