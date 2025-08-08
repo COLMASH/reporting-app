@@ -64,6 +64,16 @@ export const ALLOWED_FILE_TYPES = {
     'application/vnd.ms-excel': ['.xls']
 }
 
+export interface SignedUrlResponse {
+    signed_url: string
+    expires_in: number
+}
+
+export interface FileDownloadUrlParams {
+    fileId: string
+    expiresIn?: number
+}
+
 export const fileUploadSchema = z.object({
     file: z
         .instanceof(File)

@@ -32,12 +32,13 @@ import {
     PaginationNext,
     PaginationPrevious
 } from '@/components/ui/pagination'
-import { Trash2, FileSpreadsheet, Loader2 } from 'lucide-react'
+import { Trash2, FileSpreadsheet, Loader2, Download } from 'lucide-react'
 import { AnalysesDropdown } from '@/features/reporting-results/components/analyses-dropdown'
 import { AnalysisResultsDialog } from '@/features/reporting-results/components/analysis-results-dialog'
 import { CreateAnalysisDialog } from '@/features/reporting-results/components/create-analysis-dialog'
 import { useAppDispatch } from '@/redux/hooks'
 import { addActiveAnalysis } from '@/redux/features/activeAnalysesSlice'
+import { useFileDownload } from '../hooks/useFileDownload'
 
 const PAGE_SIZE_OPTIONS = [5, 10, 25, 50] as const
 const DEFAULT_PAGE_SIZE = 5
@@ -66,6 +67,7 @@ export const FileList = () => {
     )
     const [refreshTrigger, setRefreshTrigger] = useState(0)
     const dispatch = useAppDispatch()
+    const { downloadFile, isDownloading } = useFileDownload()
 
     const handleDeleteClick = (file: FileResponse) => {
         setFileToDelete(file)
@@ -281,13 +283,13 @@ export const FileList = () => {
                 <Table>
                     <TableHeader>
                         <TableRow>
-                            <TableHead>File Name</TableHead>
-                            <TableHead>Company</TableHead>
-                            <TableHead>Classification</TableHead>
-                            <TableHead>Size</TableHead>
-                            <TableHead>Uploaded</TableHead>
-                            <TableHead className="text-center">Analyses</TableHead>
-                            <TableHead className="text-right">Actions</TableHead>
+                            <TableHead className="text-left">File Name</TableHead>
+                            <TableHead className="text-left">Company</TableHead>
+                            <TableHead className="text-left">Classification</TableHead>
+                            <TableHead className="text-left">Size</TableHead>
+                            <TableHead className="text-left">Uploaded</TableHead>
+                            <TableHead className="text-left">Analyses</TableHead>
+                            <TableHead className="text-left">Actions</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -326,14 +328,34 @@ export const FileList = () => {
                                     />
                                 </TableCell>
                                 <TableCell>
-                                    <div className="flex justify-end">
+                                    <div className="flex flex-col items-end gap-1">
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() =>
+                                                downloadFile(file.id, file.original_filename)
+                                            }
+                                            disabled={isDownloading === file.id}
+                                            className={cn(
+                                                'h-8 w-full justify-start px-2',
+                                                'hover:bg-accent hover:text-accent-foreground'
+                                            )}
+                                            title="Download file"
+                                        >
+                                            {isDownloading === file.id ? (
+                                                <Loader2 className="h-4 w-4 animate-spin" />
+                                            ) : (
+                                                <Download className="h-4 w-4" />
+                                            )}
+                                            <span className="ml-2">Download</span>
+                                        </Button>
                                         <Button
                                             variant="ghost"
                                             size="sm"
                                             onClick={() => handleDeleteClick(file)}
                                             disabled={isDeleting}
                                             className={cn(
-                                                'h-8 w-8 p-0 sm:h-9 sm:w-auto sm:px-3',
+                                                'h-8 w-full justify-start px-2',
                                                 'text-destructive hover:text-destructive hover:bg-destructive/10',
                                                 {
                                                     'opacity-50': isDeleting
@@ -346,9 +368,7 @@ export const FileList = () => {
                                             ) : (
                                                 <>
                                                     <Trash2 className="h-4 w-4" />
-                                                    <span className="ml-2 hidden sm:inline">
-                                                        Delete
-                                                    </span>
+                                                    <span className="ml-2">Delete</span>
                                                 </>
                                             )}
                                         </Button>

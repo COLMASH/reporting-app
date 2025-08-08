@@ -5,7 +5,9 @@ import type {
     FileListResponse,
     FileListParams,
     UploadFileRequest,
-    UploadFileResponse
+    UploadFileResponse,
+    SignedUrlResponse,
+    FileDownloadUrlParams
 } from './filesApi.types'
 
 export const filesApi = createApi({
@@ -56,6 +58,17 @@ export const filesApi = createApi({
                 method: 'DELETE'
             }),
             invalidatesTags: ['File']
+        }),
+        getFileDownloadUrl: builder.query<SignedUrlResponse, FileDownloadUrlParams>({
+            query: ({ fileId, expiresIn }) => {
+                const params = new URLSearchParams()
+                if (expiresIn) {
+                    params.append('expires_in', expiresIn.toString())
+                }
+                const queryString = params.toString()
+                return `/api/v1/files/${fileId}/download-url${queryString ? `?${queryString}` : ''}`
+            },
+            providesTags: (_result, _error, { fileId }) => [{ type: 'File', id: fileId }]
         })
     })
 })
@@ -64,5 +77,6 @@ export const {
     useGetFilesQuery,
     useGetFileDetailsQuery,
     useUploadFileMutation,
-    useDeleteFileMutation
+    useDeleteFileMutation,
+    useLazyGetFileDownloadUrlQuery
 } = filesApi
