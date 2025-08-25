@@ -154,6 +154,125 @@
     --warning-foreground: oklch(0.145 0 0);
 }
 
+/* Chart theme: default */
+[data-chart-theme='default'] {
+    --chart-1: hsl(221 83% 53%);
+    --chart-2: hsl(25 95% 53%);
+    --chart-3: hsl(340 75% 55%);
+    --chart-4: hsl(188 86% 53%);
+    --chart-5: hsl(280 65% 60%);
+}
+
+[data-chart-theme='default'] .dark {
+    --chart-1: hsl(212 95% 68%);
+    --chart-2: hsl(25 95% 63%);
+    --chart-3: hsl(340 75% 65%);
+    --chart-4: hsl(188 86% 63%);
+    --chart-5: hsl(280 65% 70%);
+}
+
+/* Chart theme: green */
+[data-chart-theme='green'] {
+    --chart-1: hsl(142 71% 35%);
+    --chart-2: hsl(142 71% 45%);
+    --chart-3: hsl(142 71% 55%);
+    --chart-4: hsl(142 71% 65%);
+    --chart-5: hsl(142 71% 75%);
+}
+
+[data-chart-theme='green'] .dark {
+    --chart-1: hsl(142 76% 57%);
+    --chart-2: hsl(142 76% 67%);
+    --chart-3: hsl(142 76% 77%);
+    --chart-4: hsl(142 76% 87%);
+    --chart-5: hsl(142 76% 95%);
+}
+
+/* Chart theme: amber */
+[data-chart-theme='amber'] {
+    --chart-1: hsl(38 92% 35%);
+    --chart-2: hsl(38 92% 45%);
+    --chart-3: hsl(38 92% 55%);
+    --chart-4: hsl(38 92% 65%);
+    --chart-5: hsl(38 92% 75%);
+}
+
+[data-chart-theme='amber'] .dark {
+    --chart-1: hsl(38 92% 55%);
+    --chart-2: hsl(38 92% 65%);
+    --chart-3: hsl(38 92% 75%);
+    --chart-4: hsl(38 92% 85%);
+    --chart-5: hsl(38 92% 95%);
+}
+
+/* Chart theme: orange */
+[data-chart-theme='orange'] {
+    --chart-1: hsl(25 95% 38%);
+    --chart-2: hsl(25 95% 48%);
+    --chart-3: hsl(25 95% 58%);
+    --chart-4: hsl(25 95% 68%);
+    --chart-5: hsl(25 95% 78%);
+}
+
+[data-chart-theme='orange'] .dark {
+    --chart-1: hsl(25 95% 58%);
+    --chart-2: hsl(25 95% 68%);
+    --chart-3: hsl(25 95% 78%);
+    --chart-4: hsl(25 95% 88%);
+    --chart-5: hsl(25 95% 95%);
+}
+
+/* Chart theme: rose */
+[data-chart-theme='rose'] {
+    --chart-1: hsl(346 77% 35%);
+    --chart-2: hsl(346 77% 45%);
+    --chart-3: hsl(346 77% 55%);
+    --chart-4: hsl(346 77% 65%);
+    --chart-5: hsl(346 77% 75%);
+}
+
+[data-chart-theme='rose'] .dark {
+    --chart-1: hsl(346 77% 55%);
+    --chart-2: hsl(346 77% 65%);
+    --chart-3: hsl(346 77% 75%);
+    --chart-4: hsl(346 77% 85%);
+    --chart-5: hsl(346 77% 95%);
+}
+
+/* Chart theme: violet */
+[data-chart-theme='violet'] {
+    --chart-1: hsl(263 70% 35%);
+    --chart-2: hsl(263 70% 45%);
+    --chart-3: hsl(263 70% 55%);
+    --chart-4: hsl(263 70% 65%);
+    --chart-5: hsl(263 70% 75%);
+}
+
+[data-chart-theme='violet'] .dark {
+    --chart-1: hsl(263 85% 55%);
+    --chart-2: hsl(263 85% 65%);
+    --chart-3: hsl(263 85% 75%);
+    --chart-4: hsl(263 85% 85%);
+    --chart-5: hsl(263 85% 95%);
+}
+
+/* Chart theme: blue */
+[data-chart-theme='blue'] {
+    --chart-1: hsl(217 91% 45%);
+    --chart-2: hsl(217 91% 55%);
+    --chart-3: hsl(217 91% 65%);
+    --chart-4: hsl(217 91% 75%);
+    --chart-5: hsl(217 91% 85%);
+}
+
+[data-chart-theme='blue'] .dark {
+    --chart-1: hsl(217 91% 65%);
+    --chart-2: hsl(217 91% 75%);
+    --chart-3: hsl(217 91% 85%);
+    --chart-4: hsl(217 91% 90%);
+    --chart-5: hsl(217 91% 95%);
+}
+
 @layer base {
     * {
         @apply border-border outline-ring/50;

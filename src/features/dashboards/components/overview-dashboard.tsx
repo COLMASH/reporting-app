@@ -39,7 +39,8 @@ import {
     ResponsiveContainer
 } from 'recharts'
 import { usePortfolioData } from '../hooks/use-portfolio-data'
-import { defaultChartConfig } from '../config/chart-config'
+import { createChartConfig } from '../config/chart-themes'
+import { ChartThemeSelector } from './chart-theme-selector'
 import {
     formatCurrency,
     formatPercentage,
@@ -181,17 +182,8 @@ export const OverviewDashboard = () => {
         riskMetrics
     } = usePortfolioData()
 
-    // Enhanced color palette for better visual hierarchy
-    const chartColors = {
-        primary: ['violet', 'blue', 'cyan', 'emerald', 'amber'],
-        secondary: ['rose', 'fuchsia', 'indigo', 'teal', 'orange'],
-        gradient: {
-            violet: ['#8B5CF6', '#7C3AED'],
-            blue: ['#3B82F6', '#2563EB'],
-            emerald: ['#10B981', '#059669'],
-            rose: ['#F43F5E', '#E11D48']
-        }
-    }
+    // Use the new chart config system
+    const chartConfig = createChartConfig()
 
     // Calculate dashboard metrics
     const totalAssets = riskMetrics.totalAssetsCount
@@ -215,7 +207,7 @@ export const OverviewDashboard = () => {
         percentage: item.percentage * 100,
         count: item.count,
         route: categoryRoutes[item.assetType] || null,
-        fill: `var(--color-${chartColors.primary[index % chartColors.primary.length]})`
+        fill: `var(--chart-${(index % 5) + 1})`
     }))
 
     // Enhanced performance chart with grouped categories
@@ -228,7 +220,7 @@ export const OverviewDashboard = () => {
         assets: item.assetCount,
         avgReturn: item.averageReturn * 100,
         route: categoryRoutes[item.type] || null,
-        fill: `var(--color-${chartColors.primary[index % chartColors.primary.length]})`
+        fill: `var(--chart-${(index % 5) + 1})`
     }))
 
     // Risk-Return scatter data for advanced visualization
@@ -272,7 +264,7 @@ export const OverviewDashboard = () => {
             name: currency,
             value: value,
             percentage: ((value / totalCurrencyValue) * 100).toFixed(1),
-            fill: `var(--color-${chartColors.secondary[index % chartColors.secondary.length]})`
+            fill: `var(--chart-${(index % 5) + 1})`
         }))
         .sort((a, b) => b.value - a.value)
 
@@ -293,7 +285,7 @@ export const OverviewDashboard = () => {
                       value: value,
                       count: assets.length,
                       percentage: 0,
-                      fill: `var(--color-${chartColors.primary[index % chartColors.primary.length]})`
+                      fill: `var(--chart-${(index % 5) + 1})`
                   }
               })
               .filter(b => b.value > 0) // Only show brokers with actual value
@@ -323,6 +315,7 @@ export const OverviewDashboard = () => {
                                 })}
                             </CardDescription>
                         </div>
+                        <ChartThemeSelector />
                     </div>
                 </CardHeader>
                 <CardContent>
@@ -569,7 +562,9 @@ export const OverviewDashboard = () => {
                                         <div className="flex items-center gap-2">
                                             <div
                                                 className="h-3 w-3 rounded-full"
-                                                style={{ backgroundColor: item.fill }}
+                                                style={{
+                                                    backgroundColor: `var(--chart-${(index % 5) + 1})`
+                                                }}
                                             />
                                             <span className="text-sm">{item.name}</span>
                                         </div>
@@ -603,7 +598,7 @@ export const OverviewDashboard = () => {
                         </div>
                     </CardHeader>
                     <CardContent>
-                        <ChartContainer config={defaultChartConfig} className="h-[350px]">
+                        <ChartContainer config={chartConfig} className="h-[350px]">
                             <BarChart data={performanceChartData}>
                                 <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                                 <XAxis
@@ -693,37 +688,6 @@ export const OverviewDashboard = () => {
                                         return null
                                     }}
                                 />
-                                <defs>
-                                    {performanceChartData.map((entry, index) => (
-                                        <linearGradient
-                                            key={`gradient-${index}`}
-                                            id={`performanceGradient-${index}`}
-                                            x1="0"
-                                            y1="0"
-                                            x2="0"
-                                            y2="1"
-                                        >
-                                            <stop
-                                                offset="5%"
-                                                stopColor={
-                                                    entry.return >= 0
-                                                        ? 'var(--success)'
-                                                        : 'var(--destructive)'
-                                                }
-                                                stopOpacity={0.8}
-                                            />
-                                            <stop
-                                                offset="95%"
-                                                stopColor={
-                                                    entry.return >= 0
-                                                        ? 'var(--success)'
-                                                        : 'var(--destructive)'
-                                                }
-                                                stopOpacity={0.2}
-                                            />
-                                        </linearGradient>
-                                    ))}
-                                </defs>
                                 <Bar
                                     dataKey="return"
                                     radius={[4, 4, 0, 0]}
@@ -732,10 +696,10 @@ export const OverviewDashboard = () => {
                                     }}
                                     style={{ cursor: 'pointer' }}
                                 >
-                                    {performanceChartData.map((entry, index) => (
+                                    {performanceChartData.map((_, index) => (
                                         <Cell
                                             key={`cell-${index}`}
-                                            fill={`url(#performanceGradient-${index})`}
+                                            fill={`var(--chart-${(index % 5) + 1})`}
                                         />
                                     ))}
                                 </Bar>
@@ -762,44 +726,6 @@ export const OverviewDashboard = () => {
                                     data={riskReturnData}
                                     margin={{ top: 20, right: 30, left: 20, bottom: 40 }}
                                 >
-                                    <defs>
-                                        <linearGradient
-                                            id="returnGradient"
-                                            x1="0"
-                                            y1="0"
-                                            x2="0"
-                                            y2="1"
-                                        >
-                                            <stop
-                                                offset="5%"
-                                                stopColor="var(--success)"
-                                                stopOpacity={0.8}
-                                            />
-                                            <stop
-                                                offset="95%"
-                                                stopColor="var(--success)"
-                                                stopOpacity={0.1}
-                                            />
-                                        </linearGradient>
-                                        <linearGradient
-                                            id="riskGradient"
-                                            x1="0"
-                                            y1="0"
-                                            x2="0"
-                                            y2="1"
-                                        >
-                                            <stop
-                                                offset="5%"
-                                                stopColor="var(--destructive)"
-                                                stopOpacity={0.8}
-                                            />
-                                            <stop
-                                                offset="95%"
-                                                stopColor="var(--destructive)"
-                                                stopOpacity={0.1}
-                                            />
-                                        </linearGradient>
-                                    </defs>
                                     <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                                     <XAxis
                                         dataKey="type"
@@ -842,16 +768,18 @@ export const OverviewDashboard = () => {
                                         type="monotone"
                                         dataKey="return"
                                         stackId="1"
-                                        stroke="var(--success)"
-                                        fill="url(#returnGradient)"
+                                        stroke="var(--chart-1)"
+                                        fill="var(--chart-1)"
+                                        fillOpacity={0.6}
                                         strokeWidth={2}
                                     />
                                     <Area
                                         type="monotone"
                                         dataKey="risk"
                                         stackId="2"
-                                        stroke="var(--destructive)"
-                                        fill="url(#riskGradient)"
+                                        stroke="var(--chart-2)"
+                                        fill="var(--chart-2)"
+                                        fillOpacity={0.4}
                                         strokeWidth={2}
                                     />
                                 </AreaChart>
@@ -877,7 +805,9 @@ export const OverviewDashboard = () => {
                                         <div className="flex items-center gap-2">
                                             <div
                                                 className="h-3 w-3 rounded-full"
-                                                style={{ backgroundColor: currency.fill }}
+                                                style={{
+                                                    backgroundColor: `var(--chart-${(index % 5) + 1})`
+                                                }}
                                             />
                                             <span className="font-medium">{currency.name}</span>
                                         </div>
