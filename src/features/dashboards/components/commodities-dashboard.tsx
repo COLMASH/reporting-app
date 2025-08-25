@@ -28,18 +28,13 @@ import { defaultChartConfig } from '../config/chart-config'
 import { formatCurrency, formatPercentage, parseNumericValue } from '../utils/portfolio-utils'
 import { Coins, TrendingUp, Shield, Bitcoin } from 'lucide-react'
 
-const chartColors = [
-    'violet',
-    'blue',
-    'cyan',
-    'emerald',
-    'amber',
-    'rose',
-    'fuchsia',
-    'indigo',
-    'teal',
-    'orange'
-]
+// Safe color cycling - CSS only defines 5 chart colors
+const MAX_CHART_COLORS = 5
+
+const getChartColor = (index: number): string => {
+    const colorNumber = (index % MAX_CHART_COLORS) + 1
+    return `var(--chart-${colorNumber})`
+}
 
 export const CommoditiesDashboard = () => {
     const { getAssetsByType } = usePortfolioData()
@@ -79,8 +74,8 @@ export const CommoditiesDashboard = () => {
                 gold.reduce(
                     (sum, a) => sum + parseNumericValue(a['Total asset return to date']),
                     0
-                ) / (gold.length || 1),
-            fill: `var(--color-${chartColors[0]})`
+                ) / Math.max(gold.length, 1),
+            fill: getChartColor(0)
         },
         {
             name: 'Silver',
@@ -93,8 +88,8 @@ export const CommoditiesDashboard = () => {
                 silver.reduce(
                     (sum, a) => sum + parseNumericValue(a['Total asset return to date']),
                     0
-                ) / (silver.length || 1),
-            fill: `var(--color-${chartColors[1]})`
+                ) / Math.max(silver.length, 1),
+            fill: getChartColor(1)
         },
         {
             name: 'Bitcoin',
@@ -107,8 +102,8 @@ export const CommoditiesDashboard = () => {
                 btc.reduce(
                     (sum, a) => sum + parseNumericValue(a['Total asset return to date']),
                     0
-                ) / (btc.length || 1),
-            fill: `var(--color-${chartColors[2]})`
+                ) / Math.max(btc.length, 1),
+            fill: getChartColor(2)
         }
     ].filter(c => c.value > 0)
 
@@ -117,7 +112,7 @@ export const CommoditiesDashboard = () => {
         value: commodity.value,
         return: commodity.avgReturn * 100,
         allocation: (commodity.value / totalValue) * 100,
-        fill: `var(--color-${chartColors[index % chartColors.length]})`
+        fill: getChartColor(index)
     }))
 
     const brokerDistribution = allCommodities.reduce(
@@ -133,7 +128,7 @@ export const CommoditiesDashboard = () => {
 
     const brokerData = Object.values(brokerDistribution).map((item, index) => ({
         ...item,
-        fill: `var(--color-${chartColors[index % chartColors.length]})`
+        fill: getChartColor(index)
     }))
 
     const topCommodityReturns = commodityAllocation
@@ -141,7 +136,7 @@ export const CommoditiesDashboard = () => {
         .map((commodity, index) => ({
             name: commodity.name,
             value: commodity.avgReturn * 100,
-            fill: `var(--color-${chartColors[index % chartColors.length]})`
+            fill: getChartColor(index)
         }))
 
     const detailedPerformance = allCommodities
@@ -150,7 +145,7 @@ export const CommoditiesDashboard = () => {
             type: asset['Asset type'],
             value: parseNumericValue(asset['Estimated asset value to date']),
             return: parseNumericValue(asset['Total asset return to date']) * 100,
-            fill: `var(--color-${chartColors[index % chartColors.length]})`
+            fill: getChartColor(index)
         }))
         .sort((a, b) => b.value - a.value)
 

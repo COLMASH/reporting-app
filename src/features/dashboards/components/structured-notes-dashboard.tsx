@@ -27,18 +27,13 @@ import { defaultChartConfig } from '../config/chart-config'
 import { formatCurrency, formatPercentage, parseNumericValue } from '../utils/portfolio-utils'
 import { Shield, TrendingUp, AlertCircle, Info } from 'lucide-react'
 
-const chartColors = [
-    'violet',
-    'blue',
-    'cyan',
-    'emerald',
-    'amber',
-    'rose',
-    'fuchsia',
-    'indigo',
-    'teal',
-    'orange'
-]
+// Safe color cycling - CSS only defines 5 chart colors
+const MAX_CHART_COLORS = 5
+
+const getChartColor = (index: number): string => {
+    const colorNumber = (index % MAX_CHART_COLORS) + 1
+    return `var(--chart-${colorNumber})`
+}
 
 export const StructuredNotesDashboard = () => {
     const { getAssetsByType } = usePortfolioData()
@@ -57,10 +52,12 @@ export const StructuredNotesDashboard = () => {
     )
 
     const averageCoupon =
-        structuredNotes.reduce((sum, note) => {
-            const coupon = parseNumericValue(note['Annual coupon of Structured Note'])
-            return sum + coupon
-        }, 0) / structuredNotes.length
+        structuredNotes.length > 0
+            ? structuredNotes.reduce((sum, note) => {
+                  const coupon = parseNumericValue(note['Annual coupon of Structured Note'])
+                  return sum + coupon
+              }, 0) / structuredNotes.length
+            : 0
 
     const maturityData = structuredNotes
         .filter(note => note['Final due date of Structured Note'])
@@ -72,7 +69,7 @@ export const StructuredNotesDashboard = () => {
                 year: year,
                 value: parseNumericValue(note['Estimated asset value to date']),
                 coupon: parseNumericValue(note['Annual coupon of Structured Note']) * 100,
-                fill: `var(--color-${chartColors[index % chartColors.length]})`
+                fill: getChartColor(index)
             }
         })
         .sort((a, b) => a.year - b.year)
@@ -88,7 +85,7 @@ export const StructuredNotesDashboard = () => {
         currentPerformance:
             parseNumericValue(note['Performance of underlying index or asset vs. Strike level']) *
             100,
-        fill: `var(--color-${chartColors[index % chartColors.length]})`
+        fill: getChartColor(index)
     }))
 
     const underlyingPerformance = structuredNotes
@@ -105,7 +102,7 @@ export const StructuredNotesDashboard = () => {
             currentLevel: parseNumericValue(
                 note['Underlying index or asset level as of 31 May 2025']
             ),
-            fill: `var(--color-${chartColors[index % chartColors.length]})`
+            fill: getChartColor(index)
         }))
 
     const couponFrequencyData = structuredNotes.reduce(
@@ -121,14 +118,17 @@ export const StructuredNotesDashboard = () => {
 
     const frequencyChartData = Object.values(couponFrequencyData).map((item, index) => ({
         ...item,
-        fill: `var(--color-${chartColors[index % chartColors.length]})`
+        fill: getChartColor(index)
     }))
 
-    const topPerformers = structuredNotes.slice(0, 5).map((note, index) => ({
-        name: note['Asset name'].substring(0, 15),
-        value: parseNumericValue(note['Total asset return to date']) * 100,
-        fill: `var(--color-${chartColors[index % chartColors.length]})`
-    }))
+    const maxTopPerformers = 5
+    const topPerformers = structuredNotes
+        .slice(0, Math.min(maxTopPerformers, structuredNotes.length))
+        .map((note, index) => ({
+            name: note['Asset name'].substring(0, 15),
+            value: parseNumericValue(note['Total asset return to date']) * 100,
+            fill: getChartColor(index)
+        }))
 
     return (
         <div className="space-y-6">

@@ -32,18 +32,13 @@ import { formatCurrency, formatPercentage, parseNumericValue } from '../utils/po
 import { TrendingUp, TrendingDown, Activity, BarChart3 } from 'lucide-react'
 import { defaultChartConfig } from '../config/chart-config'
 
-const chartColors = [
-    'violet',
-    'blue',
-    'cyan',
-    'emerald',
-    'amber',
-    'rose',
-    'fuchsia',
-    'indigo',
-    'teal',
-    'orange'
-]
+// Safe color cycling - CSS only defines 5 chart colors
+const MAX_CHART_COLORS = 5
+
+const getChartColor = (index: number): string => {
+    const colorNumber = (index % MAX_CHART_COLORS) + 1
+    return `var(--chart-${colorNumber})`
+}
 
 export const EquitiesDashboard = () => {
     const { getAssetsByType } = usePortfolioData()
@@ -66,13 +61,14 @@ export const EquitiesDashboard = () => {
     const totalReturn = totalValue - totalCost
     const returnPercentage = totalCost > 0 ? totalReturn / totalCost : 0
 
+    const maxTopItems = 5
     const topGainers = [...equities]
         .sort(
             (a, b) =>
                 parseNumericValue(b['Total asset return to date']) -
                 parseNumericValue(a['Total asset return to date'])
         )
-        .slice(0, 5)
+        .slice(0, Math.min(maxTopItems, equities.length))
 
     const topLosers = [...equities]
         .sort(
@@ -80,18 +76,19 @@ export const EquitiesDashboard = () => {
                 parseNumericValue(a['Total asset return to date']) -
                 parseNumericValue(b['Total asset return to date'])
         )
-        .slice(0, 5)
+        .slice(0, Math.min(maxTopItems, equities.length))
 
+    const maxPerformanceItems = 10
     const performanceData = equities
         .map((equity, index) => ({
             name: equity['Asset name'].substring(0, 20),
             value: parseNumericValue(equity['Estimated asset value to date']),
             return: parseNumericValue(equity['Total asset return to date']) * 100,
             shares: parseNumericValue(equity['Number of shares or units in the portfolio to date']),
-            fill: `var(--color-${chartColors[index % chartColors.length]})`
+            fill: getChartColor(index)
         }))
         .sort((a, b) => b.value - a.value)
-        .slice(0, 10)
+        .slice(0, Math.min(maxPerformanceItems, equities.length))
 
     const brokerDistribution = equities.reduce(
         (acc, equity) => {
@@ -106,7 +103,7 @@ export const EquitiesDashboard = () => {
 
     const brokerData = Object.values(brokerDistribution).map((broker, index) => ({
         ...broker,
-        fill: `var(--color-${chartColors[index % chartColors.length]})`
+        fill: getChartColor(index)
     }))
 
     const sectorAnalysis = equities.reduce(
@@ -123,8 +120,8 @@ export const EquitiesDashboard = () => {
 
     const sectorData = Object.values(sectorAnalysis).map((sector, index) => ({
         ...sector,
-        avgReturn: (sector.avgReturn / sector.count) * 100,
-        fill: `var(--color-${chartColors[index % chartColors.length]})`
+        avgReturn: sector.count > 0 ? (sector.avgReturn / sector.count) * 100 : 0,
+        fill: getChartColor(index)
     }))
 
     const scatterData = equities.map(equity => ({
@@ -146,12 +143,15 @@ export const EquitiesDashboard = () => {
         }
     ]
 
-    const concentrationData = performanceData.slice(0, 5).map((item, index) => ({
-        name: item.name,
-        value: item.value,
-        percentage: (item.value / totalValue) * 100,
-        fill: `var(--color-${chartColors[index % chartColors.length]})`
-    }))
+    const maxConcentrationItems = 5
+    const concentrationData = performanceData
+        .slice(0, Math.min(maxConcentrationItems, performanceData.length))
+        .map((item, index) => ({
+            name: item.name,
+            value: item.value,
+            percentage: totalValue > 0 ? (item.value / totalValue) * 100 : 0,
+            fill: getChartColor(index)
+        }))
 
     return (
         <div className="space-y-6">
@@ -193,12 +193,14 @@ export const EquitiesDashboard = () => {
                     </CardHeader>
                     <CardContent>
                         <div className="truncate text-lg font-bold">
-                            {topGainers[0]?.['Asset name'].substring(0, 20)}
+                            {topGainers[0]?.['Asset name']?.substring(0, 20) || 'N/A'}
                         </div>
                         <p className="text-xs text-green-600">
-                            {formatPercentage(
-                                parseNumericValue(topGainers[0]?.['Total asset return to date'])
-                            )}
+                            {topGainers[0]
+                                ? formatPercentage(
+                                      parseNumericValue(topGainers[0]['Total asset return to date'])
+                                  )
+                                : 'N/A'}
                         </p>
                     </CardContent>
                 </Card>

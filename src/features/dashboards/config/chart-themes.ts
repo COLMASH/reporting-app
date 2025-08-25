@@ -111,8 +111,11 @@ export const createChartConfig = (theme: ChartTheme = 'default'): ChartConfig =>
     }
 }
 
+// Safe color cycling function that handles unlimited items
+// CSS only defines --chart-1 through --chart-5, so we cycle through these
 export const getChartThemeColor = (theme: ChartTheme, index: number): string => {
-    const chartNumber = (index % 5) + 1
+    const MAX_CHART_COLORS = 5 // CSS defines --chart-1 through --chart-5
+    const chartNumber = (index % MAX_CHART_COLORS) + 1
     return `var(--chart-${chartNumber})`
 }
 

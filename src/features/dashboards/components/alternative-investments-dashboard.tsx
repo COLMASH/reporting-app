@@ -28,18 +28,13 @@ import { defaultChartConfig } from '../config/chart-config'
 import { formatCurrency, formatPercentage, parseNumericValue } from '../utils/portfolio-utils'
 import { Rocket, Building2, Search, Coins } from 'lucide-react'
 
-const chartColors = [
-    'violet',
-    'blue',
-    'cyan',
-    'emerald',
-    'amber',
-    'rose',
-    'fuchsia',
-    'indigo',
-    'teal',
-    'orange'
-]
+// Safe color cycling - CSS only defines 5 chart colors
+const MAX_CHART_COLORS = 5
+
+const getChartColor = (index: number): string => {
+    const colorNumber = (index % MAX_CHART_COLORS) + 1
+    return `var(--chart-${colorNumber})`
+}
 
 export const AlternativeInvestmentsDashboard = () => {
     const { getAssetsByType } = usePortfolioData()
@@ -89,7 +84,7 @@ export const AlternativeInvestmentsDashboard = () => {
                 0
             ),
             count: privateEquity.length,
-            fill: `var(--color-${chartColors[0]})`
+            fill: getChartColor(0)
         },
         {
             name: 'VC Funds',
@@ -98,7 +93,7 @@ export const AlternativeInvestmentsDashboard = () => {
                 0
             ),
             count: ventureCapital.length,
-            fill: `var(--color-${chartColors[1]})`
+            fill: getChartColor(1)
         },
         {
             name: 'VC Startups',
@@ -107,7 +102,7 @@ export const AlternativeInvestmentsDashboard = () => {
                 0
             ),
             count: vcStartups.length,
-            fill: `var(--color-${chartColors[2]})`
+            fill: getChartColor(2)
         },
         {
             name: 'Search Funds',
@@ -116,7 +111,7 @@ export const AlternativeInvestmentsDashboard = () => {
                 0
             ),
             count: searchFunds.length + searchFund.length,
-            fill: `var(--color-${chartColors[3]})`
+            fill: getChartColor(3)
         },
         {
             name: 'Private Debt',
@@ -125,7 +120,7 @@ export const AlternativeInvestmentsDashboard = () => {
                 0
             ),
             count: privateDebt.length,
-            fill: `var(--color-${chartColors[4]})`
+            fill: getChartColor(4)
         },
         {
             name: 'Fund of Funds',
@@ -134,7 +129,7 @@ export const AlternativeInvestmentsDashboard = () => {
                 0
             ),
             count: fundOfFunds.length,
-            fill: `var(--color-${chartColors[5]})`
+            fill: getChartColor(5)
         }
     ].filter(cat => cat.value > 0)
 
@@ -146,10 +141,10 @@ export const AlternativeInvestmentsDashboard = () => {
                 asset['Total equity investment in asset (at cost) / Paid-in Capital']
             ),
             unfunded: parseNumericValue(asset['Pending investment / Unfunded Commitment']),
-            fill: `var(--color-${chartColors[index % chartColors.length]})`
+            fill: getChartColor(index)
         }))
         .filter(a => a.commitment > 0)
-        .slice(0, 10)
+        .slice(0, Math.min(10, allAlternatives.length))
 
     const performanceData = allAlternatives
         .filter(a => parseNumericValue(a['Total asset return to date']) !== 0)
@@ -157,10 +152,10 @@ export const AlternativeInvestmentsDashboard = () => {
             name: asset['Asset name'].substring(0, 25),
             return: parseNumericValue(asset['Total asset return to date']) * 100,
             value: parseNumericValue(asset['Estimated asset value to date']),
-            fill: `var(--color-${chartColors[index % chartColors.length]})`
+            fill: getChartColor(index)
         }))
         .sort((a, b) => b.return - a.return)
-        .slice(0, 8)
+        .slice(0, Math.min(8, allAlternatives.length))
 
     return (
         <div className="space-y-6">
