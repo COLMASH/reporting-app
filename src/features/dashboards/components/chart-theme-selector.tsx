@@ -35,15 +35,15 @@ export const ChartThemeSelector = () => {
     }
 
     return (
-        <div className="flex items-center gap-2">
-            <Palette className="text-muted-foreground h-4 w-4" />
+        <div className="flex items-center gap-1 sm:gap-2">
+            <Palette className="text-muted-foreground hidden h-4 w-4 sm:block" />
             <Select value={theme} onValueChange={handleThemeChange}>
-                <SelectTrigger className="h-8 w-[100px]">
-                    <SelectValue placeholder="Select theme" />
+                <SelectTrigger className="h-8 w-[100px] text-xs sm:w-[100px] sm:text-sm">
+                    <SelectValue placeholder="Theme" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent align="end" className="min-w-[120px]">
                     {Object.entries(chartThemeLabels).map(([value, label]) => (
-                        <SelectItem key={value} value={value}>
+                        <SelectItem key={value} value={value} className="text-xs sm:text-sm">
                             {label}
                         </SelectItem>
                     ))}

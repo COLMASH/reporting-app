@@ -328,9 +328,11 @@ export const OverviewDashboardRefactored = () => {
             {/* Executive Summary Section */}
             <Card className="from-card to-background bg-gradient-to-r">
                 <CardHeader>
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <CardTitle className="text-2xl font-bold">Executive Summary</CardTitle>
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="flex-1">
+                            <CardTitle className="text-xl font-bold sm:text-2xl">
+                                Portfolio Overview - Executive Summary
+                            </CardTitle>
                             <CardDescription className="mt-2">
                                 Portfolio performance snapshot as of{' '}
                                 {new Date().toLocaleDateString('en-US', {
@@ -340,7 +342,9 @@ export const OverviewDashboardRefactored = () => {
                                 })}
                             </CardDescription>
                         </div>
-                        <ChartThemeSelector />
+                        <div className="self-start sm:self-center">
+                            <ChartThemeSelector />
+                        </div>
                     </div>
                 </CardHeader>
                 <CardContent>
