@@ -1,7 +1,8 @@
 'use client'
 
+import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
+import { Progress } from '@/components/ui/progress'
 import {
     Table,
     TableBody,
@@ -10,35 +11,59 @@ import {
     TableHeader,
     TableRow
 } from '@/components/ui/table'
-import { Badge } from '@/components/ui/badge'
 import {
-    BarChart,
+    ResponsiveContainer,
+    ComposedChart,
     Bar,
+    Line,
     XAxis,
     YAxis,
-    CartesianGrid,
-    Line,
-    ScatterChart,
-    Scatter,
-    ComposedChart
+    CartesianGrid
 } from 'recharts'
+import { ChartTooltip } from '@/components/ui/chart'
+import { TrendingUp, TrendingDown, Minus, Calendar, DollarSign } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import { usePortfolioData } from '../hooks/use-portfolio-data'
-import { defaultChartConfig } from '../config/chart-config'
-import { formatCurrency, formatPercentage, parseNumericValue } from '../utils/portfolio-utils'
-import { Shield, TrendingUp, AlertCircle, Info } from 'lucide-react'
+import { ChartThemeSelector } from './chart-theme-selector'
+import {
+    formatCurrency,
+    formatPercentage,
+    parseNumericValue,
+    getPerformanceTrend
+} from '../utils/portfolio-utils'
+import { ChartCard } from './charts'
+import { truncateLabel } from './charts/utils'
 
-// Safe color cycling - CSS only defines 5 chart colors
-const MAX_CHART_COLORS = 5
+const PerformanceIndicator = ({
+    value,
+    showSign = true
+}: {
+    value: number
+    showSign?: boolean
+}) => {
+    const trend = getPerformanceTrend(value)
 
-const getChartColor = (index: number): string => {
-    const colorNumber = (index % MAX_CHART_COLORS) + 1
-    return `var(--chart-${colorNumber})`
+    return (
+        <div
+            className={cn('flex items-center gap-1', {
+                'text-success': trend === 'positive',
+                'text-destructive': trend === 'negative',
+                'text-muted-foreground': trend === 'neutral'
+            })}
+        >
+            {trend === 'positive' && <TrendingUp className="h-4 w-4" />}
+            {trend === 'negative' && <TrendingDown className="h-4 w-4" />}
+            {trend === 'neutral' && <Minus className="h-4 w-4" />}
+            <span className="font-semibold">{formatPercentage(value, showSign)}</span>
+        </div>
+    )
 }
 
 export const StructuredNotesDashboard = () => {
     const { getAssetsByType } = usePortfolioData()
     const structuredNotes = getAssetsByType('Structured notes')
 
+    // Portfolio Metrics
     const totalValue = structuredNotes.reduce(
         (sum, note) => sum + parseNumericValue(note['Estimated asset value to date']),
         0
@@ -51,6 +76,10 @@ export const StructuredNotesDashboard = () => {
         0
     )
 
+    const totalReturn = totalValue - totalCost
+    const returnPercentage = totalCost > 0 ? totalReturn / totalCost : 0
+
+    // Average coupon calculation
     const averageCoupon =
         structuredNotes.length > 0
             ? structuredNotes.reduce((sum, note) => {
@@ -59,472 +88,412 @@ export const StructuredNotesDashboard = () => {
               }, 0) / structuredNotes.length
             : 0
 
-    const maturityData = structuredNotes
+    // Annual income from coupons
+    const annualIncome = structuredNotes.reduce((sum, note) => {
+        const value = parseNumericValue(note['Estimated asset value to date'])
+        const coupon = parseNumericValue(note['Annual coupon of Structured Note'])
+        return sum + value * coupon
+    }, 0)
+
+    // Maturity Timeline
+    const maturityTimelineData = structuredNotes
         .filter(note => note['Final due date of Structured Note'])
-        .map((note, index) => {
-            const dueDate = note['Final due date of Structured Note']
-            const year = dueDate ? new Date(dueDate).getFullYear() : new Date().getFullYear()
-            return {
-                name: note['Asset name'].substring(0, 20),
-                year: year,
-                value: parseNumericValue(note['Estimated asset value to date']),
-                coupon: parseNumericValue(note['Annual coupon of Structured Note']) * 100,
-                fill: getChartColor(index)
-            }
-        })
-        .sort((a, b) => a.year - b.year)
+        .reduce(
+            (acc, note) => {
+                const dateStr = note['Final due date of Structured Note']
+                if (!dateStr) return acc
 
-    const protectionData = structuredNotes.map((note, index) => ({
-        name: note['Asset name'].substring(0, 25),
-        capitalProtection: Math.abs(
-            parseNumericValue(note['Capital protection of Structured Note']) * 100
-        ),
-        couponProtection: Math.abs(
-            parseNumericValue(note['Coupon protection barrier (%) of Structured Note']) * 100
-        ),
-        currentPerformance:
-            parseNumericValue(note['Performance of underlying index or asset vs. Strike level']) *
-            100,
-        fill: getChartColor(index)
-    }))
+                const dueDate = new Date(dateStr)
+                if (isNaN(dueDate.getTime())) return acc
 
-    const underlyingPerformance = structuredNotes
-        .filter(note => note['Performance of underlying index or asset vs. Strike level'])
-        .map((note, index) => ({
-            name:
-                note['Structured Note underlying index or asset basket - name']?.substring(0, 30) ||
-                'Unknown',
-            performance:
-                parseNumericValue(
-                    note['Performance of underlying index or asset vs. Strike level']
-                ) * 100,
-            strikeLevel: parseNumericValue(note['Strike level of underlying index or assets']),
-            currentLevel: parseNumericValue(
-                note['Underlying index or asset level as of 31 May 2025']
-            ),
-            fill: getChartColor(index)
-        }))
+                const year = dueDate.getFullYear()
 
-    const couponFrequencyData = structuredNotes.reduce(
+                if (!acc[year]) {
+                    acc[year] = {
+                        year: year.toString(),
+                        count: 0,
+                        value: 0,
+                        avgCoupon: 0,
+                        coupons: [] as number[]
+                    }
+                }
+
+                acc[year].count++
+                acc[year].value += parseNumericValue(note['Estimated asset value to date'])
+                acc[year].coupons.push(parseNumericValue(note['Annual coupon of Structured Note']))
+
+                return acc
+            },
+            {} as Record<
+                number,
+                { year: string; count: number; value: number; avgCoupon: number; coupons: number[] }
+            >
+        )
+
+    Object.values(maturityTimelineData).forEach(item => {
+        item.avgCoupon = (item.coupons.reduce((a, b) => a + b, 0) / item.coupons.length) * 100
+        // Clear coupons array after calculation
+        item.coupons = []
+    })
+
+    const maturityData = Object.values(maturityTimelineData)
+        .sort((a, b) => parseInt(a.year) - parseInt(b.year))
+        .slice(0, 10)
+
+    // Underlying Assets with Coupons
+    const underlyingAssetsData = structuredNotes.reduce(
         (acc, note) => {
-            const freq = note['Coupon payment frequency'] || 'Unknown'
-            if (!acc[freq]) acc[freq] = { name: freq, count: 0, value: 0 }
-            acc[freq].count++
-            acc[freq].value += parseNumericValue(note['Estimated asset value to date'])
+            const underlying = note['Structured Note underlying index or asset basket - name']
+            if (!underlying || underlying === '-') return acc
+
+            const key = underlying.length > 40 ? underlying.substring(0, 40) + '...' : underlying
+
+            if (!acc[key]) {
+                acc[key] = {
+                    name: truncateLabel(key, 25),
+                    fullName: underlying,
+                    value: 0,
+                    count: 0,
+                    totalCoupon: 0,
+                    avgCoupon: 0
+                }
+            }
+
+            const noteValue = parseNumericValue(note['Estimated asset value to date'])
+            const noteCoupon = parseNumericValue(note['Annual coupon of Structured Note'])
+
+            acc[key].value += noteValue
+            acc[key].count++
+            acc[key].totalCoupon += noteCoupon
+
             return acc
         },
-        {} as Record<string, { name: string; count: number; value: number }>
+        {} as Record<
+            string,
+            {
+                name: string
+                fullName: string
+                value: number
+                count: number
+                totalCoupon: number
+                avgCoupon: number
+            }
+        >
     )
 
-    const frequencyChartData = Object.values(couponFrequencyData).map((item, index) => ({
-        ...item,
-        fill: getChartColor(index)
-    }))
+    // Calculate average coupon for each underlying
+    Object.values(underlyingAssetsData).forEach(item => {
+        item.avgCoupon = item.count > 0 ? (item.totalCoupon / item.count) * 100 : 0
+    })
 
-    const maxTopPerformers = 5
-    const topPerformers = structuredNotes
-        .slice(0, Math.min(maxTopPerformers, structuredNotes.length))
-        .map((note, index) => ({
-            name: note['Asset name'].substring(0, 15),
-            value: parseNumericValue(note['Total asset return to date']) * 100,
-            fill: getChartColor(index)
-        }))
+    const underlyingData = Object.values(underlyingAssetsData)
+        .sort((a, b) => b.value - a.value)
+        .slice(0, 6)
+
+    // Top Holdings
+    const topHoldings = structuredNotes
+        .sort((a, b) => {
+            const valueA = parseNumericValue(a['Estimated asset value to date'])
+            const valueB = parseNumericValue(b['Estimated asset value to date'])
+            return valueB - valueA
+        })
+        .slice(0, 10)
 
     return (
-        <div className="space-y-6">
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Total Notes Value</CardTitle>
-                        <TrendingUp className="text-muted-foreground h-4 w-4" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{formatCurrency(totalValue)}</div>
-                        <p className="text-muted-foreground text-xs">
-                            Cost basis: {formatCurrency(totalCost)}
-                        </p>
-                    </CardContent>
-                </Card>
+        <div className="space-y-6 p-6">
+            {/* Executive Summary */}
+            <Card className="from-card to-background bg-gradient-to-r">
+                <CardHeader>
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="flex-1">
+                            <CardTitle className="text-xl font-bold sm:text-2xl">
+                                Structured Notes Portfolio
+                            </CardTitle>
+                            <CardDescription className="mt-2">
+                                Products as of{' '}
+                                {new Date().toLocaleDateString('en-US', {
+                                    month: 'long',
+                                    day: 'numeric',
+                                    year: 'numeric'
+                                })}
+                            </CardDescription>
+                        </div>
+                        <div className="self-start sm:self-center">
+                            <ChartThemeSelector />
+                        </div>
+                    </div>
+                </CardHeader>
+                <CardContent>
+                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                        <div className="space-y-2">
+                            <p className="text-muted-foreground text-sm">Portfolio Value</p>
+                            <p className="text-3xl font-bold">
+                                {formatCurrency(totalValue, 'EUR', true)}
+                            </p>
+                            <PerformanceIndicator value={returnPercentage} />
+                        </div>
+                        <div className="space-y-2">
+                            <p className="text-muted-foreground text-sm">Annual Income</p>
+                            <p className="text-3xl font-bold">
+                                {formatCurrency(annualIncome, 'EUR', true)}
+                            </p>
+                            <div className="flex items-center gap-2">
+                                <DollarSign className="text-muted-foreground h-4 w-4" />
+                                <span className="text-muted-foreground text-xs">
+                                    {formatPercentage(averageCoupon)} avg yield
+                                </span>
+                            </div>
+                        </div>
+                        <div className="space-y-2">
+                            <p className="text-muted-foreground text-sm">Active Notes</p>
+                            <p className="text-3xl font-bold">{structuredNotes.length}</p>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
 
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Average Coupon</CardTitle>
-                        <Info className="text-muted-foreground h-4 w-4" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{formatPercentage(averageCoupon)}</div>
-                        <p className="text-muted-foreground text-xs">Annual yield</p>
-                    </CardContent>
-                </Card>
-
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Active Notes</CardTitle>
-                        <Shield className="text-muted-foreground h-4 w-4" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{structuredNotes.length}</div>
-                        <p className="text-muted-foreground text-xs">Structured products</p>
-                    </CardContent>
-                </Card>
-
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Protection Level</CardTitle>
-                        <AlertCircle className="text-muted-foreground h-4 w-4" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">-50%</div>
-                        <p className="text-muted-foreground text-xs">Average capital protection</p>
-                    </CardContent>
-                </Card>
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-2">
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Maturity Timeline</CardTitle>
-                        <CardDescription>Notes by maturity year and coupon rate</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <ChartContainer config={defaultChartConfig} className="h-[300px]">
+            {/* Charts Row */}
+            <div className="grid gap-4 lg:grid-cols-2">
+                {/* Maturity Timeline */}
+                <ChartCard
+                    title="Maturity Timeline"
+                    description="Value distribution by maturity year"
+                    icon={Calendar}
+                    badge={<Badge variant="secondary">{maturityData.length} years</Badge>}
+                    data={maturityData}
+                >
+                    <div className="min-h-[300px] flex-1">
+                        <ResponsiveContainer width="100%" height="100%">
                             <ComposedChart data={maturityData}>
-                                <CartesianGrid strokeDasharray="3 3" />
-                                <XAxis dataKey="year" tickLine={false} axisLine={false} />
-                                <YAxis yAxisId="left" tickLine={false} axisLine={false} />
+                                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                                <XAxis
+                                    dataKey="year"
+                                    tickLine={false}
+                                    axisLine={false}
+                                    fontSize={11}
+                                />
+                                <YAxis
+                                    yAxisId="left"
+                                    tickLine={false}
+                                    axisLine={false}
+                                    tickFormatter={value => `€${(value / 1000000).toFixed(1)}M`}
+                                    fontSize={11}
+                                />
                                 <YAxis
                                     yAxisId="right"
                                     orientation="right"
                                     tickLine={false}
                                     axisLine={false}
+                                    tickFormatter={value => `${value}%`}
+                                    fontSize={11}
                                 />
                                 <ChartTooltip
-                                    content={
-                                        <ChartTooltipContent
-                                            formatter={(value, name) => {
-                                                if (name === 'coupon')
-                                                    return `${Number(value).toFixed(1)}%`
-                                                return formatCurrency(Number(value))
-                                            }}
-                                        />
-                                    }
+                                    cursor={false}
+                                    content={({ active, payload }) => {
+                                        if (active && payload && payload.length) {
+                                            const data = payload[0].payload
+                                            return (
+                                                <div className="bg-background rounded-lg border p-3 shadow-lg">
+                                                    <p className="font-semibold">{data.year}</p>
+                                                    <div className="mt-2 space-y-1">
+                                                        <p className="text-sm">
+                                                            <span className="text-muted-foreground">
+                                                                Maturing Value:
+                                                            </span>{' '}
+                                                            <span className="font-medium">
+                                                                {formatCurrency(
+                                                                    data.value,
+                                                                    'EUR',
+                                                                    true
+                                                                )}
+                                                            </span>
+                                                        </p>
+                                                        <p className="text-sm">
+                                                            <span className="text-muted-foreground">
+                                                                Notes Count:
+                                                            </span>{' '}
+                                                            <span className="font-medium">
+                                                                {data.count}
+                                                            </span>
+                                                        </p>
+                                                        <p className="text-sm">
+                                                            <span className="text-muted-foreground">
+                                                                Avg Coupon:
+                                                            </span>{' '}
+                                                            <span className="font-medium">
+                                                                {data.avgCoupon.toFixed(1)}%
+                                                            </span>
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            )
+                                        }
+                                        return null
+                                    }}
                                 />
-                                <defs>
-                                    <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
-                                        <stop
-                                            offset="5%"
-                                            stopColor="var(--color-violet)"
-                                            stopOpacity={0.8}
-                                        />
-                                        <stop
-                                            offset="95%"
-                                            stopColor="var(--color-violet)"
-                                            stopOpacity={0.1}
-                                        />
-                                    </linearGradient>
-                                </defs>
                                 <Bar
                                     yAxisId="left"
                                     dataKey="value"
-                                    fill="url(#barGradient)"
+                                    fill="var(--chart-1)"
                                     radius={[4, 4, 0, 0]}
                                 />
                                 <Line
                                     yAxisId="right"
                                     type="monotone"
-                                    dataKey="coupon"
-                                    stroke="var(--color-cyan)"
+                                    dataKey="avgCoupon"
+                                    stroke="var(--chart-3)"
                                     strokeWidth={2}
+                                    dot={{ fill: 'var(--chart-3)', r: 4 }}
                                 />
                             </ComposedChart>
-                        </ChartContainer>
-                    </CardContent>
-                </Card>
+                        </ResponsiveContainer>
+                    </div>
+                </ChartCard>
 
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Protection vs Performance</CardTitle>
-                        <CardDescription>
-                            Capital protection barriers and current performance
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <ChartContainer config={defaultChartConfig} className="h-[300px]">
-                            <ScatterChart>
-                                <CartesianGrid strokeDasharray="3 3" />
-                                <XAxis
-                                    dataKey="capitalProtection"
-                                    name="Capital Protection"
-                                    unit="%"
-                                    tickLine={false}
-                                    axisLine={false}
-                                />
-                                <YAxis
-                                    dataKey="currentPerformance"
-                                    name="Performance"
-                                    unit="%"
-                                    tickLine={false}
-                                    axisLine={false}
-                                />
-                                <ChartTooltip
-                                    content={
-                                        <ChartTooltipContent
-                                            formatter={value => `${Number(value).toFixed(1)}%`}
+                {/* Underlying Assets Exposure */}
+                <ChartCard
+                    title="Underlying Assets & Coupons"
+                    description="Index exposure with average yields"
+                    data={underlyingData}
+                >
+                    <div className="space-y-4">
+                        {underlyingData.map((asset, index) => (
+                            <div key={index} className="space-y-2">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                        <div
+                                            className="h-3 w-3 rounded-full"
+                                            style={{
+                                                backgroundColor: `var(--chart-${(index % 5) + 1})`
+                                            }}
                                         />
-                                    }
+                                        <span
+                                            className="text-sm font-medium"
+                                            title={asset.fullName}
+                                        >
+                                            {asset.name}
+                                        </span>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="text-sm font-semibold">
+                                            {formatCurrency(asset.value, 'EUR', true)}
+                                        </p>
+                                        <p className="text-muted-foreground text-xs">
+                                            {asset.avgCoupon.toFixed(1)}% avg coupon
+                                        </p>
+                                    </div>
+                                </div>
+                                <Progress
+                                    value={(asset.value / totalValue) * 100}
+                                    className="h-2"
                                 />
-                                <Scatter
-                                    name="Notes"
-                                    data={protectionData}
-                                    fill="var(--color-emerald)"
-                                />
-                            </ScatterChart>
-                        </ChartContainer>
-                    </CardContent>
-                </Card>
+                                <div className="text-muted-foreground flex justify-between text-xs">
+                                    <span>
+                                        {asset.count} {asset.count === 1 ? 'note' : 'notes'}
+                                    </span>
+                                    <span>{((asset.value / totalValue) * 100).toFixed(1)}%</span>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </ChartCard>
             </div>
 
-            <div className="grid gap-4 md:grid-cols-3">
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Underlying Performance</CardTitle>
-                        <CardDescription>Performance vs strike level</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <ChartContainer config={defaultChartConfig} className="h-[250px]">
-                            <BarChart data={underlyingPerformance} layout="horizontal">
-                                <CartesianGrid strokeDasharray="3 3" />
-                                <XAxis type="number" tickLine={false} axisLine={false} />
-                                <YAxis
-                                    dataKey="name"
-                                    type="category"
-                                    tickLine={false}
-                                    axisLine={false}
-                                    width={100}
-                                />
-                                <ChartTooltip
-                                    content={
-                                        <ChartTooltipContent
-                                            formatter={value => `${Number(value).toFixed(1)}%`}
-                                        />
-                                    }
-                                />
-                                <defs>
-                                    <linearGradient
-                                        id="performanceGradient"
-                                        x1="0"
-                                        y1="0"
-                                        x2="1"
-                                        y2="0"
-                                    >
-                                        <stop
-                                            offset="5%"
-                                            stopColor="var(--color-blue)"
-                                            stopOpacity={0.8}
-                                        />
-                                        <stop
-                                            offset="95%"
-                                            stopColor="var(--color-blue)"
-                                            stopOpacity={0.1}
-                                        />
-                                    </linearGradient>
-                                </defs>
-                                <Bar
-                                    dataKey="performance"
-                                    fill="url(#performanceGradient)"
-                                    radius={[0, 4, 4, 0]}
-                                />
-                            </BarChart>
-                        </ChartContainer>
-                    </CardContent>
-                </Card>
-
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Coupon Payment Frequency</CardTitle>
-                        <CardDescription>Distribution by payment schedule</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <ChartContainer config={defaultChartConfig} className="h-[250px]">
-                            <BarChart data={frequencyChartData}>
-                                <CartesianGrid strokeDasharray="3 3" />
-                                <XAxis dataKey="name" tickLine={false} axisLine={false} />
-                                <YAxis tickLine={false} axisLine={false} />
-                                <ChartTooltip
-                                    content={<ChartTooltipContent formatter={value => value} />}
-                                />
-                                <defs>
-                                    <linearGradient
-                                        id="frequencyGradient"
-                                        x1="0"
-                                        y1="0"
-                                        x2="0"
-                                        y2="1"
-                                    >
-                                        <stop
-                                            offset="5%"
-                                            stopColor="var(--color-amber)"
-                                            stopOpacity={0.8}
-                                        />
-                                        <stop
-                                            offset="95%"
-                                            stopColor="var(--color-amber)"
-                                            stopOpacity={0.1}
-                                        />
-                                    </linearGradient>
-                                </defs>
-                                <Bar
-                                    dataKey="count"
-                                    fill="url(#frequencyGradient)"
-                                    radius={[4, 4, 0, 0]}
-                                />
-                            </BarChart>
-                        </ChartContainer>
-                    </CardContent>
-                </Card>
-
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Top Returns</CardTitle>
-                        <CardDescription>Best performing structured notes</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <ChartContainer config={defaultChartConfig} className="h-[250px]">
-                            <BarChart data={topPerformers} layout="horizontal">
-                                <CartesianGrid strokeDasharray="3 3" />
-                                <XAxis type="number" tickLine={false} axisLine={false} />
-                                <YAxis
-                                    dataKey="name"
-                                    type="category"
-                                    tickLine={false}
-                                    axisLine={false}
-                                    width={100}
-                                />
-                                <ChartTooltip
-                                    content={
-                                        <ChartTooltipContent
-                                            formatter={value => `${Number(value).toFixed(1)}%`}
-                                        />
-                                    }
-                                />
-                                <defs>
-                                    <linearGradient
-                                        id="returnsGradient"
-                                        x1="0"
-                                        y1="0"
-                                        x2="1"
-                                        y2="0"
-                                    >
-                                        <stop
-                                            offset="5%"
-                                            stopColor="var(--color-rose)"
-                                            stopOpacity={0.8}
-                                        />
-                                        <stop
-                                            offset="95%"
-                                            stopColor="var(--color-rose)"
-                                            stopOpacity={0.1}
-                                        />
-                                    </linearGradient>
-                                </defs>
-                                <Bar
-                                    dataKey="value"
-                                    fill="url(#returnsGradient)"
-                                    radius={[0, 4, 4, 0]}
-                                />
-                            </BarChart>
-                        </ChartContainer>
-                    </CardContent>
-                </Card>
-            </div>
-
-            <Card>
+            {/* Holdings Table */}
+            <Card className="overflow-hidden">
                 <CardHeader>
-                    <CardTitle>Structured Notes Details</CardTitle>
-                    <CardDescription>
-                        Complete list of structured notes in portfolio
-                    </CardDescription>
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <CardTitle>Structured Notes Holdings</CardTitle>
+                            <CardDescription>
+                                Detailed view of all structured products
+                            </CardDescription>
+                        </div>
+                        <Badge variant="outline">{structuredNotes.length} notes</Badge>
+                    </div>
                 </CardHeader>
                 <CardContent>
-                    <div className="overflow-x-auto">
+                    <div className="rounded-lg border">
                         <Table>
                             <TableHeader>
-                                <TableRow>
-                                    <TableHead>Asset Name</TableHead>
-                                    <TableHead>ISIN</TableHead>
-                                    <TableHead>Value</TableHead>
-                                    <TableHead>Coupon</TableHead>
-                                    <TableHead>Maturity</TableHead>
-                                    <TableHead>Underlying</TableHead>
-                                    <TableHead>Performance</TableHead>
-                                    <TableHead>Status</TableHead>
+                                <TableRow className="bg-muted/50">
+                                    <TableHead className="font-semibold">Note Name</TableHead>
+                                    <TableHead className="font-semibold">ISIN</TableHead>
+                                    <TableHead className="text-right font-semibold">
+                                        Current Value
+                                    </TableHead>
+                                    <TableHead className="text-center font-semibold">
+                                        Coupon
+                                    </TableHead>
+                                    <TableHead className="text-center font-semibold">
+                                        Performance
+                                    </TableHead>
+                                    <TableHead className="text-center font-semibold">
+                                        Maturity
+                                    </TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {structuredNotes.map((note, index) => (
-                                    <TableRow key={index}>
-                                        <TableCell className="max-w-[200px] truncate font-medium">
-                                            {note['Asset name']}
-                                        </TableCell>
-                                        <TableCell className="text-xs">
-                                            {
-                                                note[
-                                                    'Asset ticker symbol, identification code or ISIN'
-                                                ]
-                                            }
-                                        </TableCell>
-                                        <TableCell>
-                                            {formatCurrency(
-                                                parseNumericValue(
-                                                    note['Estimated asset value to date']
-                                                )
-                                            )}
-                                        </TableCell>
-                                        <TableCell>
-                                            {formatPercentage(
-                                                parseNumericValue(
-                                                    note['Annual coupon of Structured Note']
-                                                )
-                                            )}
-                                        </TableCell>
-                                        <TableCell className="text-xs">
-                                            {note['Final due date of Structured Note']}
-                                        </TableCell>
-                                        <TableCell className="max-w-[150px] truncate text-xs">
-                                            {
-                                                note[
-                                                    'Structured Note underlying index or asset basket - name'
-                                                ]
-                                            }
-                                        </TableCell>
-                                        <TableCell>
-                                            {note[
-                                                'Performance of underlying index or asset vs. Strike level'
-                                            ] && (
-                                                <Badge
-                                                    variant={
-                                                        parseNumericValue(
-                                                            note[
-                                                                'Performance of underlying index or asset vs. Strike level'
-                                                            ]
-                                                        ) >= 0
-                                                            ? 'default'
-                                                            : 'destructive'
-                                                    }
+                                {topHoldings.map((note, index) => {
+                                    const returnValue =
+                                        parseFloat(
+                                            String(note['Total asset return to date']).replace(
+                                                '%',
+                                                ''
+                                            )
+                                        ) || 0
+
+                                    return (
+                                        <TableRow
+                                            key={index}
+                                            className="hover:bg-muted/30 transition-colors"
+                                        >
+                                            <TableCell className="font-medium">
+                                                <div
+                                                    className="max-w-[200px] truncate"
+                                                    title={note['Asset name']}
                                                 >
+                                                    {note['Asset name']}
+                                                </div>
+                                            </TableCell>
+                                            <TableCell>
+                                                <span className="font-mono text-xs">
                                                     {
                                                         note[
-                                                            'Performance of underlying index or asset vs. Strike level'
+                                                            'Asset ticker symbol, identification code or ISIN'
                                                         ]
                                                     }
+                                                </span>
+                                            </TableCell>
+                                            <TableCell className="text-right font-semibold">
+                                                {formatCurrency(
+                                                    parseNumericValue(
+                                                        note['Estimated asset value to date']
+                                                    ),
+                                                    'EUR'
+                                                )}
+                                            </TableCell>
+                                            <TableCell className="text-center">
+                                                <Badge variant="secondary">
+                                                    {formatPercentage(
+                                                        parseNumericValue(
+                                                            note['Annual coupon of Structured Note']
+                                                        )
+                                                    )}
                                                 </Badge>
-                                            )}
-                                        </TableCell>
-                                        <TableCell>
-                                            <Badge variant="outline">{note['Asset status']}</Badge>
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
+                                            </TableCell>
+                                            <TableCell className="text-center">
+                                                <PerformanceIndicator
+                                                    value={returnValue / 100}
+                                                    showSign={true}
+                                                />
+                                            </TableCell>
+                                            <TableCell className="text-center text-xs">
+                                                {note['Final due date of Structured Note'] || 'N/A'}
+                                            </TableCell>
+                                        </TableRow>
+                                    )
+                                })}
                             </TableBody>
                         </Table>
                     </div>
