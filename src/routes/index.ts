@@ -1,6 +1,7 @@
 export const ROUTES = Object.freeze({
     HOME: '/',
     DASHBOARD: '/dashboard',
+    PORTFOLIO_DASHBOARDS: '/dashboards',
     API: Object.freeze({
         AUTH: '/api/auth'
     })

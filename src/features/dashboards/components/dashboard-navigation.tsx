@@ -4,8 +4,18 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
-import { LayoutDashboard, FileText, TrendingUp, Coins, Rocket, Menu, X } from 'lucide-react'
+import {
+    LayoutDashboard,
+    FileText,
+    TrendingUp,
+    Coins,
+    Rocket,
+    Menu,
+    X,
+    ArrowLeft
+} from 'lucide-react'
 import { ThemeToggle } from '@/components/common/theme-toggle'
+import { ROUTES } from '@/routes'
 
 const dashboardLinks = [
     {
@@ -44,7 +54,16 @@ export const DashboardNavigation = () => {
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex h-16 items-center justify-between">
                     {/* Mobile menu button and title */}
-                    <div className="flex items-center">
+                    <div className="flex items-center gap-2">
+                        <Link
+                            href={ROUTES.DASHBOARD}
+                            className="text-muted-foreground hover:text-foreground hover:bg-muted focus:ring-primary inline-flex items-center justify-center rounded-md p-2 focus:ring-2 focus:outline-none focus:ring-inset"
+                            title="Back to main dashboard"
+                        >
+                            <ArrowLeft className="h-5 w-5" />
+                            <span className="ml-2 hidden sm:inline">Dashboard</span>
+                        </Link>
+                        <div className="bg-border hidden h-6 w-px sm:block" />
                         <button
                             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                             className="text-muted-foreground hover:text-foreground hover:bg-muted focus:ring-primary inline-flex items-center justify-center rounded-md p-2 focus:ring-2 focus:outline-none focus:ring-inset lg:hidden"
@@ -99,6 +118,14 @@ export const DashboardNavigation = () => {
                 {/* Mobile menu */}
                 <div className={cn('lg:hidden', isMobileMenuOpen ? 'block' : 'hidden')}>
                     <div className="space-y-1 px-2 pt-2 pb-3">
+                        <Link
+                            href={ROUTES.DASHBOARD}
+                            onClick={() => setIsMobileMenuOpen(false)}
+                            className="text-muted-foreground hover:text-foreground hover:bg-muted border-border mb-2 flex items-center gap-3 rounded-md border-b px-3 py-2 pb-3 text-base font-medium transition-colors"
+                        >
+                            <ArrowLeft className="h-5 w-5" />
+                            Back to Main Dashboard
+                        </Link>
                         {dashboardLinks.map(link => {
                             const Icon = link.icon
                             const isActive = pathname === link.href
