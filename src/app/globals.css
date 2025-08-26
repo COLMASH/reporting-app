@@ -154,8 +154,8 @@
     --warning-foreground: oklch(0.145 0 0);
 }
 
-/* Chart theme: default - More Vibrant */
-[data-chart-theme='default'] {
+/* Chart theme: colored - More Vibrant */
+[data-chart-theme='colored'] {
     --chart-1: hsl(221 83% 53%); /* Vibrant Blue */
     --chart-2: hsl(142 71% 45%); /* Vibrant Green */
     --chart-3: hsl(25 95% 53%); /* Vibrant Orange */
@@ -163,7 +163,7 @@
     --chart-5: hsl(263 70% 50%); /* Vibrant Violet */
 }
 
-[data-chart-theme='default'] .dark {
+[data-chart-theme='colored'] .dark {
     --chart-1: hsl(212 95% 68%); /* Bright Blue */
     --chart-2: hsl(142 76% 57%); /* Bright Green */
     --chart-3: hsl(25 95% 63%); /* Bright Orange */

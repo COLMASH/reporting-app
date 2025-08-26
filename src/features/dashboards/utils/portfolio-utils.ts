@@ -102,8 +102,8 @@ export const formatNumber = (value: number, decimals = 0): string => {
 }
 
 export const getPerformanceTrend = (value: number): 'positive' | 'negative' | 'neutral' => {
-    if (value > 0.01) return 'positive'
-    if (value < -0.01) return 'negative'
+    if (value > 0) return 'positive'
+    if (value < 0) return 'negative'
     return 'neutral'
 }
 
@@ -126,6 +126,7 @@ export const calculateTotalPortfolioCost = (assets: PortfolioAsset[]): number =>
 export const calculatePortfolioReturn = (assets: PortfolioAsset[]): PerformanceMetrics => {
     const totalValue = calculateTotalPortfolioValue(assets)
     const totalCost = calculateTotalPortfolioCost(assets)
+
     const totalReturn = totalValue - totalCost
     const returnPercentage = totalCost > 0 ? totalReturn / totalCost : 0
 

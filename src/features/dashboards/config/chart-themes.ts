@@ -1,6 +1,6 @@
 import { ChartConfig } from '@/components/ui/chart'
 
-export type ChartTheme = 'default' | 'green' | 'amber' | 'orange' | 'rose' | 'violet' | 'blue'
+export type ChartTheme = 'green' | 'amber' | 'orange' | 'rose' | 'violet' | 'blue' | 'colored'
 
 export const chartThemeColors: Record<
     ChartTheme,
@@ -12,64 +12,64 @@ export const chartThemeColors: Record<
         chart5: { light: string; dark: string }
     }
 > = {
-    default: {
+    green: {
+        // Different tones of green - with dramatic contrast
+        chart1: { light: 'hsl(142 85% 20%)', dark: 'hsl(142 85% 25%)' },
+        chart2: { light: 'hsl(142 75% 35%)', dark: 'hsl(142 75% 45%)' },
+        chart3: { light: 'hsl(142 65% 50%)', dark: 'hsl(142 70% 65%)' },
+        chart4: { light: 'hsl(142 55% 65%)', dark: 'hsl(142 60% 80%)' },
+        chart5: { light: 'hsl(142 45% 80%)', dark: 'hsl(142 50% 95%)' }
+    },
+    amber: {
+        // Different tones of amber - with dramatic contrast
+        chart1: { light: 'hsl(38 100% 20%)', dark: 'hsl(38 95% 25%)' },
+        chart2: { light: 'hsl(38 95% 35%)', dark: 'hsl(38 90% 45%)' },
+        chart3: { light: 'hsl(38 90% 50%)', dark: 'hsl(38 85% 65%)' },
+        chart4: { light: 'hsl(38 85% 65%)', dark: 'hsl(38 80% 80%)' },
+        chart5: { light: 'hsl(38 80% 80%)', dark: 'hsl(38 75% 95%)' }
+    },
+    orange: {
+        // Different tones of orange - with dramatic contrast
+        chart1: { light: 'hsl(25 100% 22%)', dark: 'hsl(25 95% 30%)' },
+        chart2: { light: 'hsl(25 95% 37%)', dark: 'hsl(25 95% 50%)' },
+        chart3: { light: 'hsl(25 90% 52%)', dark: 'hsl(25 90% 68%)' },
+        chart4: { light: 'hsl(25 85% 67%)', dark: 'hsl(25 85% 83%)' },
+        chart5: { light: 'hsl(25 80% 82%)', dark: 'hsl(25 80% 96%)' }
+    },
+    rose: {
+        // Different tones of rose - with dramatic contrast
+        chart1: { light: 'hsl(346 85% 20%)', dark: 'hsl(346 80% 28%)' },
+        chart2: { light: 'hsl(346 80% 35%)', dark: 'hsl(346 75% 48%)' },
+        chart3: { light: 'hsl(346 75% 50%)', dark: 'hsl(346 70% 65%)' },
+        chart4: { light: 'hsl(346 70% 65%)', dark: 'hsl(346 65% 80%)' },
+        chart5: { light: 'hsl(346 65% 80%)', dark: 'hsl(346 60% 95%)' }
+    },
+    violet: {
+        // Different tones of violet - with dramatic contrast
+        chart1: { light: 'hsl(263 80% 20%)', dark: 'hsl(263 95% 30%)' },
+        chart2: { light: 'hsl(263 75% 35%)', dark: 'hsl(263 90% 48%)' },
+        chart3: { light: 'hsl(263 70% 50%)', dark: 'hsl(263 85% 65%)' },
+        chart4: { light: 'hsl(263 65% 65%)', dark: 'hsl(263 80% 80%)' },
+        chart5: { light: 'hsl(263 60% 80%)', dark: 'hsl(263 75% 95%)' }
+    },
+    blue: {
+        // Different tones of blue - with dramatic contrast
+        chart1: { light: 'hsl(217 100% 30%)', dark: 'hsl(217 95% 40%)' },
+        chart2: { light: 'hsl(217 95% 45%)', dark: 'hsl(217 90% 58%)' },
+        chart3: { light: 'hsl(217 90% 60%)', dark: 'hsl(217 85% 73%)' },
+        chart4: { light: 'hsl(217 85% 75%)', dark: 'hsl(217 80% 87%)' },
+        chart5: { light: 'hsl(217 80% 88%)', dark: 'hsl(217 75% 97%)' }
+    },
+    colored: {
         chart1: { light: 'hsl(221 83% 53%)', dark: 'hsl(212 95% 68%)' },
         chart2: { light: 'hsl(25 95% 53%)', dark: 'hsl(25 95% 63%)' },
         chart3: { light: 'hsl(340 75% 55%)', dark: 'hsl(340 75% 65%)' },
         chart4: { light: 'hsl(188 86% 53%)', dark: 'hsl(188 86% 63%)' },
         chart5: { light: 'hsl(280 65% 60%)', dark: 'hsl(280 65% 70%)' }
-    },
-    green: {
-        // Different tones of green - from darker to lighter
-        chart1: { light: 'hsl(142 71% 35%)', dark: 'hsl(142 76% 57%)' },
-        chart2: { light: 'hsl(142 71% 45%)', dark: 'hsl(142 76% 67%)' },
-        chart3: { light: 'hsl(142 71% 55%)', dark: 'hsl(142 76% 77%)' },
-        chart4: { light: 'hsl(142 71% 65%)', dark: 'hsl(142 76% 87%)' },
-        chart5: { light: 'hsl(142 71% 75%)', dark: 'hsl(142 76% 95%)' }
-    },
-    amber: {
-        // Different tones of amber - from darker to lighter
-        chart1: { light: 'hsl(38 92% 35%)', dark: 'hsl(38 92% 55%)' },
-        chart2: { light: 'hsl(38 92% 45%)', dark: 'hsl(38 92% 65%)' },
-        chart3: { light: 'hsl(38 92% 55%)', dark: 'hsl(38 92% 75%)' },
-        chart4: { light: 'hsl(38 92% 65%)', dark: 'hsl(38 92% 85%)' },
-        chart5: { light: 'hsl(38 92% 75%)', dark: 'hsl(38 92% 95%)' }
-    },
-    orange: {
-        // Different tones of orange - from darker to lighter
-        chart1: { light: 'hsl(25 95% 38%)', dark: 'hsl(25 95% 58%)' },
-        chart2: { light: 'hsl(25 95% 48%)', dark: 'hsl(25 95% 68%)' },
-        chart3: { light: 'hsl(25 95% 58%)', dark: 'hsl(25 95% 78%)' },
-        chart4: { light: 'hsl(25 95% 68%)', dark: 'hsl(25 95% 88%)' },
-        chart5: { light: 'hsl(25 95% 78%)', dark: 'hsl(25 95% 95%)' }
-    },
-    rose: {
-        // Different tones of rose - from darker to lighter
-        chart1: { light: 'hsl(346 77% 35%)', dark: 'hsl(346 77% 55%)' },
-        chart2: { light: 'hsl(346 77% 45%)', dark: 'hsl(346 77% 65%)' },
-        chart3: { light: 'hsl(346 77% 55%)', dark: 'hsl(346 77% 75%)' },
-        chart4: { light: 'hsl(346 77% 65%)', dark: 'hsl(346 77% 85%)' },
-        chart5: { light: 'hsl(346 77% 75%)', dark: 'hsl(346 77% 95%)' }
-    },
-    violet: {
-        // Different tones of violet - from darker to lighter
-        chart1: { light: 'hsl(263 70% 35%)', dark: 'hsl(263 85% 55%)' },
-        chart2: { light: 'hsl(263 70% 45%)', dark: 'hsl(263 85% 65%)' },
-        chart3: { light: 'hsl(263 70% 55%)', dark: 'hsl(263 85% 75%)' },
-        chart4: { light: 'hsl(263 70% 65%)', dark: 'hsl(263 85% 85%)' },
-        chart5: { light: 'hsl(263 70% 75%)', dark: 'hsl(263 85% 95%)' }
-    },
-    blue: {
-        // Different tones of blue - from darker to lighter
-        chart1: { light: 'hsl(217 91% 45%)', dark: 'hsl(217 91% 65%)' },
-        chart2: { light: 'hsl(217 91% 55%)', dark: 'hsl(217 91% 75%)' },
-        chart3: { light: 'hsl(217 91% 65%)', dark: 'hsl(217 91% 85%)' },
-        chart4: { light: 'hsl(217 91% 75%)', dark: 'hsl(217 91% 90%)' },
-        chart5: { light: 'hsl(217 91% 85%)', dark: 'hsl(217 91% 95%)' }
     }
 }
 
-export const createChartConfig = (theme: ChartTheme = 'default'): ChartConfig => {
+export const createChartConfig = (theme: ChartTheme = 'green'): ChartConfig => {
     const colors = chartThemeColors[theme]
 
     return {
@@ -120,11 +120,11 @@ export const getChartThemeColor = (theme: ChartTheme, index: number): string => 
 }
 
 export const chartThemeLabels: Record<ChartTheme, string> = {
-    default: 'Default',
     green: 'Green',
     amber: 'Amber',
     orange: 'Orange',
     rose: 'Rose',
     violet: 'Violet',
-    blue: 'Blue'
+    blue: 'Blue',
+    colored: 'Colored'
 }

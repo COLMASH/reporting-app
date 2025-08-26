@@ -21,7 +21,7 @@ import {
     CartesianGrid
 } from 'recharts'
 import { ChartTooltip } from '@/components/ui/chart'
-import { TrendingUp, TrendingDown, Minus, Calendar, DollarSign } from 'lucide-react'
+import { TrendingUp, TrendingDown, Minus, Calendar } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { usePortfolioData } from '../hooks/use-portfolio-data'
 import { ChartThemeSelector } from './chart-theme-selector'
@@ -60,8 +60,18 @@ const PerformanceIndicator = ({
 }
 
 export const StructuredNotesDashboard = () => {
-    const { getAssetsByType } = usePortfolioData()
-    const structuredNotes = getAssetsByType('Structured notes')
+    const { assets } = usePortfolioData()
+
+    // Get all assets that belong to the "Structured Notes" category
+    // This includes: Structured notes, Bonds, and Cash and Money Market Funds
+    const structuredNotes = assets.filter(asset => {
+        const assetType = asset['Asset type']
+        return (
+            assetType === 'Structured notes' ||
+            assetType === 'Bonds' ||
+            assetType === 'Cash and Money Market Funds'
+        )
+    })
 
     // Portfolio Metrics
     const totalValue = structuredNotes.reduce(
@@ -76,24 +86,9 @@ export const StructuredNotesDashboard = () => {
         0
     )
 
+    // Calculate returns - use actual value difference since this includes bonds and cash
     const totalReturn = totalValue - totalCost
     const returnPercentage = totalCost > 0 ? totalReturn / totalCost : 0
-
-    // Average coupon calculation
-    const averageCoupon =
-        structuredNotes.length > 0
-            ? structuredNotes.reduce((sum, note) => {
-                  const coupon = parseNumericValue(note['Annual coupon of Structured Note'])
-                  return sum + coupon
-              }, 0) / structuredNotes.length
-            : 0
-
-    // Annual income from coupons
-    const annualIncome = structuredNotes.reduce((sum, note) => {
-        const value = parseNumericValue(note['Estimated asset value to date'])
-        const coupon = parseNumericValue(note['Annual coupon of Structured Note'])
-        return sum + value * coupon
-    }, 0)
 
     // Maturity Timeline
     const maturityTimelineData = structuredNotes
@@ -216,6 +211,9 @@ export const StructuredNotesDashboard = () => {
                                     day: 'numeric',
                                     year: 'numeric'
                                 })}
+                                <span className="text-muted-foreground mt-1 block text-xs">
+                                    Includes: Structured Notes, Bonds, and Cash & Money Market Funds
+                                </span>
                             </CardDescription>
                         </div>
                         <div className="self-start sm:self-center">
@@ -233,16 +231,19 @@ export const StructuredNotesDashboard = () => {
                             <PerformanceIndicator value={returnPercentage} />
                         </div>
                         <div className="space-y-2">
-                            <p className="text-muted-foreground text-sm">Annual Income</p>
-                            <p className="text-3xl font-bold">
-                                {formatCurrency(annualIncome, 'EUR', true)}
+                            <p className="text-muted-foreground text-sm">Total Return</p>
+                            <p
+                                className={cn(
+                                    'text-3xl font-bold',
+                                    totalReturn >= 0 ? 'text-success' : 'text-destructive'
+                                )}
+                            >
+                                {totalReturn >= 0 ? '+' : ''}
+                                {formatCurrency(totalReturn, 'EUR', true)}
                             </p>
-                            <div className="flex items-center gap-2">
-                                <DollarSign className="text-muted-foreground h-4 w-4" />
-                                <span className="text-muted-foreground text-xs">
-                                    {formatPercentage(averageCoupon)} avg yield
-                                </span>
-                            </div>
+                            <p className="text-muted-foreground text-xs">
+                                on {formatCurrency(totalCost, 'EUR', true)} invested
+                            </p>
                         </div>
                         <div className="space-y-2">
                             <p className="text-muted-foreground text-sm">Active Notes</p>
