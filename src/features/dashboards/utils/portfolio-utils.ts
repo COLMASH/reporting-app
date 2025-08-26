@@ -109,7 +109,23 @@ export const getPerformanceTrend = (value: number): 'positive' | 'negative' | 'n
 
 export const calculateTotalPortfolioValue = (assets: PortfolioAsset[]): number => {
     return assets.reduce((total, asset) => {
-        const value = parseNumericValue(asset['Estimated asset value to date'])
+        let value = parseNumericValue(asset['Estimated asset value to date'])
+
+        // ONLY for commodities: If estimated value is empty or 0, calculate from shares × current price
+        const assetType = asset['Asset type']
+        const isCommodity = assetType === 'Gold' || assetType === 'Silver' || assetType === 'BTC'
+
+        if (isCommodity && (!value || value === 0)) {
+            const shares = parseNumericValue(
+                asset['Number of shares or units in the portfolio to date']
+            )
+            const currentPrice = parseNumericValue(asset['Current price per share or unit'])
+
+            if (shares && currentPrice) {
+                value = shares * currentPrice
+            }
+        }
+
         return total + value
     }, 0)
 }
@@ -154,7 +170,21 @@ export const getAssetAllocation = (assets: PortfolioAsset[]): AssetAllocation[] 
 
     assets.forEach(asset => {
         const type = asset['Asset type'] as AssetType
-        const value = parseNumericValue(asset['Estimated asset value to date'])
+        let value = parseNumericValue(asset['Estimated asset value to date'])
+
+        // ONLY for commodities: If estimated value is empty or 0, calculate from shares × current price
+        const isCommodity = type === 'Gold' || type === 'Silver' || type === 'BTC'
+
+        if (isCommodity && (!value || value === 0)) {
+            const shares = parseNumericValue(
+                asset['Number of shares or units in the portfolio to date']
+            )
+            const currentPrice = parseNumericValue(asset['Current price per share or unit'])
+
+            if (shares && currentPrice) {
+                value = shares * currentPrice
+            }
+        }
 
         if (!allocationMap.has(type)) {
             allocationMap.set(type, { value: 0, count: 0 })
@@ -182,7 +212,22 @@ export const getGroupedAssetAllocation = (assets: PortfolioAsset[]): AssetAlloca
 
     assets.forEach(asset => {
         const category = assetTypeToCategory(asset['Asset type'])
-        const value = parseNumericValue(asset['Estimated asset value to date'])
+        let value = parseNumericValue(asset['Estimated asset value to date'])
+
+        // ONLY for commodities: If estimated value is empty or 0, calculate from shares × current price
+        const assetType = asset['Asset type']
+        const isCommodity = assetType === 'Gold' || assetType === 'Silver' || assetType === 'BTC'
+
+        if (isCommodity && (!value || value === 0)) {
+            const shares = parseNumericValue(
+                asset['Number of shares or units in the portfolio to date']
+            )
+            const currentPrice = parseNumericValue(asset['Current price per share or unit'])
+
+            if (shares && currentPrice) {
+                value = shares * currentPrice
+            }
+        }
 
         if (!allocationMap.has(category)) {
             allocationMap.set(category, { value: 0, count: 0 })
@@ -318,7 +363,22 @@ export const getCurrencyDistribution = (assets: PortfolioAsset[]): Map<string, n
 
     assets.forEach(asset => {
         const currency = asset['Denomination currency of asset and cashflow']
-        const value = parseNumericValue(asset['Estimated asset value to date'])
+        let value = parseNumericValue(asset['Estimated asset value to date'])
+
+        // ONLY for commodities: If estimated value is empty or 0, calculate from shares × current price
+        const assetType = asset['Asset type']
+        const isCommodity = assetType === 'Gold' || assetType === 'Silver' || assetType === 'BTC'
+
+        if (isCommodity && (!value || value === 0)) {
+            const shares = parseNumericValue(
+                asset['Number of shares or units in the portfolio to date']
+            )
+            const currentPrice = parseNumericValue(asset['Current price per share or unit'])
+
+            if (shares && currentPrice) {
+                value = shares * currentPrice
+            }
+        }
 
         if (!currencyMap.has(currency)) {
             currencyMap.set(currency, 0)
