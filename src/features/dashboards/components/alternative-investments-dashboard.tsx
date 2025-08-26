@@ -1,7 +1,8 @@
 'use client'
 
+import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
+import { Progress } from '@/components/ui/progress'
 import {
     Table,
     TableBody,
@@ -10,477 +11,956 @@ import {
     TableHeader,
     TableRow
 } from '@/components/ui/table'
-import { Badge } from '@/components/ui/badge'
 import {
-    BarChart,
+    ResponsiveContainer,
+    BarChart as RechartsBarChart,
     Bar,
     XAxis,
     YAxis,
+    ZAxis,
     CartesianGrid,
-    PieChart,
-    Pie,
     Cell,
-    AreaChart,
-    Area
+    ScatterChart,
+    Scatter,
+    Tooltip
 } from 'recharts'
+import { ChartTooltip } from '@/components/ui/chart'
+import {
+    TrendingUp,
+    TrendingDown,
+    Minus,
+    Briefcase,
+    DollarSign,
+    AlertTriangle,
+    PieChart as PieChartIcon,
+    BarChart3,
+    Users
+} from 'lucide-react'
+import { cn } from '@/lib/utils'
 import { usePortfolioData } from '../hooks/use-portfolio-data'
-import { defaultChartConfig } from '../config/chart-config'
-import { formatCurrency, formatPercentage, parseNumericValue } from '../utils/portfolio-utils'
-import { Rocket, Building2, Search, Coins } from 'lucide-react'
+import { ChartThemeSelector } from './chart-theme-selector'
+import {
+    formatCurrency,
+    formatPercentage,
+    parseNumericValue,
+    getPerformanceTrend
+} from '../utils/portfolio-utils'
+import { ChartCard, InteractiveLegend, PieChart } from './charts'
+import { prepareChartData, truncateLabel } from './charts/utils'
 
-// Safe color cycling - CSS only defines 5 chart colors
-const MAX_CHART_COLORS = 5
+const PerformanceIndicator = ({
+    value,
+    showSign = true
+}: {
+    value: number
+    showSign?: boolean
+}) => {
+    const trend = getPerformanceTrend(value)
 
-const getChartColor = (index: number): string => {
-    const colorNumber = (index % MAX_CHART_COLORS) + 1
-    return `var(--chart-${colorNumber})`
+    return (
+        <div
+            className={cn('flex items-center gap-1', {
+                'text-success': trend === 'positive',
+                'text-destructive': trend === 'negative',
+                'text-muted-foreground': trend === 'neutral'
+            })}
+        >
+            {trend === 'positive' && <TrendingUp className="h-4 w-4" />}
+            {trend === 'negative' && <TrendingDown className="h-4 w-4" />}
+            {trend === 'neutral' && <Minus className="h-4 w-4" />}
+            <span className="font-semibold">{formatPercentage(value, showSign)}</span>
+        </div>
+    )
 }
 
 export const AlternativeInvestmentsDashboard = () => {
-    const { getAssetsByType } = usePortfolioData()
+    const { assets } = usePortfolioData()
 
-    const privateEquity = getAssetsByType('Private Equity Fund')
-    const ventureCapital = getAssetsByType('Venture Capital Fund')
-    const vcStartups = getAssetsByType('Venture Capital startup')
-    const searchFunds = getAssetsByType('Fund of Search Funds')
-    const searchFund = getAssetsByType('Search Fund')
-    const vcCrypto = getAssetsByType('Venture Capital & Crypto Assets Fund')
-    const privateDebt = getAssetsByType('Private Debt')
-    const peDirectOwnership = getAssetsByType('Private Equity direct ownership')
-    const fundOfFunds = getAssetsByType('Fund of Funds')
+    // Get all assets that belong to the "Alternative Investments" category
+    const alternatives = assets.filter(asset => {
+        const assetType = asset['Asset type']
+        return (
+            assetType === 'Private Equity Fund' ||
+            assetType === 'Private Equity direct ownership' ||
+            assetType === 'Private Debt' ||
+            assetType === 'Real Estate' ||
+            assetType === 'Hedge Funds' ||
+            assetType === 'Fund of Funds' ||
+            assetType === 'Fund of Search Funds' ||
+            assetType === 'Search Fund' ||
+            assetType === 'Housing development' ||
+            assetType === 'Redevelopment' ||
+            assetType === 'Venture Capital & Crypto Assets Fund' ||
+            assetType === 'Venture Capital Fund' ||
+            assetType === 'Venture Capital startup'
+        )
+    })
 
-    const allAlternatives = [
-        ...privateEquity,
-        ...ventureCapital,
-        ...vcStartups,
-        ...searchFunds,
-        ...searchFund,
-        ...vcCrypto,
-        ...privateDebt,
-        ...peDirectOwnership,
-        ...fundOfFunds
-    ]
-
-    const totalValue = allAlternatives.reduce(
+    // Portfolio Metrics
+    const totalValue = alternatives.reduce(
         (sum, asset) => sum + parseNumericValue(asset['Estimated asset value to date']),
         0
     )
 
-    const totalCommitment = allAlternatives.reduce(
-        (sum, asset) => sum + parseNumericValue(asset['Total investment commitment']),
+    const totalCost = alternatives.reduce(
+        (sum, asset) =>
+            sum +
+            parseNumericValue(
+                asset['Total equity investment in asset (at cost) / Paid-in Capital']
+            ),
         0
     )
 
-    const unfundedCommitment = allAlternatives.reduce(
+    const unfundedCommitment = alternatives.reduce(
         (sum, asset) => sum + parseNumericValue(asset['Pending investment / Unfunded Commitment']),
         0
     )
 
-    const categoriesData = [
-        {
-            name: 'Private Equity',
-            value: privateEquity.reduce(
-                (sum, a) => sum + parseNumericValue(a['Estimated asset value to date']),
-                0
-            ),
-            count: privateEquity.length,
-            fill: getChartColor(0)
-        },
-        {
-            name: 'VC Funds',
-            value: ventureCapital.reduce(
-                (sum, a) => sum + parseNumericValue(a['Estimated asset value to date']),
-                0
-            ),
-            count: ventureCapital.length,
-            fill: getChartColor(1)
-        },
-        {
-            name: 'VC Startups',
-            value: vcStartups.reduce(
-                (sum, a) => sum + parseNumericValue(a['Estimated asset value to date']),
-                0
-            ),
-            count: vcStartups.length,
-            fill: getChartColor(2)
-        },
-        {
-            name: 'Search Funds',
-            value: [...searchFunds, ...searchFund].reduce(
-                (sum, a) => sum + parseNumericValue(a['Estimated asset value to date']),
-                0
-            ),
-            count: searchFunds.length + searchFund.length,
-            fill: getChartColor(3)
-        },
-        {
-            name: 'Private Debt',
-            value: privateDebt.reduce(
-                (sum, a) => sum + parseNumericValue(a['Estimated asset value to date']),
-                0
-            ),
-            count: privateDebt.length,
-            fill: getChartColor(4)
-        },
-        {
-            name: 'Fund of Funds',
-            value: fundOfFunds.reduce(
-                (sum, a) => sum + parseNumericValue(a['Estimated asset value to date']),
-                0
-            ),
-            count: fundOfFunds.length,
-            fill: getChartColor(5)
-        }
-    ].filter(cat => cat.value > 0)
+    const totalReturn = totalValue - totalCost
+    const returnPercentage = totalCost > 0 ? totalReturn / totalCost : 0
 
-    const commitmentData = allAlternatives
-        .map((asset, index) => ({
-            name: asset['Asset name'].substring(0, 30),
-            commitment: parseNumericValue(asset['Total investment commitment']),
-            paidIn: parseNumericValue(
+    // Calculate DPI and TVPI multiples
+    const totalDistributions = alternatives.reduce((sum, asset) => {
+        const distributions = parseNumericValue(asset['Distributions to date'])
+        return sum + distributions
+    }, 0)
+
+    // Strategy Analysis - Group by category
+    const strategyAnalysis = alternatives.reduce(
+        (acc, asset) => {
+            let strategy = 'Other'
+            const assetType = asset['Asset type']
+
+            if (assetType.includes('Private Equity')) strategy = 'Private Equity'
+            else if (assetType.includes('Venture Capital')) strategy = 'Venture Capital'
+            else if (
+                assetType === 'Real Estate' ||
+                assetType === 'Housing development' ||
+                assetType === 'Redevelopment'
+            )
+                strategy = 'Real Estate'
+            else if (assetType === 'Hedge Funds') strategy = 'Hedge Funds'
+            else if (assetType.includes('Search Fund')) strategy = 'Search Funds'
+            else if (assetType === 'Private Debt') strategy = 'Private Debt'
+            else if (assetType === 'Fund of Funds') strategy = 'Fund of Funds'
+
+            if (!acc[strategy]) {
+                acc[strategy] = {
+                    name: strategy,
+                    value: 0,
+                    cost: 0,
+                    commitment: 0,
+                    unfunded: 0,
+                    count: 0,
+                    totalReturn: 0,
+                    distributions: 0
+                }
+            }
+
+            const value = parseNumericValue(asset['Estimated asset value to date'])
+            const cost = parseNumericValue(
                 asset['Total equity investment in asset (at cost) / Paid-in Capital']
-            ),
-            unfunded: parseNumericValue(asset['Pending investment / Unfunded Commitment']),
-            fill: getChartColor(index)
-        }))
-        .filter(a => a.commitment > 0)
-        .slice(0, Math.min(10, allAlternatives.length))
+            )
+            const commitment = parseNumericValue(asset['Total investment commitment'])
+            const unfunded = parseNumericValue(asset['Pending investment / Unfunded Commitment'])
+            const distributions = parseNumericValue(asset['Distributions to date'])
 
-    const performanceData = allAlternatives
-        .filter(a => parseNumericValue(a['Total asset return to date']) !== 0)
-        .map((asset, index) => ({
-            name: asset['Asset name'].substring(0, 25),
-            return: parseNumericValue(asset['Total asset return to date']) * 100,
-            value: parseNumericValue(asset['Estimated asset value to date']),
-            fill: getChartColor(index)
+            acc[strategy].value += value
+            acc[strategy].cost += cost
+            acc[strategy].commitment += commitment
+            acc[strategy].unfunded += unfunded
+            acc[strategy].count++
+            acc[strategy].distributions += distributions
+            acc[strategy].totalReturn = acc[strategy].value - acc[strategy].cost
+
+            return acc
+        },
+        {} as Record<
+            string,
+            {
+                name: string
+                value: number
+                cost: number
+                commitment: number
+                unfunded: number
+                count: number
+                totalReturn: number
+                distributions: number
+            }
+        >
+    )
+
+    const strategyData = Object.values(strategyAnalysis)
+        .filter(s => s.value > 0 || s.commitment > 0)
+        .sort((a, b) => b.value - a.value)
+        .map((item, index) => ({
+            ...item,
+            returnPercentage: item.cost > 0 ? item.totalReturn / item.cost : 0,
+            deploymentRate: item.commitment > 0 ? item.cost / item.commitment : 0,
+            fill: `var(--chart-${(index % 5) + 1})`
         }))
-        .sort((a, b) => b.return - a.return)
-        .slice(0, Math.min(8, allAlternatives.length))
+
+    // Prepare pie chart data for strategy allocation - filter out strategies with no value
+    const pieChartData = prepareChartData(
+        strategyData
+            .filter(item => item.value > 0) // Only include strategies with actual value
+            .map((item, index) => ({
+                name: item.name,
+                fullName: item.name,
+                value: item.value,
+                count: item.count,
+                fill: `var(--chart-${(index % 5) + 1})`
+            })),
+        { valueKey: 'value', includePercentage: true }
+    )
+
+    // Top performers
+    const topPerformers = [...alternatives]
+        .sort((a, b) => {
+            const returnA = parseNumericValue(a['Total asset return to date'])
+            const returnB = parseNumericValue(b['Total asset return to date'])
+            return returnB - returnA
+        })
+        .slice(0, 5)
+
+    // Underperformers - get bottom 5 performers (including positive returns if needed)
+    const underperformers = [...alternatives]
+        .sort((a, b) => {
+            const returnA = parseNumericValue(a['Total asset return to date'])
+            const returnB = parseNumericValue(b['Total asset return to date'])
+            return returnA - returnB
+        })
+        .slice(0, 5)
+
+    // Fund Manager Analysis
+    const managerAnalysis = alternatives.reduce(
+        (acc, asset) => {
+            const manager = asset['Broker / Asset Manager'] || 'Self-Managed'
+            if (!acc[manager]) {
+                acc[manager] = { name: manager, value: 0, commitment: 0, count: 0 }
+            }
+            acc[manager].value += parseNumericValue(asset['Estimated asset value to date'])
+            acc[manager].commitment += parseNumericValue(asset['Total investment commitment'])
+            acc[manager].count++
+            return acc
+        },
+        {} as Record<string, { name: string; value: number; commitment: number; count: number }>
+    )
+
+    const managerData = Object.values(managerAnalysis)
+        .filter(m => m.value > 0)
+        .sort((a, b) => b.value - a.value)
+        .slice(0, 8)
+        .map((item, index) => ({
+            ...item,
+            name: truncateLabel(item.name, 15),
+            fullName: item.name,
+            percentage: (item.value / totalValue) * 100,
+            fill: `var(--chart-${(index % 5) + 1})`
+        }))
+
+    // Capital Deployment Waterfall
+    const deploymentData = strategyData.map(strategy => ({
+        name: truncateLabel(strategy.name, 12),
+        fullName: strategy.name,
+        commitment: strategy.commitment,
+        deployed: strategy.cost,
+        unfunded: strategy.unfunded,
+        deploymentRate: strategy.deploymentRate * 100,
+        count: strategy.count
+    }))
+
+    // Risk-Return Scatter Data
+    const scatterData = alternatives
+        .filter(asset => parseNumericValue(asset['Total investment commitment']) > 0)
+        .map(asset => ({
+            x: parseNumericValue(asset['Total investment commitment']),
+            y: parseNumericValue(asset['Total asset return to date']) * 100,
+            z: parseNumericValue(asset['Estimated asset value to date']),
+            name: truncateLabel(asset['Asset name'], 30),
+            type: asset['Asset type']
+        }))
+
+    // Top holdings for table
+    const topHoldings = [...alternatives]
+        .sort((a, b) => {
+            const valueA = parseNumericValue(a['Estimated asset value to date'])
+            const valueB = parseNumericValue(b['Estimated asset value to date'])
+            return valueB - valueA
+        })
+        .slice(0, 10)
 
     return (
-        <div className="space-y-6">
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">
-                            Total Alternative Assets
-                        </CardTitle>
-                        <Rocket className="text-muted-foreground h-4 w-4" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{formatCurrency(totalValue)}</div>
-                        <p className="text-muted-foreground text-xs">
-                            {allAlternatives.length} investments
-                        </p>
-                    </CardContent>
-                </Card>
-
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Total Commitment</CardTitle>
-                        <Coins className="text-muted-foreground h-4 w-4" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{formatCurrency(totalCommitment)}</div>
-                        <p className="text-muted-foreground text-xs">Across all funds</p>
-                    </CardContent>
-                </Card>
-
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Unfunded Commitment</CardTitle>
-                        <Building2 className="text-muted-foreground h-4 w-4" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">
-                            {formatCurrency(unfundedCommitment)}
-                        </div>
-                        <p className="text-muted-foreground text-xs">Pending capital calls</p>
-                    </CardContent>
-                </Card>
-
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">VC Startups</CardTitle>
-                        <Search className="text-muted-foreground h-4 w-4" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{vcStartups.length}</div>
-                        <p className="text-muted-foreground text-xs">Direct investments</p>
-                    </CardContent>
-                </Card>
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-2">
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Alternative Asset Categories</CardTitle>
-                        <CardDescription>Distribution by investment type</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <ChartContainer config={defaultChartConfig} className="h-[300px]">
-                            <PieChart>
-                                <Pie
-                                    data={categoriesData}
-                                    cx="50%"
-                                    cy="50%"
-                                    outerRadius={80}
-                                    dataKey="value"
-                                    label={({ name, percentage }) =>
-                                        `${name}: ${(percentage * 100).toFixed(0)}%`
-                                    }
-                                >
-                                    {categoriesData.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={entry.fill} />
-                                    ))}
-                                </Pie>
-                                <ChartTooltip
-                                    content={
-                                        <ChartTooltipContent
-                                            formatter={value => formatCurrency(Number(value))}
-                                        />
-                                    }
-                                />
-                            </PieChart>
-                        </ChartContainer>
-                    </CardContent>
-                </Card>
-
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Performance Analysis</CardTitle>
-                        <CardDescription>Returns by alternative investment</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <ChartContainer config={defaultChartConfig} className="h-[300px]">
-                            <BarChart data={performanceData}>
-                                <CartesianGrid strokeDasharray="3 3" />
-                                <XAxis
-                                    dataKey="name"
-                                    angle={-45}
-                                    textAnchor="end"
-                                    height={80}
-                                    tickLine={false}
-                                    axisLine={false}
-                                />
-                                <YAxis tickLine={false} axisLine={false} />
-                                <ChartTooltip
-                                    content={
-                                        <ChartTooltipContent
-                                            formatter={(value, name) => {
-                                                if (name === 'return')
-                                                    return `${Number(value).toFixed(1)}%`
-                                                return formatCurrency(Number(value))
-                                            }}
-                                        />
-                                    }
-                                />
-                                <defs>
-                                    <linearGradient
-                                        id="performanceGradient"
-                                        x1="0"
-                                        y1="0"
-                                        x2="0"
-                                        y2="1"
-                                    >
-                                        <stop
-                                            offset="5%"
-                                            stopColor="var(--color-violet)"
-                                            stopOpacity={0.8}
-                                        />
-                                        <stop
-                                            offset="95%"
-                                            stopColor="var(--color-violet)"
-                                            stopOpacity={0.1}
-                                        />
-                                    </linearGradient>
-                                </defs>
-                                <Bar
-                                    dataKey="return"
-                                    fill="url(#performanceGradient)"
-                                    radius={[4, 4, 0, 0]}
-                                />
-                            </BarChart>
-                        </ChartContainer>
-                    </CardContent>
-                </Card>
-            </div>
-
-            <Card>
+        <div className="space-y-6 p-6">
+            {/* Executive Summary */}
+            <Card className="from-card to-background bg-gradient-to-r">
                 <CardHeader>
-                    <CardTitle>Commitment Analysis</CardTitle>
-                    <CardDescription>Capital deployment status</CardDescription>
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="flex-1">
+                            <CardTitle className="text-xl font-bold sm:text-2xl">
+                                Alternative Investments Portfolio
+                            </CardTitle>
+                            <CardDescription className="mt-2">
+                                Private markets and alternative strategies as of{' '}
+                                {new Date().toLocaleDateString('en-US', {
+                                    month: 'long',
+                                    day: 'numeric',
+                                    year: 'numeric'
+                                })}
+                                <span className="text-muted-foreground mt-1 block text-xs">
+                                    Includes: PE, VC, Real Estate, Hedge Funds, and Search Funds
+                                </span>
+                            </CardDescription>
+                        </div>
+                        <div className="self-start sm:self-center">
+                            <ChartThemeSelector />
+                        </div>
+                    </div>
                 </CardHeader>
                 <CardContent>
-                    <ChartContainer config={defaultChartConfig} className="h-[300px]">
-                        <AreaChart data={commitmentData}>
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis
-                                dataKey="name"
-                                angle={-45}
-                                textAnchor="end"
-                                height={80}
-                                tickLine={false}
-                                axisLine={false}
-                            />
-                            <YAxis tickLine={false} axisLine={false} />
-                            <ChartTooltip
-                                content={
-                                    <ChartTooltipContent
-                                        formatter={value => formatCurrency(Number(value))}
-                                    />
-                                }
-                            />
-                            <defs>
-                                <linearGradient id="commitmentGradient" x1="0" y1="0" x2="0" y2="1">
-                                    <stop
-                                        offset="5%"
-                                        stopColor="var(--color-violet)"
-                                        stopOpacity={0.8}
-                                    />
-                                    <stop
-                                        offset="95%"
-                                        stopColor="var(--color-violet)"
-                                        stopOpacity={0.1}
-                                    />
-                                </linearGradient>
-                                <linearGradient id="paidInGradient" x1="0" y1="0" x2="0" y2="1">
-                                    <stop
-                                        offset="5%"
-                                        stopColor="var(--color-blue)"
-                                        stopOpacity={0.8}
-                                    />
-                                    <stop
-                                        offset="95%"
-                                        stopColor="var(--color-blue)"
-                                        stopOpacity={0.1}
-                                    />
-                                </linearGradient>
-                                <linearGradient id="unfundedGradient" x1="0" y1="0" x2="0" y2="1">
-                                    <stop
-                                        offset="5%"
-                                        stopColor="var(--color-cyan)"
-                                        stopOpacity={0.8}
-                                    />
-                                    <stop
-                                        offset="95%"
-                                        stopColor="var(--color-cyan)"
-                                        stopOpacity={0.1}
-                                    />
-                                </linearGradient>
-                            </defs>
-                            <Area
-                                type="monotone"
-                                dataKey="commitment"
-                                stackId="1"
-                                stroke="var(--color-violet)"
-                                fill="url(#commitmentGradient)"
-                                fillOpacity={0.6}
-                            />
-                            <Area
-                                type="monotone"
-                                dataKey="paidIn"
-                                stackId="2"
-                                stroke="var(--color-blue)"
-                                fill="url(#paidInGradient)"
-                                fillOpacity={0.6}
-                            />
-                            <Area
-                                type="monotone"
-                                dataKey="unfunded"
-                                stackId="2"
-                                stroke="var(--color-cyan)"
-                                fill="url(#unfundedGradient)"
-                                fillOpacity={0.6}
-                            />
-                        </AreaChart>
-                    </ChartContainer>
+                    <div className="grid gap-4 md:grid-cols-3">
+                        <div className="space-y-2">
+                            <p className="text-muted-foreground text-sm">Total NAV</p>
+                            <p className="text-3xl font-bold">
+                                {formatCurrency(totalValue, 'EUR', true)}
+                            </p>
+                            <PerformanceIndicator value={returnPercentage} />
+                        </div>
+                        <div className="space-y-2">
+                            <p className="text-muted-foreground text-sm">Total Return</p>
+                            <p className="text-3xl font-bold">
+                                <span
+                                    className={cn(
+                                        totalValue - totalCost >= 0
+                                            ? 'text-success'
+                                            : 'text-destructive'
+                                    )}
+                                >
+                                    {totalValue - totalCost >= 0 ? '+' : ''}
+                                    {formatCurrency(totalValue - totalCost, 'EUR', true)}
+                                </span>
+                            </p>
+                            <p className="text-muted-foreground text-sm">
+                                on {formatCurrency(totalCost, 'EUR', true)} invested
+                            </p>
+                        </div>
+                        <div className="space-y-2">
+                            <p className="text-muted-foreground text-sm">Unfunded</p>
+                            <p className="text-3xl font-bold">
+                                {formatCurrency(unfundedCommitment, 'EUR', true)}
+                            </p>
+                            <div className="flex items-center gap-2">
+                                <AlertTriangle className="text-muted-foreground h-4 w-4" />
+                                <span className="text-muted-foreground text-xs">
+                                    Future capital calls
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Key Metrics Cards */}
+                    <div className="mt-6 grid gap-3 md:grid-cols-3">
+                        <div className="flex items-start gap-3 rounded-lg border p-3">
+                            <div className="bg-muted rounded-full p-2">
+                                <Briefcase className="text-muted-foreground h-4 w-4" />
+                            </div>
+                            <div className="flex-1">
+                                <p className="text-sm font-medium">Active Investments</p>
+                                <p className="text-2xl font-bold">{alternatives.length}</p>
+                                <p className="text-muted-foreground mt-1 text-xs">
+                                    Across {strategyData.length} strategies
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="flex items-start gap-3 rounded-lg border p-3">
+                            <div className="bg-muted rounded-full p-2">
+                                <DollarSign className="text-muted-foreground h-4 w-4" />
+                            </div>
+                            <div className="flex-1">
+                                <p className="text-sm font-medium">Total Distributions</p>
+                                <p className="text-2xl font-bold">
+                                    {formatCurrency(totalDistributions, 'EUR', true)}
+                                </p>
+                                <p className="text-muted-foreground mt-1 text-xs">
+                                    Cash returned to date
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="flex items-start gap-3 rounded-lg border p-3">
+                            <div className="bg-muted rounded-full p-2">
+                                <Users className="text-muted-foreground h-4 w-4" />
+                            </div>
+                            <div className="flex-1">
+                                <p className="text-sm font-medium">Fund Managers</p>
+                                <p className="text-2xl font-bold">
+                                    {Object.keys(managerAnalysis).length}
+                                </p>
+                                <p className="text-muted-foreground mt-1 text-xs">
+                                    GP relationships
+                                </p>
+                            </div>
+                        </div>
+                    </div>
                 </CardContent>
             </Card>
 
-            <Card>
-                <CardHeader>
-                    <CardTitle>Alternative Investments Portfolio</CardTitle>
-                    <CardDescription>All alternative investment positions</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <div className="overflow-x-auto">
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Investment Name</TableHead>
-                                    <TableHead>Type</TableHead>
-                                    <TableHead>Commitment</TableHead>
-                                    <TableHead>Paid-in Capital</TableHead>
-                                    <TableHead>Current Value</TableHead>
-                                    <TableHead>Unfunded</TableHead>
-                                    <TableHead>Return</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {allAlternatives.map((asset, index) => (
-                                    <TableRow key={index}>
-                                        <TableCell className="max-w-[200px] truncate font-medium">
+            {/* Strategy Allocation & Capital Deployment */}
+            <div className="grid gap-4 lg:grid-cols-2">
+                {/* Strategy Allocation Pie Chart */}
+                <ChartCard
+                    title="Strategy Allocation"
+                    description="Portfolio distribution by alternative investment strategy"
+                    icon={PieChartIcon}
+                    badge={<Badge variant="secondary">{strategyData.length} strategies</Badge>}
+                    data={pieChartData}
+                    footer={
+                        <InteractiveLegend items={pieChartData} columns={2} showPercentage={true} />
+                    }
+                >
+                    <div className="flex min-h-[300px] flex-1 items-center justify-center">
+                        <PieChart
+                            data={pieChartData}
+                            height="100%"
+                            innerRadius={60}
+                            outerRadius={120}
+                        />
+                    </div>
+                </ChartCard>
+
+                {/* Capital Deployment by Strategy */}
+                <ChartCard
+                    title="Capital Deployment Status"
+                    description="Committed capital vs actual deployment by strategy"
+                    icon={BarChart3}
+                    data={deploymentData}
+                    footer={
+                        <div className="space-y-2">
+                            <div className="flex items-center gap-4 text-sm">
+                                <div className="flex items-center gap-2">
+                                    <div
+                                        className="h-3 w-3 rounded-sm"
+                                        style={{ backgroundColor: 'var(--chart-1)' }}
+                                    />
+                                    <span>Total Commitment</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <div
+                                        className="h-3 w-3 rounded-sm"
+                                        style={{ backgroundColor: 'var(--chart-5)' }}
+                                    />
+                                    <span>Deployed (Paid-In)</span>
+                                </div>
+                            </div>
+                            <p className="text-muted-foreground text-xs">
+                                Bars show deployment progress. Higher deployment rates indicate
+                                efficient capital use.
+                            </p>
+                        </div>
+                    }
+                >
+                    <div className="min-h-[300px] flex-1">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <RechartsBarChart data={deploymentData}>
+                                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                                <XAxis
+                                    dataKey="name"
+                                    tickLine={false}
+                                    axisLine={false}
+                                    angle={-45}
+                                    textAnchor="end"
+                                    height={80}
+                                    fontSize={11}
+                                />
+                                <YAxis
+                                    tickLine={false}
+                                    axisLine={false}
+                                    tickFormatter={value => `€${(value / 1000000).toFixed(1)}M`}
+                                    fontSize={11}
+                                />
+                                <ChartTooltip
+                                    cursor={false}
+                                    content={({ active, payload }) => {
+                                        if (active && payload && payload.length) {
+                                            const data = payload[0].payload
+                                            return (
+                                                <div className="bg-background rounded-lg border p-3 shadow-lg">
+                                                    <p className="font-semibold">{data.fullName}</p>
+                                                    <div className="mt-2 space-y-1">
+                                                        <p className="text-sm">
+                                                            <span className="text-muted-foreground">
+                                                                Total Commitment:
+                                                            </span>{' '}
+                                                            <span className="font-medium">
+                                                                {formatCurrency(
+                                                                    data.commitment,
+                                                                    'EUR',
+                                                                    true
+                                                                )}
+                                                            </span>
+                                                        </p>
+                                                        <p className="text-sm">
+                                                            <span className="text-muted-foreground">
+                                                                Deployed (Paid-In):
+                                                            </span>{' '}
+                                                            <span className="text-success font-medium">
+                                                                {formatCurrency(
+                                                                    data.deployed,
+                                                                    'EUR',
+                                                                    true
+                                                                )}
+                                                            </span>
+                                                        </p>
+                                                        <p className="text-sm">
+                                                            <span className="text-muted-foreground">
+                                                                Remaining Unfunded:
+                                                            </span>{' '}
+                                                            <span className="text-warning font-medium">
+                                                                {formatCurrency(
+                                                                    data.unfunded,
+                                                                    'EUR',
+                                                                    true
+                                                                )}
+                                                            </span>
+                                                        </p>
+                                                        <div className="mt-2 border-t pt-2">
+                                                            <p className="text-sm font-semibold">
+                                                                <span className="text-muted-foreground">
+                                                                    Deployment Progress:
+                                                                </span>{' '}
+                                                                <span
+                                                                    className={cn(
+                                                                        data.deploymentRate > 75
+                                                                            ? 'text-success'
+                                                                            : data.deploymentRate >
+                                                                                50
+                                                                              ? 'text-warning'
+                                                                              : 'text-destructive'
+                                                                    )}
+                                                                >
+                                                                    {data.deploymentRate.toFixed(1)}
+                                                                    %
+                                                                </span>
+                                                            </p>
+                                                            <Progress
+                                                                value={data.deploymentRate}
+                                                                className="mt-1 h-1.5"
+                                                            />
+                                                        </div>
+                                                        <p className="text-muted-foreground text-xs">
+                                                            {data.count}{' '}
+                                                            {data.count === 1
+                                                                ? 'investment'
+                                                                : 'investments'}{' '}
+                                                            in this strategy
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            )
+                                        }
+                                        return null
+                                    }}
+                                />
+                                <Bar dataKey="commitment" fill="var(--chart-1)" radius={4} />
+                                <Bar dataKey="deployed" fill="var(--chart-5)" radius={4} />
+                            </RechartsBarChart>
+                        </ResponsiveContainer>
+                    </div>
+                </ChartCard>
+            </div>
+
+            {/* Risk Analysis & Fund Manager Concentration */}
+            <div className="grid gap-4 lg:grid-cols-2">
+                {/* Risk-Return Scatter Plot */}
+                <ChartCard
+                    title="Risk-Return Analysis"
+                    description="Commitment size vs returns"
+                    data={scatterData}
+                    footer={
+                        <div className="flex items-center gap-4 text-sm">
+                            <div className="flex items-center gap-2">
+                                <div
+                                    className="h-3 w-3 rounded-full"
+                                    style={{ backgroundColor: 'var(--chart-2)' }}
+                                />
+                                <span>Profitable</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <div
+                                    className="h-3 w-3 rounded-full"
+                                    style={{ backgroundColor: 'var(--chart-5)' }}
+                                />
+                                <span>Loss</span>
+                            </div>
+                        </div>
+                    }
+                >
+                    <div className="min-h-[300px] flex-1">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <ScatterChart>
+                                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                                <XAxis
+                                    type="number"
+                                    dataKey="x"
+                                    name="Commitment"
+                                    tickLine={false}
+                                    axisLine={false}
+                                    tickFormatter={value => `€${(value / 1000000).toFixed(1)}M`}
+                                    fontSize={11}
+                                />
+                                <YAxis
+                                    type="number"
+                                    dataKey="y"
+                                    name="Return %"
+                                    tickLine={false}
+                                    axisLine={false}
+                                    tickFormatter={value => `${value}%`}
+                                    fontSize={11}
+                                />
+                                <ZAxis type="number" dataKey="z" range={[30, 5000]} name="Value" />
+                                <Tooltip
+                                    cursor={{ strokeDasharray: '3 3' }}
+                                    content={({ active, payload }) => {
+                                        if (active && payload && payload.length) {
+                                            const data = payload[0].payload
+                                            return (
+                                                <div className="bg-background rounded-lg border p-3 shadow-lg">
+                                                    <p className="font-semibold">{data.name}</p>
+                                                    <p className="text-muted-foreground text-xs">
+                                                        {data.type}
+                                                    </p>
+                                                    <div className="mt-2 space-y-1">
+                                                        <p className="text-sm">
+                                                            <span className="text-muted-foreground">
+                                                                Commitment:
+                                                            </span>{' '}
+                                                            <span className="font-medium">
+                                                                {formatCurrency(
+                                                                    data.x,
+                                                                    'EUR',
+                                                                    true
+                                                                )}
+                                                            </span>
+                                                        </p>
+                                                        <p className="text-sm">
+                                                            <span className="text-muted-foreground">
+                                                                Return:
+                                                            </span>{' '}
+                                                            <span
+                                                                className={cn('font-medium', {
+                                                                    'text-success': data.y > 0,
+                                                                    'text-destructive': data.y < 0
+                                                                })}
+                                                            >
+                                                                {data.y >= 0 ? '+' : ''}
+                                                                {data.y.toFixed(1)}%
+                                                            </span>
+                                                        </p>
+                                                        <p className="text-sm">
+                                                            <span className="text-muted-foreground">
+                                                                Current Value:
+                                                            </span>{' '}
+                                                            <span className="font-medium">
+                                                                {formatCurrency(
+                                                                    data.z,
+                                                                    'EUR',
+                                                                    true
+                                                                )}
+                                                            </span>
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            )
+                                        }
+                                        return null
+                                    }}
+                                />
+                                <Scatter
+                                    name="Alternatives"
+                                    data={scatterData}
+                                    fill="var(--chart-1)"
+                                >
+                                    {scatterData.map((entry, index) => (
+                                        <Cell
+                                            key={`cell-${index}`}
+                                            fill={
+                                                entry.y >= 0 ? 'var(--chart-2)' : 'var(--chart-5)'
+                                            }
+                                        />
+                                    ))}
+                                </Scatter>
+                            </ScatterChart>
+                        </ResponsiveContainer>
+                    </div>
+                </ChartCard>
+
+                {/* Fund Manager Concentration */}
+                <ChartCard
+                    title="Fund Manager Concentration"
+                    description={`Showing top 6 of ${Object.keys(managerAnalysis).length} managers`}
+                    data={managerData}
+                >
+                    <div className="space-y-4">
+                        {managerData.slice(0, 6).map((manager, index) => (
+                            <div key={index} className="space-y-2">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                        <div
+                                            className="h-3 w-3 rounded-full"
+                                            style={{ backgroundColor: manager.fill }}
+                                        />
+                                        <span
+                                            className="text-sm font-medium"
+                                            title={manager.fullName}
+                                        >
+                                            {manager.name}
+                                        </span>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="text-sm font-semibold">
+                                            {formatCurrency(manager.value, 'EUR', true)}
+                                        </p>
+                                        <p className="text-muted-foreground text-xs">
+                                            {manager.percentage.toFixed(1)}% • {manager.count}{' '}
+                                            {manager.count === 1 ? 'investment' : 'investments'}
+                                        </p>
+                                    </div>
+                                </div>
+                                <Progress value={manager.percentage} className="h-2" />
+                            </div>
+                        ))}
+                    </div>
+                </ChartCard>
+            </div>
+
+            {/* Top Performers & Top Losers */}
+            <div className="grid gap-4 lg:grid-cols-2">
+                {/* Top Performers */}
+                <Card>
+                    <CardHeader>
+                        <div className="flex items-center justify-between">
+                            <CardTitle>Top Performers</CardTitle>
+                            <Badge variant="default">
+                                <TrendingUp className="mr-1 h-3 w-3" />
+                                Best Returns
+                            </Badge>
+                        </div>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="space-y-4">
+                            {topPerformers.map((asset, index) => (
+                                <div key={index} className="flex items-center justify-between">
+                                    <div className="flex-1">
+                                        <p className="truncate text-sm font-medium">
                                             {asset['Asset name']}
-                                        </TableCell>
-                                        <TableCell>
-                                            <Badge variant="outline">{asset['Asset type']}</Badge>
-                                        </TableCell>
-                                        <TableCell>
-                                            {formatCurrency(
-                                                parseNumericValue(
-                                                    asset['Total investment commitment']
-                                                )
-                                            )}
-                                        </TableCell>
-                                        <TableCell>
-                                            {formatCurrency(
-                                                parseNumericValue(
-                                                    asset[
-                                                        'Total equity investment in asset (at cost) / Paid-in Capital'
-                                                    ]
-                                                )
-                                            )}
-                                        </TableCell>
-                                        <TableCell>
+                                        </p>
+                                        <p className="text-muted-foreground text-xs">
+                                            {asset['Asset type']}
+                                        </p>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="text-sm font-medium">
                                             {formatCurrency(
                                                 parseNumericValue(
                                                     asset['Estimated asset value to date']
-                                                )
+                                                ),
+                                                'EUR'
                                             )}
-                                        </TableCell>
-                                        <TableCell>
-                                            {formatCurrency(
+                                        </p>
+                                        <Badge variant="default" className="text-xs">
+                                            +
+                                            {formatPercentage(
                                                 parseNumericValue(
-                                                    asset[
-                                                        'Pending investment / Unfunded Commitment'
-                                                    ]
+                                                    asset['Total asset return to date']
                                                 )
                                             )}
-                                        </TableCell>
-                                        <TableCell>
-                                            {parseNumericValue(
-                                                asset['Total asset return to date']
-                                            ) !== 0 && (
-                                                <Badge
-                                                    variant={
-                                                        parseNumericValue(
-                                                            asset['Total asset return to date']
-                                                        ) >= 0
-                                                            ? 'default'
-                                                            : 'destructive'
-                                                    }
+                                        </Badge>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </CardContent>
+                </Card>
+
+                {/* Top Losers */}
+                <Card>
+                    <CardHeader>
+                        <div className="flex items-center justify-between">
+                            <CardTitle>Top Losers</CardTitle>
+                            <Badge variant="destructive">
+                                <TrendingDown className="mr-1 h-3 w-3" />
+                                Underperformers
+                            </Badge>
+                        </div>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="space-y-4">
+                            {underperformers.length > 0 ? (
+                                underperformers.map((asset, index) => (
+                                    <div key={index} className="flex items-center justify-between">
+                                        <div className="flex-1">
+                                            <p className="truncate text-sm font-medium">
+                                                {asset['Asset name']}
+                                            </p>
+                                            <p className="text-muted-foreground text-xs">
+                                                {asset['Asset type']}
+                                            </p>
+                                        </div>
+                                        <div className="text-right">
+                                            <p className="text-sm font-medium">
+                                                {formatCurrency(
+                                                    parseNumericValue(
+                                                        asset['Estimated asset value to date']
+                                                    ),
+                                                    'EUR'
+                                                )}
+                                            </p>
+                                            <Badge
+                                                variant={
+                                                    parseNumericValue(
+                                                        asset['Total asset return to date']
+                                                    ) >= 0
+                                                        ? 'default'
+                                                        : 'destructive'
+                                                }
+                                                className="text-xs"
+                                            >
+                                                {parseNumericValue(
+                                                    asset['Total asset return to date']
+                                                ) > 0
+                                                    ? '+'
+                                                    : ''}
+                                                {formatPercentage(
+                                                    parseNumericValue(
+                                                        asset['Total asset return to date']
+                                                    )
+                                                )}
+                                            </Badge>
+                                        </div>
+                                    </div>
+                                ))
+                            ) : (
+                                <div className="text-muted-foreground flex items-center justify-center py-8">
+                                    No underperforming investments
+                                </div>
+                            )}
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+
+            {/* Holdings Table */}
+            <Card className="overflow-hidden">
+                <CardHeader>
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <CardTitle>Alternative Investment Holdings</CardTitle>
+                            <CardDescription>
+                                Complete list of alternative investment positions
+                            </CardDescription>
+                        </div>
+                        <Badge variant="outline">{alternatives.length} investments</Badge>
+                    </div>
+                </CardHeader>
+                <CardContent>
+                    <div className="rounded-lg border">
+                        <Table>
+                            <TableHeader>
+                                <TableRow className="bg-muted/50">
+                                    <TableHead className="font-semibold">Investment Name</TableHead>
+                                    <TableHead className="font-semibold">Type</TableHead>
+                                    <TableHead className="text-right font-semibold">
+                                        Commitment
+                                    </TableHead>
+                                    <TableHead className="text-right font-semibold">
+                                        Paid-In
+                                    </TableHead>
+                                    <TableHead className="text-right font-semibold">NAV</TableHead>
+                                    <TableHead className="text-right font-semibold">
+                                        Distributions
+                                    </TableHead>
+                                    <TableHead className="text-center font-semibold">
+                                        TVPI
+                                    </TableHead>
+                                    <TableHead className="text-center font-semibold">
+                                        Return
+                                    </TableHead>
+                                    <TableHead className="font-semibold">Manager</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {topHoldings.map((asset, index) => {
+                                    const paidIn = parseNumericValue(
+                                        asset[
+                                            'Total equity investment in asset (at cost) / Paid-in Capital'
+                                        ]
+                                    )
+                                    const currentValue = parseNumericValue(
+                                        asset['Estimated asset value to date']
+                                    )
+                                    const distributions = parseNumericValue(
+                                        asset['Distributions to date']
+                                    )
+                                    const tvpi =
+                                        paidIn > 0 ? (currentValue + distributions) / paidIn : 0
+
+                                    return (
+                                        <TableRow
+                                            key={index}
+                                            className="hover:bg-muted/30 transition-colors"
+                                        >
+                                            <TableCell className="font-medium">
+                                                <div
+                                                    className="max-w-[200px] truncate"
+                                                    title={asset['Asset name']}
                                                 >
-                                                    {formatPercentage(
-                                                        parseNumericValue(
-                                                            asset['Total asset return to date']
-                                                        )
-                                                    )}
+                                                    {asset['Asset name']}
+                                                </div>
+                                            </TableCell>
+                                            <TableCell>
+                                                <Badge variant="secondary" className="text-xs">
+                                                    {truncateLabel(asset['Asset type'], 20)}
                                                 </Badge>
-                                            )}
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
+                                            </TableCell>
+                                            <TableCell className="text-right">
+                                                {formatCurrency(
+                                                    parseNumericValue(
+                                                        asset['Total investment commitment']
+                                                    ),
+                                                    'EUR'
+                                                )}
+                                            </TableCell>
+                                            <TableCell className="text-right">
+                                                {formatCurrency(paidIn, 'EUR')}
+                                            </TableCell>
+                                            <TableCell className="text-right font-semibold">
+                                                {formatCurrency(currentValue, 'EUR')}
+                                            </TableCell>
+                                            <TableCell className="text-right">
+                                                {formatCurrency(distributions, 'EUR')}
+                                            </TableCell>
+                                            <TableCell className="text-center font-semibold">
+                                                {tvpi.toFixed(2)}x
+                                            </TableCell>
+                                            <TableCell className="text-center">
+                                                <PerformanceIndicator
+                                                    value={parseNumericValue(
+                                                        asset['Total asset return to date']
+                                                    )}
+                                                    showSign={true}
+                                                />
+                                            </TableCell>
+                                            <TableCell className="text-xs">
+                                                {truncateLabel(
+                                                    asset['Broker / Asset Manager'] ||
+                                                        'Self-Managed',
+                                                    15
+                                                )}
+                                            </TableCell>
+                                        </TableRow>
+                                    )
+                                })}
                             </TableBody>
                         </Table>
                     </div>

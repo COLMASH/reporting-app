@@ -91,12 +91,16 @@ export interface AreaChartProps extends BaseChartProps {
         color?: string
         fillOpacity?: number
         strokeWidth?: number
-        type?: 'linear' | 'monotone' | 'step'
+        type?: 'linear' | 'monotone' | 'step' | 'natural'
     }>
     xAxisKey: string
     showGrid?: boolean
     showTooltip?: boolean
     stacked?: boolean
+    xAxisFormatter?: (value: unknown) => string
+    yAxisFormatter?: (value: unknown) => string
+    gridVertical?: boolean
+    customTooltip?: (props: unknown) => React.ReactNode
 }
 
 export interface RadarChartProps extends BaseChartProps {

@@ -21,7 +21,11 @@ export const AreaChart = ({
     showGrid = true,
     showTooltip = true,
     stacked = false,
-    className
+    className,
+    xAxisFormatter,
+    yAxisFormatter,
+    gridVertical = true,
+    customTooltip
 }: AreaChartProps) => {
     const chartHeight = typeof height === 'number' ? `${height}px` : height
 
@@ -47,22 +51,37 @@ export const AreaChart = ({
                         margin={{ top: 20, right: 30, left: 20, bottom: 40 }}
                     >
                         {showGrid && (
-                            <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                            <CartesianGrid
+                                strokeDasharray="3 3"
+                                className="stroke-muted"
+                                vertical={gridVertical}
+                            />
                         )}
 
                         <XAxis
                             dataKey={xAxisKey}
                             tick={{ fontSize: 11 }}
                             className="text-muted-foreground"
+                            tickLine={false}
+                            axisLine={false}
+                            tickMargin={8}
+                            tickFormatter={xAxisFormatter}
                         />
 
                         <YAxis
                             tick={{ fontSize: 11 }}
-                            tickFormatter={value => `${value}%`}
+                            tickFormatter={yAxisFormatter || (value => `${value}%`)}
                             className="text-muted-foreground"
+                            tickLine={false}
+                            axisLine={false}
                         />
 
-                        {showTooltip && <ChartTooltip />}
+                        {showTooltip &&
+                            (customTooltip ? (
+                                <ChartTooltip content={customTooltip} cursor={false} />
+                            ) : (
+                                <ChartTooltip />
+                            ))}
 
                         {areas.map((area, index) => (
                             <Area
