@@ -19,6 +19,8 @@ export const createBaseQuery = (
             if (session?.accessToken) {
                 headers.set('authorization', `Bearer ${session.accessToken}`)
             }
+            // Skip ngrok browser warning for API calls
+            headers.set('ngrok-skip-browser-warning', 'true')
             return headers
         }
     })
