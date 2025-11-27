@@ -96,7 +96,7 @@ export const AssetTypeTabs = ({
                     <TabsTrigger
                         key={value}
                         value={value}
-                        className="data-[state=active]:bg-background flex items-center gap-2 px-4 py-2 whitespace-nowrap"
+                        className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground dark:data-[state=active]:bg-primary dark:data-[state=active]:text-primary-foreground flex items-center gap-2 px-4 py-2 whitespace-nowrap"
                     >
                         <Icon className="h-4 w-4" />
                         <span className="hidden sm:inline">{label}</span>

@@ -17,17 +17,8 @@ import {
     TableRow
 } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { ShimmerOverlay } from '@/components/ui/shimmer-overlay'
-import {
-    TableIcon,
-    Search,
-    ArrowUpDown,
-    ArrowUp,
-    ArrowDown,
-    ChevronLeft,
-    ChevronRight
-} from 'lucide-react'
+import { ArrowUpDown, ArrowUp, ArrowDown, ChevronLeft, ChevronRight } from 'lucide-react'
 import { transformAssetTypeForTable, type AssetTypeSummaryRow } from '../../utils/api-transformers'
 import { formatCompactCurrency, formatPercentage } from '@/redux/services/portfolioApi'
 import { cn } from '@/lib/utils'
@@ -46,7 +37,6 @@ export interface AssetTypeSummaryTableProps {
 interface TableState {
     sortBy: keyof AssetTypeSummaryRow
     sortOrder: 'asc' | 'desc'
-    search: string
     page: number
     pageSize: number
 }
@@ -107,22 +97,15 @@ export const AssetTypeSummaryTable = ({
     const [tableState, setTableState] = useState<TableState>({
         sortBy: 'valueUsd',
         sortOrder: 'desc',
-        search: '',
         page: 1,
         pageSize: 10
     })
 
     const rawTableData = useMemo(() => transformAssetTypeForTable(activeData), [activeData])
 
-    // Filter, sort, and paginate data
-    const { paginatedData, totalPages, totalFiltered } = useMemo(() => {
-        let result = [...rawTableData]
-
-        // Filter by search
-        if (tableState.search) {
-            const searchLower = tableState.search.toLowerCase()
-            result = result.filter(row => row.assetType.toLowerCase().includes(searchLower))
-        }
+    // Sort and paginate data
+    const { paginatedData, totalPages } = useMemo(() => {
+        const result = [...rawTableData]
 
         // Sort
         result.sort((a, b) => {
@@ -136,7 +119,6 @@ export const AssetTypeSummaryTable = ({
             return ((aVal as number) - (bVal as number)) * modifier
         })
 
-        const totalFiltered = result.length
         const totalPages = Math.ceil(result.length / tableState.pageSize)
 
         // Paginate
@@ -145,7 +127,7 @@ export const AssetTypeSummaryTable = ({
             tableState.page * tableState.pageSize
         )
 
-        return { paginatedData: paginated, totalPages, totalFiltered }
+        return { paginatedData: paginated, totalPages }
     }, [rawTableData, tableState])
 
     const handleSort = useCallback((column: keyof AssetTypeSummaryRow) => {
@@ -157,10 +139,6 @@ export const AssetTypeSummaryTable = ({
         }))
     }, [])
 
-    const handleSearch = useCallback((value: string) => {
-        setTableState(prev => ({ ...prev, search: value, page: 1 }))
-    }, [])
-
     const handlePageChange = useCallback((page: number) => {
         setTableState(prev => ({ ...prev, page }))
     }, [])
@@ -170,35 +148,16 @@ export const AssetTypeSummaryTable = ({
     return (
         <Card className="relative">
             <ShimmerOverlay isActive={isLoadingState} />
-            <CardHeader className="flex flex-col gap-3 pb-4 sm:flex-row sm:items-center sm:justify-between">
-                <div className="flex items-center justify-between">
-                    <div>
-                        <CardTitle className="text-base font-medium">Asset Type Summary</CardTitle>
-                        <CardDescription>
-                            {totalFiltered} of {rawTableData.length} asset types
-                        </CardDescription>
-                    </div>
-                    <TableIcon className="text-muted-foreground h-5 w-5 sm:hidden" />
-                </div>
-                <div className="flex items-center gap-4">
-                    <div className="relative flex-1 sm:flex-initial">
-                        <Search className="text-muted-foreground absolute top-2.5 left-2.5 h-4 w-4" />
-                        <Input
-                            placeholder="Filter asset types..."
-                            value={tableState.search}
-                            onChange={e => handleSearch(e.target.value)}
-                            className="w-full pl-9 sm:w-48"
-                        />
-                    </div>
-                    <TableIcon className="text-muted-foreground hidden h-5 w-5 sm:block" />
-                </div>
+            <CardHeader className="pb-4">
+                <CardTitle className="text-base font-medium">Asset Type Summary</CardTitle>
+                <CardDescription>{rawTableData.length} asset types</CardDescription>
             </CardHeader>
             <CardContent>
                 {isLoadingState ? (
                     <div className="h-[200px]" />
                 ) : paginatedData.length === 0 ? (
                     <div className="text-muted-foreground flex h-32 items-center justify-center">
-                        {tableState.search ? 'No matching asset types' : 'No data available'}
+                        No data available
                     </div>
                 ) : (
                     <>

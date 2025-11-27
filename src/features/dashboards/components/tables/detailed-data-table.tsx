@@ -5,7 +5,7 @@
  * Supports row click to open asset detail modal.
  */
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import {
     Table,
@@ -26,8 +26,7 @@ import {
     ArrowUpDown,
     ArrowUp,
     ArrowDown,
-    Search,
-    ListIcon
+    Search
 } from 'lucide-react'
 import {
     formatCompactCurrency,
@@ -120,6 +119,32 @@ export const DetailedDataTable = ({
     const navColumn = isEur ? 'estimated_asset_value_eur' : 'estimated_asset_value_usd'
     const costColumn = isEur ? 'paid_in_capital_eur' : 'paid_in_capital_usd'
     const [localSearch, setLocalSearch] = useState(searchValue)
+    const debounceTimerRef = useRef<NodeJS.Timeout | null>(null)
+
+    // Sync localSearch when external searchValue changes
+    useEffect(() => {
+        setLocalSearch(searchValue)
+    }, [searchValue])
+
+    // Debounced search effect - triggers API call after 400ms of no typing
+    useEffect(() => {
+        if (debounceTimerRef.current) {
+            clearTimeout(debounceTimerRef.current)
+        }
+
+        // Don't trigger if value matches current (avoids loops)
+        if (localSearch === searchValue) return
+
+        debounceTimerRef.current = setTimeout(() => {
+            onSearchChange?.(localSearch)
+        }, 300)
+
+        return () => {
+            if (debounceTimerRef.current) {
+                clearTimeout(debounceTimerRef.current)
+            }
+        }
+    }, [localSearch, searchValue, onSearchChange])
 
     const handleSort = useCallback(
         (column: string) => {
@@ -134,14 +159,6 @@ export const DetailedDataTable = ({
         [currentSort, onSortChange]
     )
 
-    const handleSearchSubmit = useCallback(
-        (e: React.FormEvent) => {
-            e.preventDefault()
-            onSearchChange?.(localSearch)
-        },
-        [localSearch, onSearchChange]
-    )
-
     const isLoadingState = isLoading || isFetching
     const assets = data?.assets || []
     const { total = 0, page = 1, total_pages = 1 } = data || {}
@@ -150,26 +167,20 @@ export const DetailedDataTable = ({
         <Card className="relative">
             <ShimmerOverlay isActive={isLoadingState} />
             <CardHeader className="flex flex-col gap-3 pb-4 sm:flex-row sm:items-center sm:justify-between">
-                <div className="flex items-center justify-between">
-                    <div>
-                        <CardTitle className="text-base font-medium">All Positions</CardTitle>
-                        <CardDescription>
-                            {total} {total === 1 ? 'asset' : 'assets'} in portfolio
-                        </CardDescription>
-                    </div>
-                    <ListIcon className="text-muted-foreground h-5 w-5 sm:hidden" />
+                <div>
+                    <CardTitle className="text-base font-medium">All Positions</CardTitle>
+                    <CardDescription>
+                        {total} {total === 1 ? 'asset' : 'assets'} in portfolio
+                    </CardDescription>
                 </div>
-                <div className="flex items-center gap-4">
-                    <form onSubmit={handleSearchSubmit} className="relative flex-1 sm:flex-initial">
-                        <Search className="text-muted-foreground absolute top-2.5 left-2.5 h-4 w-4" />
-                        <Input
-                            placeholder="Search assets..."
-                            value={localSearch}
-                            onChange={e => setLocalSearch(e.target.value)}
-                            className="w-full pl-9 sm:w-64"
-                        />
-                    </form>
-                    <ListIcon className="text-muted-foreground hidden h-5 w-5 sm:block" />
+                <div className="relative flex-1 sm:flex-initial">
+                    <Search className="text-muted-foreground absolute top-2.5 left-2.5 h-4 w-4" />
+                    <Input
+                        placeholder="Search assets..."
+                        value={localSearch}
+                        onChange={e => setLocalSearch(e.target.value)}
+                        className="w-full pl-9 sm:w-64"
+                    />
                 </div>
             </CardHeader>
             <CardContent>

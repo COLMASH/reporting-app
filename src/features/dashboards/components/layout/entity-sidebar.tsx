@@ -68,7 +68,7 @@ const SidebarContent = ({
                 <button
                     onClick={() => handleSelect(null)}
                     className={cn(
-                        'flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors',
+                        'flex w-full cursor-pointer items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors',
                         {
                             'bg-primary text-primary-foreground': isConsolidated,
                             'hover:bg-muted': !isConsolidated
@@ -91,17 +91,16 @@ const SidebarContent = ({
                                 key={entity}
                                 onClick={() => handleSelect(entity)}
                                 className={cn(
-                                    'flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors',
+                                    'flex w-full cursor-pointer items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors',
                                     {
-                                        'bg-muted font-medium': isSelected,
+                                        'bg-primary text-primary-foreground font-medium':
+                                            isSelected,
                                         'hover:bg-muted/50': !isSelected
                                     }
                                 )}
                             >
                                 <span className="flex-1 truncate text-left">{entity}</span>
-                                {isSelected && (
-                                    <CheckCircle2 className="text-primary h-4 w-4 shrink-0" />
-                                )}
+                                {isSelected && <CheckCircle2 className="h-4 w-4 shrink-0" />}
                             </button>
                         )
                     })}
