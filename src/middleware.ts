@@ -3,13 +3,35 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { ROUTES } from '@/routes'
 
+/**
+ * Check if the current path is a protected route
+ */
+const isProtectedRoute = (pathname: string): boolean => {
+    return pathname.startsWith(ROUTES.DASHBOARD) || pathname.startsWith(ROUTES.PORTFOLIO_DASHBOARDS)
+}
+
 export async function middleware(request: NextRequest) {
     try {
         const session = await auth()
-        const isOnDashboard = request.nextUrl.pathname.startsWith(ROUTES.DASHBOARD)
+        const isProtected = isProtectedRoute(request.nextUrl.pathname)
 
-        if (isOnDashboard && !session?.user) {
+        if (!isProtected) {
+            return NextResponse.next()
+        }
+
+        // Check if user is not authenticated
+        if (!session?.user) {
             return NextResponse.redirect(new URL(ROUTES.HOME, request.url))
+        }
+
+        // Check if token has expired (session.error is set by auth.ts jwt callback)
+        if (session.error === 'RefreshAccessTokenError') {
+            // Clear the session cookie and redirect to login
+            const response = NextResponse.redirect(new URL(ROUTES.HOME, request.url))
+            // Delete the session cookie to force re-authentication
+            response.cookies.delete('authjs.session-token')
+            response.cookies.delete('__Secure-authjs.session-token')
+            return response
         }
 
         return NextResponse.next()
@@ -18,8 +40,7 @@ export async function middleware(request: NextRequest) {
         console.error('Middleware auth error:', error)
 
         // On auth check failure, redirect to home page as a safety measure
-        const isOnDashboard = request.nextUrl.pathname.startsWith(ROUTES.DASHBOARD)
-        if (isOnDashboard) {
+        if (isProtectedRoute(request.nextUrl.pathname)) {
             return NextResponse.redirect(new URL(ROUTES.HOME, request.url))
         }
 
@@ -28,7 +49,7 @@ export async function middleware(request: NextRequest) {
 }
 
 // Note: Next.js doesn't support dynamic values in middleware config
-// so we must hardcode the path here instead of using ROUTES.DASHBOARD
+// so we must hardcode the paths here instead of using ROUTES constants
 export const config = {
-    matcher: ['/dashboard/:path*']
+    matcher: ['/dashboard/:path*', '/dashboards/:path*']
 }

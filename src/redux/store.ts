@@ -14,6 +14,7 @@ import storage from 'redux-persist/lib/storage'
 import { filesApi } from './services/filesApi'
 import { reportingAnalysesApi } from './services/reportingAnalysesApi'
 import { resultsApi } from './services/resultsApi'
+import { portfolioApi } from './services/portfolioApi'
 import themeSlice from './features/themeSlice'
 import activeAnalysesSlice from './features/activeAnalysesSlice'
 
@@ -29,7 +30,8 @@ const rootReducer = combineReducers({
     activeAnalysesSlice,
     [filesApi.reducerPath]: filesApi.reducer,
     [reportingAnalysesApi.reducerPath]: reportingAnalysesApi.reducer,
-    [resultsApi.reducerPath]: resultsApi.reducer
+    [resultsApi.reducerPath]: resultsApi.reducer,
+    [portfolioApi.reducerPath]: portfolioApi.reducer
 })
 
 const persistedReducer = persistReducer(persistConfig, rootReducer)
@@ -41,7 +43,12 @@ export const store = configureStore({
             serializableCheck: {
                 ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER]
             }
-        }).concat([filesApi.middleware, reportingAnalysesApi.middleware, resultsApi.middleware])
+        }).concat([
+            filesApi.middleware,
+            reportingAnalysesApi.middleware,
+            resultsApi.middleware,
+            portfolioApi.middleware
+        ])
 })
 
 export const persistor = persistStore(store)
