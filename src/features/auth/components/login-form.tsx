@@ -42,7 +42,7 @@ export function LoginForm() {
                 console.warn('Login form error:', result.error)
                 setError('Invalid email or password')
             } else {
-                router.push(ROUTES.DASHBOARD)
+                router.push(ROUTES.PORTFOLIO_DASHBOARDS)
                 router.refresh()
             }
         } catch (error) {

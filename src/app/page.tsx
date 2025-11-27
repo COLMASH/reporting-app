@@ -9,7 +9,7 @@ export default async function HomePage() {
     const session = await auth()
 
     if (session?.user) {
-        redirect(ROUTES.DASHBOARD)
+        redirect(ROUTES.PORTFOLIO_DASHBOARDS)
     }
 
     return (

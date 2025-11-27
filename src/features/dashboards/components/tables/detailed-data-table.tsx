@@ -17,6 +17,13 @@ import {
 } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue
+} from '@/components/ui/select'
 import { ShimmerOverlay } from '@/components/ui/shimmer-overlay'
 import {
     ChevronLeft,
@@ -45,6 +52,7 @@ export interface DetailedDataTableProps {
     currency?: CurrencyType
     onRowClick?: (asset: AssetResponse) => void
     onPageChange?: (page: number) => void
+    onPageSizeChange?: (pageSize: number) => void
     onSortChange?: (sortBy: string, sortOrder: SortOrder) => void
     onSearchChange?: (search: string) => void
     currentSort?: { sortBy: string; sortOrder: SortOrder }
@@ -108,6 +116,7 @@ export const DetailedDataTable = ({
     currency = 'USD',
     onRowClick,
     onPageChange,
+    onPageSizeChange,
     onSortChange,
     onSearchChange,
     currentSort = { sortBy: 'estimated_asset_value_usd', sortOrder: 'desc' },
@@ -296,51 +305,68 @@ export const DetailedDataTable = ({
                         </div>
 
                         {/* Pagination */}
-                        {total_pages > 1 && (
-                            <div className="mt-4 flex items-center justify-between">
-                                <div className="text-muted-foreground text-sm">
-                                    Page {page} of {total_pages}
-                                </div>
-                                <div className="flex items-center gap-1">
-                                    <Button
-                                        variant="outline"
-                                        size="icon"
-                                        className="h-8 w-8"
-                                        disabled={page <= 1}
-                                        onClick={() => onPageChange?.(1)}
-                                    >
-                                        <ChevronsLeft className="h-4 w-4" />
-                                    </Button>
-                                    <Button
-                                        variant="outline"
-                                        size="icon"
-                                        className="h-8 w-8"
-                                        disabled={page <= 1}
-                                        onClick={() => onPageChange?.(page - 1)}
-                                    >
-                                        <ChevronLeft className="h-4 w-4" />
-                                    </Button>
-                                    <Button
-                                        variant="outline"
-                                        size="icon"
-                                        className="h-8 w-8"
-                                        disabled={page >= total_pages}
-                                        onClick={() => onPageChange?.(page + 1)}
-                                    >
-                                        <ChevronRight className="h-4 w-4" />
-                                    </Button>
-                                    <Button
-                                        variant="outline"
-                                        size="icon"
-                                        className="h-8 w-8"
-                                        disabled={page >= total_pages}
-                                        onClick={() => onPageChange?.(total_pages)}
-                                    >
-                                        <ChevronsRight className="h-4 w-4" />
-                                    </Button>
-                                </div>
+                        <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+                            {/* Navigation buttons - centered on mobile, right on desktop */}
+                            <div className="flex items-center justify-center gap-1 sm:order-2">
+                                <Button
+                                    variant="outline"
+                                    size="icon"
+                                    className="h-8 w-8"
+                                    disabled={page <= 1}
+                                    onClick={() => onPageChange?.(1)}
+                                >
+                                    <ChevronsLeft className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                    variant="outline"
+                                    size="icon"
+                                    className="h-8 w-8"
+                                    disabled={page <= 1}
+                                    onClick={() => onPageChange?.(page - 1)}
+                                >
+                                    <ChevronLeft className="h-4 w-4" />
+                                </Button>
+                                {/* Page indicator - inline on mobile */}
+                                <span className="text-muted-foreground min-w-[80px] text-center text-sm">
+                                    {page} / {total_pages}
+                                </span>
+                                <Button
+                                    variant="outline"
+                                    size="icon"
+                                    className="h-8 w-8"
+                                    disabled={page >= total_pages}
+                                    onClick={() => onPageChange?.(page + 1)}
+                                >
+                                    <ChevronRight className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                    variant="outline"
+                                    size="icon"
+                                    className="h-8 w-8"
+                                    disabled={page >= total_pages}
+                                    onClick={() => onPageChange?.(total_pages)}
+                                >
+                                    <ChevronsRight className="h-4 w-4" />
+                                </Button>
                             </div>
-                        )}
+                            {/* Rows per page selector - below nav on mobile, left on desktop */}
+                            <div className="flex items-center justify-center gap-2 sm:order-1 sm:justify-start">
+                                <span className="text-muted-foreground text-sm">Rows</span>
+                                <Select
+                                    value={String(data?.page_size || 10)}
+                                    onValueChange={value => onPageSizeChange?.(Number(value))}
+                                >
+                                    <SelectTrigger className="h-8 w-[70px]">
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="10">10</SelectItem>
+                                        <SelectItem value="20">20</SelectItem>
+                                        <SelectItem value="50">50</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </div>
                     </>
                 )}
             </CardContent>

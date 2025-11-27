@@ -19,6 +19,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils'
 import { ThemeToggle } from '@/components/common/theme-toggle'
 import { ChartThemeSelector } from '../chart-theme-selector'
+import { UserAvatar } from '@/features/auth/components/user-avatar'
 import type { CurrencyType } from '../../hooks/use-portfolio-filters'
 
 export interface DashboardHeaderProps {
@@ -90,7 +91,7 @@ export const DashboardHeader = ({
                                 <SelectValue placeholder="Select report date" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="all">All Report Dates</SelectItem>
+                                <SelectItem value="all">Latest Report</SelectItem>
                                 {reportDates.map(date => (
                                     <SelectItem key={date} value={date}>
                                         {formatDateLabel(date)}
@@ -142,6 +143,9 @@ export const DashboardHeader = ({
                     />
                     <span className="hidden sm:inline">Refresh</span>
                 </Button>
+
+                {/* User Profile */}
+                <UserAvatar />
             </div>
         </header>
     )

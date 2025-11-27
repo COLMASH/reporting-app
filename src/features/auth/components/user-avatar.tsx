@@ -10,15 +10,23 @@ import {
     DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
 import { LogOut, Building, Mail, Shield } from 'lucide-react'
-import { signOut } from 'next-auth/react'
+import { signOut, useSession } from 'next-auth/react'
 import { ROUTES } from '@/routes'
 import { cn } from '@/lib/utils'
 
 export interface UserAvatarProps {
-    user: User
+    user?: User
 }
 
-export const UserAvatar = ({ user }: UserAvatarProps) => {
+export const UserAvatar = ({ user: userProp }: UserAvatarProps) => {
+    const { data: session } = useSession()
+
+    // Use provided user prop or fall back to session user
+    const user = userProp || (session?.user as User | undefined)
+
+    if (!user) {
+        return null
+    }
     const getInitials = (name: string | null, email: string): string => {
         if (name) {
             return name

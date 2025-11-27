@@ -74,7 +74,7 @@ export const CeoDashboard = () => {
     // Table state
     const [tableParams, setTableParams] = useState({
         page: 1,
-        pageSize: 20,
+        pageSize: 10,
         sortBy: 'estimated_asset_value_usd',
         sortOrder: 'desc' as SortOrder,
         search: ''
@@ -161,6 +161,10 @@ export const CeoDashboard = () => {
 
     const handlePageChange = useCallback((page: number) => {
         setTableParams(prev => ({ ...prev, page }))
+    }, [])
+
+    const handlePageSizeChange = useCallback((pageSize: number) => {
+        setTableParams(prev => ({ ...prev, pageSize, page: 1 }))
     }, [])
 
     // Map EUR column names to USD equivalents for API sorting
@@ -286,6 +290,7 @@ export const CeoDashboard = () => {
                                 }
                                 isFetching={dashboardData.isFetching}
                                 onRowClick={handleAssetTypeClick}
+                                selectedAssetType={filters.assetType}
                             />
 
                             {/* Detailed Data Table */}
@@ -296,6 +301,7 @@ export const CeoDashboard = () => {
                                 currency={filters.currency}
                                 onRowClick={handleRowClick}
                                 onPageChange={handlePageChange}
+                                onPageSizeChange={handlePageSizeChange}
                                 onSortChange={handleSortChange}
                                 onSearchChange={handleSearchChange}
                                 currentSort={{

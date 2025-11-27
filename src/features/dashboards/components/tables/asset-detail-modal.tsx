@@ -38,16 +38,18 @@ interface DetailRowProps {
 }
 
 const DetailRow = ({ label, value, className }: DetailRowProps) => (
-    <div className="flex justify-between py-1.5">
-        <span className="text-muted-foreground text-sm">{label}</span>
-        <span className={cn('text-sm font-medium', className)}>{value}</span>
+    <div className="flex flex-col gap-0.5 py-2 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4">
+        <span className="text-muted-foreground shrink-0 text-sm">{label}</span>
+        <span className={cn('text-sm font-medium break-words sm:text-right', className)}>
+            {value || 'N/A'}
+        </span>
     </div>
 )
 
 const DetailSection = ({ title, children }: { title: string; children: React.ReactNode }) => (
-    <div className="space-y-2">
-        <h4 className="text-muted-foreground text-sm font-semibold">{title}</h4>
-        <div className="space-y-0.5">{children}</div>
+    <div className="space-y-1">
+        <h4 className="text-sm font-semibold tracking-tight">{title}</h4>
+        <div className="divide-border/50 divide-y">{children}</div>
     </div>
 )
 
@@ -77,19 +79,27 @@ export const AssetDetailModal = ({
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-[600px]">
+            <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[550px]">
                 {isLoading ? (
                     <LoadingSkeleton />
                 ) : asset ? (
                     <>
                         <DialogHeader>
-                            <DialogTitle className="flex items-center gap-3">
-                                <span className="truncate">{asset.asset_name}</span>
-                                <Badge variant="outline">{asset.asset_type}</Badge>
+                            <DialogTitle className="pr-8 leading-tight">
+                                {asset.asset_name}
                             </DialogTitle>
-                            <DialogDescription>
-                                {asset.ownership_holding_entity}
-                                {asset.display_id && ` • ID: ${asset.display_id}`}
+                            <DialogDescription asChild>
+                                <div className="text-muted-foreground flex flex-wrap items-center gap-2 pt-1 text-sm">
+                                    <Badge variant="outline">{asset.asset_type}</Badge>
+                                    <span className="text-muted-foreground">•</span>
+                                    <span>{asset.ownership_holding_entity}</span>
+                                    {asset.display_id && (
+                                        <>
+                                            <span className="text-muted-foreground">•</span>
+                                            <span>ID: {asset.display_id}</span>
+                                        </>
+                                    )}
+                                </div>
                             </DialogDescription>
                         </DialogHeader>
 

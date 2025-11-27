@@ -32,6 +32,7 @@ export interface AssetTypeSummaryTableProps {
     isLoading?: boolean
     isFetching?: boolean
     onRowClick?: (assetType: string) => void
+    selectedAssetType?: string | null
 }
 
 interface TableState {
@@ -89,7 +90,8 @@ export const AssetTypeSummaryTable = ({
     currency = 'USD',
     isLoading = false,
     isFetching = false,
-    onRowClick
+    onRowClick,
+    selectedAssetType
 }: AssetTypeSummaryTableProps) => {
     const isEur = currency === 'EUR'
     // Use EUR data when EUR is selected and available
@@ -207,38 +209,43 @@ export const AssetTypeSummaryTable = ({
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    {paginatedData.map((row: AssetTypeSummaryRow) => (
-                                        <TableRow
-                                            key={row.assetType}
-                                            className={cn({
-                                                'hover:bg-muted/80 cursor-pointer': !!onRowClick
-                                            })}
-                                            onClick={
-                                                onRowClick
-                                                    ? () => onRowClick(row.assetType)
-                                                    : undefined
-                                            }
-                                        >
-                                            <TableCell className="font-medium">
-                                                {row.assetType}
-                                            </TableCell>
-                                            <TableCell className="text-right">
-                                                {formatCompactCurrency(row.valueUsd, currency)}
-                                            </TableCell>
-                                            <TableCell className="text-right">
-                                                {formatCompactCurrency(
-                                                    row.paidInCapitalUsd,
-                                                    currency
-                                                )}
-                                            </TableCell>
-                                            <TableCell className="text-right">
-                                                {formatPercentage(row.percentage / 100)}
-                                            </TableCell>
-                                            <TableCell className="text-right">
-                                                {row.count}
-                                            </TableCell>
-                                        </TableRow>
-                                    ))}
+                                    {paginatedData.map((row: AssetTypeSummaryRow) => {
+                                        const isSelected = row.assetType === selectedAssetType
+                                        return (
+                                            <TableRow
+                                                key={row.assetType}
+                                                className={cn('cursor-pointer', {
+                                                    'bg-primary text-primary-foreground hover:bg-primary/80':
+                                                        isSelected,
+                                                    'hover:bg-muted/80': !isSelected
+                                                })}
+                                                onClick={
+                                                    onRowClick
+                                                        ? () => onRowClick(row.assetType)
+                                                        : undefined
+                                                }
+                                            >
+                                                <TableCell className="font-medium">
+                                                    {row.assetType}
+                                                </TableCell>
+                                                <TableCell className="text-right">
+                                                    {formatCompactCurrency(row.valueUsd, currency)}
+                                                </TableCell>
+                                                <TableCell className="text-right">
+                                                    {formatCompactCurrency(
+                                                        row.paidInCapitalUsd,
+                                                        currency
+                                                    )}
+                                                </TableCell>
+                                                <TableCell className="text-right">
+                                                    {formatPercentage(row.percentage / 100)}
+                                                </TableCell>
+                                                <TableCell className="text-right">
+                                                    {row.count}
+                                                </TableCell>
+                                            </TableRow>
+                                        )
+                                    })}
                                 </TableBody>
                             </Table>
                         </div>
