@@ -142,28 +142,33 @@ export const transformAssetTypeForPieChart = (
 /**
  * Transform asset type data for summary table.
  * Includes additional financial metrics.
+ * @param data - Asset type aggregation response from API
+ * @param currency - Currency to use for values ('USD' or 'EUR')
  */
 export interface AssetTypeSummaryRow {
     assetType: string
-    valueUsd: number | null
+    value: number | null
     percentage: number
     count: number
-    paidInCapitalUsd: number | null
-    unfundedCommitmentUsd: number | null
+    paidInCapital: number | null
+    unfundedCommitment: number | null
 }
 
 export const transformAssetTypeForTable = (
-    data: AssetTypeAggregationResponse | undefined
+    data: AssetTypeAggregationResponse | undefined,
+    currency: 'USD' | 'EUR' = 'USD'
 ): AssetTypeSummaryRow[] => {
     if (!data) return []
 
+    const isEur = currency === 'EUR'
+
     return data.groups.map((group: AssetTypeGroup) => ({
         assetType: group.asset_type,
-        valueUsd: group.value_usd,
+        value: isEur ? group.value_eur : group.value_usd,
         percentage: group.percentage,
         count: group.count,
-        paidInCapitalUsd: group.paid_in_capital_usd,
-        unfundedCommitmentUsd: group.unfunded_commitment_usd
+        paidInCapital: isEur ? group.paid_in_capital_eur : group.paid_in_capital_usd,
+        unfundedCommitment: isEur ? group.unfunded_commitment_eur : group.unfunded_commitment_usd
     }))
 }
 
@@ -205,6 +210,42 @@ export const transformFlexibleForBarChart = (
 
         chartData.push({
             category: group.label,
+            value: group.value_usd,
+            percentage: group.percentage,
+            count: group.count,
+            fill: getChartColor(index)
+        })
+    })
+
+    return {
+        data: chartData,
+        hasExcludedNulls: excludedCount > 0,
+        excludedCount
+    }
+}
+
+/**
+ * Transform flexible aggregation data for pie/donut chart.
+ * Maps label to name field for pie chart compatibility.
+ */
+export const transformFlexibleForPieChart = (
+    data: FlexibleAggregationResponse | undefined
+): TransformResult<PieChartDatum> => {
+    if (!data) {
+        return { data: [], hasExcludedNulls: false, excludedCount: 0 }
+    }
+
+    let excludedCount = 0
+    const chartData: PieChartDatum[] = []
+
+    data.groups.forEach((group: FlexibleAggregationGroup, index: number) => {
+        if (group.value_usd === null || group.value_usd === undefined) {
+            excludedCount++
+            return
+        }
+
+        chartData.push({
+            name: group.label,
             value: group.value_usd,
             percentage: group.percentage,
             count: group.count,

@@ -12,6 +12,7 @@ import {
     Table,
     TableBody,
     TableCell,
+    TableFooter,
     TableHead,
     TableHeader,
     TableRow
@@ -27,7 +28,6 @@ import type { CurrencyType } from '../../hooks/use-portfolio-filters'
 
 export interface AssetTypeSummaryTableProps {
     data: AssetTypeAggregationResponse | undefined
-    eurData?: AssetTypeAggregationResponse
     currency?: CurrencyType
     isLoading?: boolean
     isFetching?: boolean
@@ -86,26 +86,35 @@ const SortableColumn = ({
 
 export const AssetTypeSummaryTable = ({
     data,
-    eurData,
     currency = 'USD',
     isLoading = false,
     isFetching = false,
     onRowClick,
     selectedAssetType
 }: AssetTypeSummaryTableProps) => {
-    const isEur = currency === 'EUR'
-    // Use EUR data when EUR is selected and available
-    const activeData = isEur && eurData ? eurData : data
     const [tableState, setTableState] = useState<TableState>({
-        sortBy: 'valueUsd',
+        sortBy: 'value',
         sortOrder: 'desc',
         page: 1,
         pageSize: 10
     })
 
-    const rawTableData = useMemo(() => transformAssetTypeForTable(activeData), [activeData])
+    // Transform data with currency-aware field extraction
+    const rawTableData = useMemo(() => transformAssetTypeForTable(data, currency), [data, currency])
 
     // Sort and paginate data
+    // Calculate totals from all data (not paginated)
+    const totals = useMemo(() => {
+        return rawTableData.reduce(
+            (acc, row) => ({
+                value: acc.value + (row.value || 0),
+                paidInCapital: acc.paidInCapital + (row.paidInCapital || 0),
+                count: acc.count + row.count
+            }),
+            { value: 0, paidInCapital: 0, count: 0 }
+        )
+    }, [rawTableData])
+
     const { paginatedData, totalPages } = useMemo(() => {
         const result = [...rawTableData]
 
@@ -175,7 +184,7 @@ export const AssetTypeSummaryTable = ({
                                             onSort={handleSort}
                                         />
                                         <SortableColumn
-                                            column="valueUsd"
+                                            column="value"
                                             label={`NAV (${currency})`}
                                             sortBy={tableState.sortBy}
                                             sortOrder={tableState.sortOrder}
@@ -183,7 +192,7 @@ export const AssetTypeSummaryTable = ({
                                             align="right"
                                         />
                                         <SortableColumn
-                                            column="paidInCapitalUsd"
+                                            column="paidInCapital"
                                             label={`Cost Basis (${currency})`}
                                             sortBy={tableState.sortBy}
                                             sortOrder={tableState.sortOrder}
@@ -229,11 +238,11 @@ export const AssetTypeSummaryTable = ({
                                                     {row.assetType}
                                                 </TableCell>
                                                 <TableCell className="text-right">
-                                                    {formatCompactCurrency(row.valueUsd, currency)}
+                                                    {formatCompactCurrency(row.value, currency)}
                                                 </TableCell>
                                                 <TableCell className="text-right">
                                                     {formatCompactCurrency(
-                                                        row.paidInCapitalUsd,
+                                                        row.paidInCapital,
                                                         currency
                                                     )}
                                                 </TableCell>
@@ -247,6 +256,19 @@ export const AssetTypeSummaryTable = ({
                                         )
                                     })}
                                 </TableBody>
+                                <TableFooter className="bg-muted/50 border-t-2">
+                                    <TableRow className="font-semibold">
+                                        <TableCell>Total</TableCell>
+                                        <TableCell className="text-right">
+                                            {formatCompactCurrency(totals.value, currency)}
+                                        </TableCell>
+                                        <TableCell className="text-right">
+                                            {formatCompactCurrency(totals.paidInCapital, currency)}
+                                        </TableCell>
+                                        <TableCell className="text-right">100%</TableCell>
+                                        <TableCell className="text-right">{totals.count}</TableCell>
+                                    </TableRow>
+                                </TableFooter>
                             </Table>
                         </div>
 

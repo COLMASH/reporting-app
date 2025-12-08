@@ -6,16 +6,16 @@
  * Supports URL-based filtering for shareable links.
  */
 
-import { useState, useCallback, useEffect, useMemo } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { usePortfolioFilters, type AssetTabType } from '../hooks/use-portfolio-filters'
 import { useDashboardData, useAssetTable } from '../hooks/use-dashboard-data'
-import { getAvailableAssetTypes } from '../utils/api-transformers'
 import { getAssetTypeFilter, TAB_TO_ASSET_TYPE, TAB_CONFIG } from './navigation/asset-type-tabs'
 
 // Layout components
 import { EntitySidebar, MobileEntitySidebar } from './layout/entity-sidebar'
 import { AssetTypeTabs } from './navigation/asset-type-tabs'
 import { DashboardHeader } from './common/dashboard-header'
+import { ActiveFilters, type FilterKey } from './common/active-filters'
 
 // Card components
 import { KpiCards } from './cards/kpi-cards'
@@ -23,6 +23,7 @@ import { KpiCards } from './cards/kpi-cards'
 // Chart components
 import { EntityDonutChart } from './charts/entity-donut-chart'
 import { AssetTypeDonutChart } from './charts/asset-type-donut-chart'
+import { DistributionDonutChart } from './charts/distribution-donut-chart'
 import { HistoricalNavChart } from './charts/historical-nav-chart'
 
 // Table components
@@ -31,7 +32,7 @@ import { DetailedDataTable } from './tables/detailed-data-table'
 import { AssetDetailModal } from './tables/asset-detail-modal'
 
 import { Card, CardContent } from '@/components/ui/card'
-import { Construction } from 'lucide-react'
+import { Construction, Layers, Target } from 'lucide-react'
 
 import type { AssetResponse, SortOrder } from '@/redux/services/portfolioApi'
 
@@ -65,8 +66,17 @@ const WorkInProgressPlaceholder = ({ entityName }: { entityName: string }) => (
 
 export const CeoDashboard = () => {
     // URL-synchronized filters
-    const { filters, setEntity, setTab, setReportDate, setCurrency, setFilters } =
-        usePortfolioFilters()
+    const {
+        filters,
+        setEntity,
+        setTab,
+        setReportDate,
+        setCurrency,
+        setFilters,
+        setAssetGroup,
+        setAssetGroupStrategy,
+        clearFilters
+    } = usePortfolioFilters()
 
     // Dashboard data from RTK Query
     const dashboardData = useDashboardData()
@@ -95,16 +105,10 @@ export const CeoDashboard = () => {
         }
     }, [filters.tab, filters.assetType, setFilters])
 
-    // Extract available asset types from byAssetType response
-    const availableAssetTypes = useMemo(
-        () => getAvailableAssetTypes(dashboardData.byAssetType),
-        [dashboardData.byAssetType]
-    )
-
     // Auto-redirect if current tab is not available for selected entity
     useEffect(() => {
         // Don't redirect while loading or if no data yet
-        if (dashboardData.isLoading || !availableAssetTypes.size) return
+        if (dashboardData.isLoading || !dashboardData.availableAssetTypes.size) return
 
         // Overview is always valid
         if (filters.tab === 'overview') return
@@ -112,18 +116,18 @@ export const CeoDashboard = () => {
         const currentAssetType = TAB_TO_ASSET_TYPE[filters.tab]
 
         // Check if current tab is available
-        if (currentAssetType && !availableAssetTypes.has(currentAssetType)) {
+        if (currentAssetType && !dashboardData.availableAssetTypes.has(currentAssetType)) {
             // Find first available tab (skip overview, prefer asset tabs)
             const firstAvailable = TAB_CONFIG.find(tab => {
                 if (tab.value === 'overview') return false
                 const assetType = TAB_TO_ASSET_TYPE[tab.value]
-                return assetType ? availableAssetTypes.has(assetType) : false
+                return assetType ? dashboardData.availableAssetTypes.has(assetType) : false
             })
 
             // Redirect to first available, or overview if none
             setTab((firstAvailable?.value || 'overview') as AssetTabType)
         }
-    }, [availableAssetTypes, filters.tab, dashboardData.isLoading, setTab])
+    }, [dashboardData.availableAssetTypes, filters.tab, dashboardData.isLoading, setTab])
 
     // Event handlers
     const handleEntityClick = useCallback(
@@ -152,6 +156,20 @@ export const CeoDashboard = () => {
             }
         },
         [setTab]
+    )
+
+    const handleAssetGroupClick = useCallback(
+        (assetGroup: string) => {
+            setAssetGroup(assetGroup)
+        },
+        [setAssetGroup]
+    )
+
+    const handleAssetGroupStrategyClick = useCallback(
+        (strategy: string) => {
+            setAssetGroupStrategy(strategy)
+        },
+        [setAssetGroupStrategy]
     )
 
     const handleRowClick = useCallback((asset: AssetResponse) => {
@@ -187,6 +205,18 @@ export const CeoDashboard = () => {
     const handleSearchChange = useCallback((search: string) => {
         setTableParams(prev => ({ ...prev, search, page: 1 }))
     }, [])
+
+    const handleClearFilter = useCallback(
+        (filterKey: FilterKey) => {
+            // When clearing assetType, also reset tab to overview
+            if (filterKey === 'assetType') {
+                setFilters({ assetType: null, tab: 'overview' })
+            } else {
+                setFilters({ [filterKey]: null })
+            }
+        },
+        [setFilters]
+    )
 
     // Check if entity has an active dashboard
     const isEntityActive = ACTIVE_ENTITIES.has(filters.entity || '')
@@ -236,10 +266,17 @@ export const CeoDashboard = () => {
                             <AssetTypeTabs
                                 activeTab={filters.tab}
                                 onTabChange={setTab}
-                                availableAssetTypes={availableAssetTypes}
+                                availableAssetTypes={dashboardData.availableAssetTypes}
                                 isLoading={dashboardData.isLoading}
                             />
                         </div>
+
+                        {/* Active Filters */}
+                        <ActiveFilters
+                            filters={filters}
+                            onClearFilter={handleClearFilter}
+                            onClearAll={clearFilters}
+                        />
 
                         {/* Dashboard Content */}
                         <main className="flex-1 space-y-6 overflow-y-auto p-6">
@@ -254,7 +291,7 @@ export const CeoDashboard = () => {
                                 isFetching={dashboardData.isFetching}
                             />
 
-                            {/* Charts Row */}
+                            {/* Charts Grid - 2x2 */}
                             <div className="grid gap-6 lg:grid-cols-2">
                                 <EntityDonutChart
                                     data={dashboardData.byEntity}
@@ -270,6 +307,26 @@ export const CeoDashboard = () => {
                                     isFetching={dashboardData.isFetching}
                                     onAssetTypeClick={handleAssetTypeClick}
                                 />
+                                <DistributionDonutChart
+                                    title="Distribution by Asset Group"
+                                    description="Portfolio allocation by asset group"
+                                    icon={Layers}
+                                    data={dashboardData.byAssetGroup}
+                                    currency={filters.currency}
+                                    isLoading={dashboardData.isChartsLoading}
+                                    isFetching={dashboardData.isFetching}
+                                    onClick={handleAssetGroupClick}
+                                />
+                                <DistributionDonutChart
+                                    title="Distribution by Strategy"
+                                    description="Portfolio allocation by investment strategy"
+                                    icon={Target}
+                                    data={dashboardData.byAssetGroupStrategy}
+                                    currency={filters.currency}
+                                    isLoading={dashboardData.isChartsLoading}
+                                    isFetching={dashboardData.isFetching}
+                                    onClick={handleAssetGroupStrategyClick}
+                                />
                             </div>
 
                             {/* Historical NAV Chart */}
@@ -283,11 +340,8 @@ export const CeoDashboard = () => {
                             {/* Summary Table */}
                             <AssetTypeSummaryTable
                                 data={dashboardData.byAssetType}
-                                eurData={dashboardData.eurByAssetType}
                                 currency={filters.currency}
-                                isLoading={
-                                    dashboardData.isChartsLoading || dashboardData.isEurLoading
-                                }
+                                isLoading={dashboardData.isChartsLoading}
                                 isFetching={dashboardData.isFetching}
                                 onRowClick={handleAssetTypeClick}
                                 selectedAssetType={filters.assetType}
@@ -296,6 +350,7 @@ export const CeoDashboard = () => {
                             {/* Detailed Data Table */}
                             <DetailedDataTable
                                 data={tableData.data}
+                                summary={dashboardData.summary}
                                 isLoading={tableData.isLoading}
                                 isFetching={tableData.isFetching}
                                 currency={filters.currency}

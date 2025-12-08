@@ -26,6 +26,8 @@ export type SortOrder = 'asc' | 'desc'
 export interface PortfolioAssetsParams {
     entity?: string
     asset_type?: string
+    asset_group?: string
+    asset_group_strategy?: string
     report_date?: string
     search?: string
     page?: number
@@ -38,6 +40,8 @@ export interface PortfolioAssetsParams {
 export interface AggregationParams {
     entity?: string
     asset_type?: string
+    asset_group?: string
+    asset_group_strategy?: string
     report_date?: string
 }
 

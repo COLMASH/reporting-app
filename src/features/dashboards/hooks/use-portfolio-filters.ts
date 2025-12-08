@@ -24,6 +24,8 @@ export type CurrencyType = 'USD' | 'EUR'
 export interface PortfolioFilters {
     entity: string | null
     assetType: string | null
+    assetGroup: string | null
+    assetGroupStrategy: string | null
     reportDate: string | null
     tab: AssetTabType
     currency: CurrencyType
@@ -33,6 +35,8 @@ export interface PortfolioFiltersHook {
     filters: PortfolioFilters
     setEntity: (entity: string | null) => void
     setAssetType: (assetType: string | null) => void
+    setAssetGroup: (assetGroup: string | null) => void
+    setAssetGroupStrategy: (assetGroupStrategy: string | null) => void
     setReportDate: (reportDate: string | null) => void
     setTab: (tab: AssetTabType) => void
     setCurrency: (currency: CurrencyType) => void
@@ -76,6 +80,8 @@ export const usePortfolioFilters = (): PortfolioFiltersHook => {
         return {
             entity: searchParams.get('entity'),
             assetType: searchParams.get('asset_type'),
+            assetGroup: searchParams.get('asset_group'),
+            assetGroupStrategy: searchParams.get('asset_group_strategy'),
             reportDate: searchParams.get('report_date'),
             tab: isValidTab(tabParam) ? tabParam : 'overview',
             currency: isValidCurrency(currencyParam) ? currencyParam : 'USD'
@@ -91,6 +97,8 @@ export const usePortfolioFilters = (): PortfolioFiltersHook => {
             const paramMapping: Record<string, string> = {
                 entity: 'entity',
                 assetType: 'asset_type',
+                assetGroup: 'asset_group',
+                assetGroupStrategy: 'asset_group_strategy',
                 reportDate: 'report_date',
                 tab: 'tab',
                 currency: 'currency'
@@ -122,6 +130,16 @@ export const usePortfolioFilters = (): PortfolioFiltersHook => {
         [updateUrl]
     )
 
+    const setAssetGroup = useCallback(
+        (assetGroup: string | null) => updateUrl({ assetGroup }),
+        [updateUrl]
+    )
+
+    const setAssetGroupStrategy = useCallback(
+        (assetGroupStrategy: string | null) => updateUrl({ assetGroupStrategy }),
+        [updateUrl]
+    )
+
     const setReportDate = useCallback(
         (reportDate: string | null) => updateUrl({ reportDate }),
         [updateUrl]
@@ -150,16 +168,26 @@ export const usePortfolioFilters = (): PortfolioFiltersHook => {
         const params: Record<string, string | undefined> = {}
         if (filters.entity) params.entity = filters.entity
         if (filters.assetType) params.asset_type = filters.assetType
+        if (filters.assetGroup) params.asset_group = filters.assetGroup
+        if (filters.assetGroupStrategy) params.asset_group_strategy = filters.assetGroupStrategy
         if (filters.reportDate) params.report_date = filters.reportDate
         return params
     }, [filters])
 
-    const hasActiveFilters = Boolean(filters.entity || filters.assetType || filters.reportDate)
+    const hasActiveFilters = Boolean(
+        filters.entity ||
+            filters.assetType ||
+            filters.assetGroup ||
+            filters.assetGroupStrategy ||
+            filters.reportDate
+    )
 
     return {
         filters,
         setEntity,
         setAssetType,
+        setAssetGroup,
+        setAssetGroupStrategy,
         setReportDate,
         setTab,
         setCurrency,

@@ -11,6 +11,7 @@ import {
     Table,
     TableBody,
     TableCell,
+    TableFooter,
     TableHead,
     TableHeader,
     TableRow
@@ -42,11 +43,17 @@ import {
     getPerformanceColorClass
 } from '@/redux/services/portfolioApi'
 import { cn } from '@/lib/utils'
-import type { AssetResponse, AssetListResponse, SortOrder } from '@/redux/services/portfolioApi'
+import type {
+    AssetResponse,
+    AssetListResponse,
+    SortOrder,
+    PortfolioSummaryResponse
+} from '@/redux/services/portfolioApi'
 import type { CurrencyType } from '../../hooks/use-portfolio-filters'
 
 export interface DetailedDataTableProps {
     data: AssetListResponse | undefined
+    summary?: PortfolioSummaryResponse
     isLoading?: boolean
     isFetching?: boolean
     currency?: CurrencyType
@@ -111,6 +118,7 @@ const SortableColumn = ({
 
 export const DetailedDataTable = ({
     data,
+    summary,
     isLoading = false,
     isFetching = false,
     currency = 'USD',
@@ -202,7 +210,7 @@ export const DetailedDataTable = ({
                 ) : (
                     <>
                         <div className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
-                            <Table className="min-w-[800px]">
+                            <Table className="min-w-[1000px]">
                                 <TableHeader>
                                     <TableRow>
                                         <SortableColumn
@@ -224,6 +232,18 @@ export const DetailedDataTable = ({
                                             onSort={handleSort}
                                         />
                                         <SortableColumn
+                                            column="asset_group"
+                                            label="Group"
+                                            currentSort={currentSort}
+                                            onSort={handleSort}
+                                        />
+                                        <SortableColumn
+                                            column="asset_group_strategy"
+                                            label="Strategy"
+                                            currentSort={currentSort}
+                                            onSort={handleSort}
+                                        />
+                                        <SortableColumn
                                             column={navColumn}
                                             label={`NAV (${currency})`}
                                             currentSort={currentSort}
@@ -232,7 +252,7 @@ export const DetailedDataTable = ({
                                         />
                                         <SortableColumn
                                             column={costColumn}
-                                            label={`Cost Basis (${currency})`}
+                                            label={`Cost (${currency})`}
                                             currentSort={currentSort}
                                             onSort={handleSort}
                                             align="right"
@@ -280,6 +300,12 @@ export const DetailedDataTable = ({
                                                 <TableCell className="max-w-[120px] truncate">
                                                     {asset.ownership_holding_entity}
                                                 </TableCell>
+                                                <TableCell className="max-w-[120px] truncate">
+                                                    {asset.asset_group}
+                                                </TableCell>
+                                                <TableCell className="max-w-[120px] truncate">
+                                                    {asset.asset_group_strategy || '—'}
+                                                </TableCell>
                                                 <TableCell className="text-right">
                                                     {formatCompactCurrency(nav, currency)}
                                                 </TableCell>
@@ -301,6 +327,46 @@ export const DetailedDataTable = ({
                                         )
                                     })}
                                 </TableBody>
+                                {summary && (
+                                    <TableFooter className="bg-muted/50 border-t-2">
+                                        <TableRow className="font-semibold">
+                                            <TableCell>Total ({summary.total_assets})</TableCell>
+                                            <TableCell>—</TableCell>
+                                            <TableCell>—</TableCell>
+                                            <TableCell>—</TableCell>
+                                            <TableCell>—</TableCell>
+                                            <TableCell className="text-right">
+                                                {formatCompactCurrency(
+                                                    isEur
+                                                        ? summary.total_estimated_value_eur
+                                                        : summary.total_estimated_value_usd,
+                                                    currency
+                                                )}
+                                            </TableCell>
+                                            <TableCell className="text-right">
+                                                {formatCompactCurrency(
+                                                    isEur
+                                                        ? summary.total_paid_in_capital_eur
+                                                        : summary.total_paid_in_capital_usd,
+                                                    currency
+                                                )}
+                                            </TableCell>
+                                            <TableCell
+                                                className={cn(
+                                                    'text-right',
+                                                    getPerformanceColorClass(
+                                                        summary.weighted_avg_return
+                                                    )
+                                                )}
+                                            >
+                                                {formatPercentageWithSign(
+                                                    summary.weighted_avg_return
+                                                )}
+                                            </TableCell>
+                                            <TableCell>—</TableCell>
+                                        </TableRow>
+                                    </TableFooter>
+                                )}
                             </Table>
                         </div>
 

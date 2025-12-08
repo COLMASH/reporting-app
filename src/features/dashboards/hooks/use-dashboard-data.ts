@@ -11,6 +11,7 @@ import {
     useGetSummaryQuery,
     useGetByEntityQuery,
     useGetByAssetTypeQuery,
+    useGetFlexibleAggregationQuery,
     useGetAssetsQuery,
     useGetHistoricalNavQuery,
     portfolioApi
@@ -22,10 +23,13 @@ import type {
     PortfolioSummaryResponse,
     EntityAggregationResponse,
     AssetTypeAggregationResponse,
+    FlexibleAggregationResponse,
     AssetListResponse,
-    HistoricalNavResponse
+    HistoricalNavResponse,
+    AggregationParams
 } from '@/redux/services/portfolioApi'
 import { type EurSummary } from '../utils/currency-aggregations'
+import { getAvailableAssetTypes } from '../utils/api-transformers'
 
 export interface DashboardDataState {
     // Raw API data
@@ -33,6 +37,8 @@ export interface DashboardDataState {
     summary: PortfolioSummaryResponse | undefined
     byEntity: EntityAggregationResponse | undefined
     byAssetType: AssetTypeAggregationResponse | undefined
+    byAssetGroup: FlexibleAggregationResponse | undefined
+    byAssetGroupStrategy: FlexibleAggregationResponse | undefined
     assets: AssetListResponse | undefined
     historicalNav: HistoricalNavResponse | undefined
 
@@ -40,6 +46,9 @@ export interface DashboardDataState {
     eurSummary: EurSummary | undefined
     eurByEntity: EntityAggregationResponse | undefined
     eurByAssetType: AssetTypeAggregationResponse | undefined
+
+    // Tab availability (excludes asset_type filter to show all available tabs)
+    availableAssetTypes: Set<string>
 
     // Loading states
     isLoading: boolean
@@ -107,13 +116,34 @@ export const useDashboardData = (): DashboardDataState => {
     // API Queries - run in parallel
     const filtersQuery = useGetFiltersQuery()
 
-    const summaryQuery = useGetSummaryQuery(queryParams as Record<string, string | undefined>)
+    const summaryQuery = useGetSummaryQuery(queryParams as AggregationParams)
 
-    const byEntityQuery = useGetByEntityQuery(queryParams as Record<string, string | undefined>)
+    const byEntityQuery = useGetByEntityQuery(queryParams as AggregationParams)
 
-    const byAssetTypeQuery = useGetByAssetTypeQuery(
-        queryParams as Record<string, string | undefined>
-    )
+    const byAssetTypeQuery = useGetByAssetTypeQuery(queryParams as AggregationParams)
+
+    // Tab availability: exclude asset_type to show all available tabs for selected entity
+    const tabAvailabilityParams = useMemo((): AggregationParams => {
+        const params: AggregationParams = {}
+        if (queryParams.entity) params.entity = queryParams.entity
+        if (queryParams.asset_group) params.asset_group = queryParams.asset_group
+        if (queryParams.asset_group_strategy)
+            params.asset_group_strategy = queryParams.asset_group_strategy
+        if (queryParams.report_date) params.report_date = queryParams.report_date
+        return params
+    }, [queryParams])
+
+    const byAssetTypeForTabsQuery = useGetByAssetTypeQuery(tabAvailabilityParams)
+
+    const byAssetGroupQuery = useGetFlexibleAggregationQuery({
+        ...queryParams,
+        group_by: 'asset_group'
+    })
+
+    const byAssetGroupStrategyQuery = useGetFlexibleAggregationQuery({
+        ...queryParams,
+        group_by: 'asset_group_strategy'
+    })
 
     const assetsQuery = useGetAssetsQuery({
         ...queryParams,
@@ -156,6 +186,12 @@ export const useDashboardData = (): DashboardDataState => {
         return byAssetTypeQuery.data
     }, [isEurSelected, byAssetTypeQuery.data])
 
+    // Available asset types for tabs (uses query without asset_type filter)
+    const availableAssetTypes = useMemo(
+        () => getAvailableAssetTypes(byAssetTypeForTabsQuery.data),
+        [byAssetTypeForTabsQuery.data]
+    )
+
     // Compute combined loading states
     const isLoading = useMemo(
         () =>
@@ -163,12 +199,16 @@ export const useDashboardData = (): DashboardDataState => {
             summaryQuery.isLoading ||
             byEntityQuery.isLoading ||
             byAssetTypeQuery.isLoading ||
+            byAssetGroupQuery.isLoading ||
+            byAssetGroupStrategyQuery.isLoading ||
             assetsQuery.isLoading,
         [
             filtersQuery.isLoading,
             summaryQuery.isLoading,
             byEntityQuery.isLoading,
             byAssetTypeQuery.isLoading,
+            byAssetGroupQuery.isLoading,
+            byAssetGroupStrategyQuery.isLoading,
             assetsQuery.isLoading
         ]
     )
@@ -180,6 +220,8 @@ export const useDashboardData = (): DashboardDataState => {
             summaryQuery.isFetching ||
             byEntityQuery.isFetching ||
             byAssetTypeQuery.isFetching ||
+            byAssetGroupQuery.isFetching ||
+            byAssetGroupStrategyQuery.isFetching ||
             assetsQuery.isFetching ||
             historicalNavQuery.isFetching,
         [
@@ -188,6 +230,8 @@ export const useDashboardData = (): DashboardDataState => {
             summaryQuery.isFetching,
             byEntityQuery.isFetching,
             byAssetTypeQuery.isFetching,
+            byAssetGroupQuery.isFetching,
+            byAssetGroupStrategyQuery.isFetching,
             assetsQuery.isFetching,
             historicalNavQuery.isFetching
         ]
@@ -203,6 +247,8 @@ export const useDashboardData = (): DashboardDataState => {
             summaryQuery.error ||
             byEntityQuery.error ||
             byAssetTypeQuery.error ||
+            byAssetGroupQuery.error ||
+            byAssetGroupStrategyQuery.error ||
             assetsQuery.error ||
             historicalNavQuery.error,
         [
@@ -210,6 +256,8 @@ export const useDashboardData = (): DashboardDataState => {
             summaryQuery.error,
             byEntityQuery.error,
             byAssetTypeQuery.error,
+            byAssetGroupQuery.error,
+            byAssetGroupStrategyQuery.error,
             assetsQuery.error,
             historicalNavQuery.error
         ]
@@ -228,6 +276,8 @@ export const useDashboardData = (): DashboardDataState => {
         summary: summaryQuery.data,
         byEntity: byEntityQuery.data,
         byAssetType: byAssetTypeQuery.data,
+        byAssetGroup: byAssetGroupQuery.data,
+        byAssetGroupStrategy: byAssetGroupStrategyQuery.data,
         assets: assetsQuery.data,
         historicalNav: historicalNavQuery.data,
 
@@ -235,6 +285,9 @@ export const useDashboardData = (): DashboardDataState => {
         eurSummary,
         eurByEntity,
         eurByAssetType,
+
+        // Tab availability
+        availableAssetTypes,
 
         // Loading states
         isLoading,

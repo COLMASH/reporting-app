@@ -62,9 +62,9 @@ export const portfolioApi = createApi({
 
         // GET /api/v1/portfolio/aggregations/summary
         // Portfolio KPIs: total assets, total value, paid-in capital, unfunded, avg return
-        getSummary: builder.query<PortfolioSummaryResponse, AggregationParams | void>({
-            query: params => {
-                const queryString = buildQueryString((params || {}) as Record<string, unknown>)
+        getSummary: builder.query<PortfolioSummaryResponse, AggregationParams>({
+            query: (params = {}) => {
+                const queryString = buildQueryString(params as Record<string, unknown>)
                 return `/api/v1/portfolio/aggregations/summary${queryString ? `?${queryString}` : ''}`
             },
             providesTags: ['Portfolio', 'Aggregation']
@@ -72,9 +72,9 @@ export const portfolioApi = createApi({
 
         // GET /api/v1/portfolio/aggregations/by-entity
         // Distribution by ownership entity (for donut chart)
-        getByEntity: builder.query<EntityAggregationResponse, AggregationParams | void>({
-            query: params => {
-                const queryString = buildQueryString((params || {}) as Record<string, unknown>)
+        getByEntity: builder.query<EntityAggregationResponse, AggregationParams>({
+            query: (params = {}) => {
+                const queryString = buildQueryString(params as Record<string, unknown>)
                 return `/api/v1/portfolio/aggregations/by-entity${queryString ? `?${queryString}` : ''}`
             },
             providesTags: ['Aggregation']
@@ -82,9 +82,9 @@ export const portfolioApi = createApi({
 
         // GET /api/v1/portfolio/aggregations/by-asset-type
         // Distribution by asset type (for donut chart and summary table)
-        getByAssetType: builder.query<AssetTypeAggregationResponse, AggregationParams | void>({
-            query: params => {
-                const queryString = buildQueryString((params || {}) as Record<string, unknown>)
+        getByAssetType: builder.query<AssetTypeAggregationResponse, AggregationParams>({
+            query: (params = {}) => {
+                const queryString = buildQueryString(params as Record<string, unknown>)
                 return `/api/v1/portfolio/aggregations/by-asset-type${queryString ? `?${queryString}` : ''}`
             },
             providesTags: ['Aggregation']
