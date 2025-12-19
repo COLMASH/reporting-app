@@ -36,11 +36,11 @@ import { Construction, Layers, Target } from 'lucide-react'
 
 import type { AssetResponse, SortOrder } from '@/redux/services/portfolioApi'
 
-// Entities with active dashboards (empty string = Consolidated View)
-const ACTIVE_ENTITIES = new Set(['', 'Isis Invest'])
+// Holding companies with active dashboards (empty string = Consolidated View)
+const ACTIVE_HOLDING_COMPANIES = new Set(['', 'Isis Invest'])
 
 /**
- * Work in Progress placeholder for entities without active dashboards
+ * Work in Progress placeholder for companies without active dashboards
  */
 const WorkInProgressPlaceholder = ({ entityName }: { entityName: string }) => (
     <div className="flex flex-1 items-center justify-center p-6">
@@ -52,8 +52,8 @@ const WorkInProgressPlaceholder = ({ entityName }: { entityName: string }) => (
                 <div className="space-y-2">
                     <h3 className="text-lg font-semibold">{entityName} Dashboard</h3>
                     <p className="text-muted-foreground text-sm">
-                        This entity dashboard is currently under development. Please check back soon
-                        or select another entity.
+                        This company dashboard is currently under development. Please check back
+                        soon or select another company.
                     </p>
                 </div>
                 <div className="bg-muted text-muted-foreground rounded-full px-3 py-1 text-xs font-medium">
@@ -68,13 +68,13 @@ export const CeoDashboard = () => {
     // URL-synchronized filters
     const {
         filters,
-        setEntity,
+        setHoldingCompany,
         setTab,
         setReportDate,
         setCurrency,
         setFilters,
+        setManagingEntity,
         setAssetGroup,
-        setAssetGroupStrategy,
         clearFilters
     } = usePortfolioFilters()
 
@@ -130,11 +130,11 @@ export const CeoDashboard = () => {
     }, [dashboardData.availableAssetTypes, filters.tab, dashboardData.isLoading, setTab])
 
     // Event handlers
-    const handleEntityClick = useCallback(
-        (entityName: string) => {
-            setEntity(entityName)
+    const handleHoldingCompanyClick = useCallback(
+        (holdingCompany: string) => {
+            setHoldingCompany(holdingCompany)
         },
-        [setEntity]
+        [setHoldingCompany]
     )
 
     const handleAssetTypeClick = useCallback(
@@ -158,18 +158,18 @@ export const CeoDashboard = () => {
         [setTab]
     )
 
+    const handleManagingEntityClick = useCallback(
+        (managingEntity: string) => {
+            setManagingEntity(managingEntity)
+        },
+        [setManagingEntity]
+    )
+
     const handleAssetGroupClick = useCallback(
         (assetGroup: string) => {
             setAssetGroup(assetGroup)
         },
         [setAssetGroup]
-    )
-
-    const handleAssetGroupStrategyClick = useCallback(
-        (strategy: string) => {
-            setAssetGroupStrategy(strategy)
-        },
-        [setAssetGroupStrategy]
     )
 
     const handleRowClick = useCallback((asset: AssetResponse) => {
@@ -218,16 +218,22 @@ export const CeoDashboard = () => {
         [setFilters]
     )
 
-    // Check if entity has an active dashboard
-    const isEntityActive = ACTIVE_ENTITIES.has(filters.entity || '')
+    // Check if holding company has an active dashboard
+    const isHoldingCompanyActive = ACTIVE_HOLDING_COMPANIES.has(filters.holdingCompany || '')
+
+    // Get holding companies from filters, with fallback to entities for backwards compatibility
+    const holdingCompanies =
+        (dashboardData.filters?.holding_companies?.length ?? 0) > 0
+            ? (dashboardData.filters?.holding_companies ?? [])
+            : (dashboardData.filters?.entities ?? [])
 
     return (
         <div className="flex h-[calc(100vh-4rem)] overflow-hidden">
-            {/* Entity Sidebar */}
+            {/* Holding Company Sidebar */}
             <EntitySidebar
-                entities={dashboardData.filters?.entities || []}
-                selectedEntity={filters.entity}
-                onEntityChange={setEntity}
+                holdingCompanies={holdingCompanies}
+                selectedHoldingCompany={filters.holdingCompany}
+                onHoldingCompanyChange={setHoldingCompany}
                 isLoading={dashboardData.isFiltersLoading}
             />
 
@@ -237,9 +243,9 @@ export const CeoDashboard = () => {
                 <DashboardHeader
                     title="Portfolio Dashboard"
                     subtitle={
-                        filters.entity
-                            ? `Viewing: ${filters.entity}`
-                            : 'Consolidated View - All Entities'
+                        filters.holdingCompany
+                            ? `Viewing: ${filters.holdingCompany}`
+                            : 'Consolidated View - All Companies'
                     }
                     reportDates={dashboardData.filters?.report_dates || []}
                     selectedReportDate={filters.reportDate}
@@ -251,15 +257,15 @@ export const CeoDashboard = () => {
                     isLoading={dashboardData.isFiltersLoading}
                     mobileMenu={
                         <MobileEntitySidebar
-                            entities={dashboardData.filters?.entities || []}
-                            selectedEntity={filters.entity}
-                            onEntityChange={setEntity}
+                            holdingCompanies={holdingCompanies}
+                            selectedHoldingCompany={filters.holdingCompany}
+                            onHoldingCompanyChange={setHoldingCompany}
                             isLoading={dashboardData.isFiltersLoading}
                         />
                     }
                 />
 
-                {isEntityActive ? (
+                {isHoldingCompanyActive ? (
                     <>
                         {/* Asset Type Tabs */}
                         <div className="px-6 pt-4">
@@ -294,11 +300,11 @@ export const CeoDashboard = () => {
                             {/* Charts Grid - 2x2 */}
                             <div className="grid gap-6 lg:grid-cols-2">
                                 <EntityDonutChart
-                                    data={dashboardData.byEntity}
+                                    data={dashboardData.byHoldingCompany}
                                     currency={filters.currency}
                                     isLoading={dashboardData.isChartsLoading}
                                     isFetching={dashboardData.isFetching}
-                                    onEntityClick={handleEntityClick}
+                                    onEntityClick={handleHoldingCompanyClick}
                                 />
                                 <AssetTypeDonutChart
                                     data={dashboardData.byAssetType}
@@ -308,24 +314,24 @@ export const CeoDashboard = () => {
                                     onAssetTypeClick={handleAssetTypeClick}
                                 />
                                 <DistributionDonutChart
+                                    title="Distribution by Managing Entity"
+                                    description="Portfolio allocation by managing entity"
+                                    icon={Layers}
+                                    data={dashboardData.byManagingEntity}
+                                    currency={filters.currency}
+                                    isLoading={dashboardData.isChartsLoading}
+                                    isFetching={dashboardData.isFetching}
+                                    onClick={handleManagingEntityClick}
+                                />
+                                <DistributionDonutChart
                                     title="Distribution by Asset Group"
                                     description="Portfolio allocation by asset group"
-                                    icon={Layers}
+                                    icon={Target}
                                     data={dashboardData.byAssetGroup}
                                     currency={filters.currency}
                                     isLoading={dashboardData.isChartsLoading}
                                     isFetching={dashboardData.isFetching}
                                     onClick={handleAssetGroupClick}
-                                />
-                                <DistributionDonutChart
-                                    title="Distribution by Strategy"
-                                    description="Portfolio allocation by investment strategy"
-                                    icon={Target}
-                                    data={dashboardData.byAssetGroupStrategy}
-                                    currency={filters.currency}
-                                    isLoading={dashboardData.isChartsLoading}
-                                    isFetching={dashboardData.isFetching}
-                                    onClick={handleAssetGroupStrategyClick}
                                 />
                             </div>
 
@@ -368,7 +374,7 @@ export const CeoDashboard = () => {
                         </main>
                     </>
                 ) : (
-                    <WorkInProgressPlaceholder entityName={filters.entity || 'Unknown'} />
+                    <WorkInProgressPlaceholder entityName={filters.holdingCompany || 'Unknown'} />
                 )}
             </div>
 

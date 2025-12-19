@@ -11,17 +11,17 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { ShimmerOverlay } from '@/components/ui/shimmer-overlay'
 import { Building2 } from 'lucide-react'
 import {
-    transformEntityForPieChart,
+    transformFlexibleForPieChart,
     type PieChartDatum,
     type TransformResult
 } from '../../utils/api-transformers'
 import { getChartColor } from '../../utils/chart-colors'
 import { formatCompactCurrency } from '@/redux/services/portfolioApi'
-import type { EntityAggregationResponse } from '@/redux/services/portfolioApi'
+import type { FlexibleAggregationResponse } from '@/redux/services/portfolioApi'
 import type { CurrencyType } from '../../hooks/use-portfolio-filters'
 
 export interface EntityDonutChartProps {
-    data: EntityAggregationResponse | undefined
+    data: FlexibleAggregationResponse | undefined
     currency: CurrencyType
     isLoading?: boolean
     isFetching?: boolean
@@ -99,7 +99,7 @@ export const EntityDonutChart = ({
 }: EntityDonutChartProps) => {
     // Transform data and apply currency selection
     const transformResult: TransformResult<PieChartDatum> = useMemo(() => {
-        const result = transformEntityForPieChart(data)
+        const result = transformFlexibleForPieChart(data)
         if (currency === 'EUR' && data?.groups) {
             // Use value_eur for chart values when EUR is selected
             return {
@@ -126,9 +126,9 @@ export const EntityDonutChart = ({
             <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <div>
                     <CardTitle className="text-base font-medium">
-                        Distribution by Entity ({currency})
+                        Distribution by Holding Company ({currency})
                     </CardTitle>
-                    <CardDescription>Portfolio allocation across legal entities</CardDescription>
+                    <CardDescription>Portfolio allocation across holding companies</CardDescription>
                 </div>
                 <Building2 className="text-muted-foreground h-5 w-5" />
             </CardHeader>
@@ -175,7 +175,7 @@ export const EntityDonutChart = ({
                         </div>
                         {hasExcludedNulls && (
                             <p className="text-muted-foreground mt-2 text-center text-xs">
-                                * {excludedCount} {excludedCount === 1 ? 'entity' : 'entities'}{' '}
+                                * {excludedCount} {excludedCount === 1 ? 'company' : 'companies'}{' '}
                                 excluded due to missing values
                             </p>
                         )}

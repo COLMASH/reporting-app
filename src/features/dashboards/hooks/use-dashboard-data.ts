@@ -9,7 +9,6 @@ import { useMemo, useCallback, useRef, useState, useEffect } from 'react'
 import {
     useGetFiltersQuery,
     useGetSummaryQuery,
-    useGetByEntityQuery,
     useGetByAssetTypeQuery,
     useGetFlexibleAggregationQuery,
     useGetAssetsQuery,
@@ -21,7 +20,6 @@ import { usePortfolioFilters } from './use-portfolio-filters'
 import type {
     FilterOptionsResponse,
     PortfolioSummaryResponse,
-    EntityAggregationResponse,
     AssetTypeAggregationResponse,
     FlexibleAggregationResponse,
     AssetListResponse,
@@ -35,16 +33,15 @@ export interface DashboardDataState {
     // Raw API data
     filters: FilterOptionsResponse | undefined
     summary: PortfolioSummaryResponse | undefined
-    byEntity: EntityAggregationResponse | undefined
+    byHoldingCompany: FlexibleAggregationResponse | undefined
     byAssetType: AssetTypeAggregationResponse | undefined
+    byManagingEntity: FlexibleAggregationResponse | undefined
     byAssetGroup: FlexibleAggregationResponse | undefined
-    byAssetGroupStrategy: FlexibleAggregationResponse | undefined
     assets: AssetListResponse | undefined
     historicalNav: HistoricalNavResponse | undefined
 
     // EUR aggregations (computed from all assets)
     eurSummary: EurSummary | undefined
-    eurByEntity: EntityAggregationResponse | undefined
     eurByAssetType: AssetTypeAggregationResponse | undefined
 
     // Tab availability (excludes asset_type filter to show all available tabs)
@@ -118,31 +115,33 @@ export const useDashboardData = (): DashboardDataState => {
 
     const summaryQuery = useGetSummaryQuery(queryParams as AggregationParams)
 
-    const byEntityQuery = useGetByEntityQuery(queryParams as AggregationParams)
+    const byHoldingCompanyQuery = useGetFlexibleAggregationQuery({
+        ...queryParams,
+        group_by: 'holding_company'
+    })
 
     const byAssetTypeQuery = useGetByAssetTypeQuery(queryParams as AggregationParams)
 
-    // Tab availability: exclude asset_type to show all available tabs for selected entity
+    // Tab availability: exclude asset_type to show all available tabs for selected holding company
     const tabAvailabilityParams = useMemo((): AggregationParams => {
         const params: AggregationParams = {}
-        if (queryParams.entity) params.entity = queryParams.entity
+        if (queryParams.holding_company) params.holding_company = queryParams.holding_company
+        if (queryParams.managing_entity) params.managing_entity = queryParams.managing_entity
         if (queryParams.asset_group) params.asset_group = queryParams.asset_group
-        if (queryParams.asset_group_strategy)
-            params.asset_group_strategy = queryParams.asset_group_strategy
         if (queryParams.report_date) params.report_date = queryParams.report_date
         return params
     }, [queryParams])
 
     const byAssetTypeForTabsQuery = useGetByAssetTypeQuery(tabAvailabilityParams)
 
+    const byManagingEntityQuery = useGetFlexibleAggregationQuery({
+        ...queryParams,
+        group_by: 'managing_entity'
+    })
+
     const byAssetGroupQuery = useGetFlexibleAggregationQuery({
         ...queryParams,
         group_by: 'asset_group'
-    })
-
-    const byAssetGroupStrategyQuery = useGetFlexibleAggregationQuery({
-        ...queryParams,
-        group_by: 'asset_group_strategy'
     })
 
     const assetsQuery = useGetAssetsQuery({
@@ -154,8 +153,9 @@ export const useDashboardData = (): DashboardDataState => {
     })
 
     const historicalNavQuery = useGetHistoricalNavQuery({
-        ...queryParams,
-        group_by_entity: true
+        holding_company: queryParams.holding_company,
+        asset_type: queryParams.asset_type,
+        group_by: 'holding_company'
     })
 
     // EUR aggregations - backend now provides EUR fields on all aggregation endpoints
@@ -174,12 +174,6 @@ export const useDashboardData = (): DashboardDataState => {
         }
     }, [isEurSelected, summaryQuery.data])
 
-    // EUR by entity - backend provides EUR fields directly
-    const eurByEntity = useMemo((): EntityAggregationResponse | undefined => {
-        if (!isEurSelected || !byEntityQuery.data) return undefined
-        return byEntityQuery.data
-    }, [isEurSelected, byEntityQuery.data])
-
     // EUR by asset type - backend provides EUR fields directly
     const eurByAssetType = useMemo((): AssetTypeAggregationResponse | undefined => {
         if (!isEurSelected || !byAssetTypeQuery.data) return undefined
@@ -197,18 +191,18 @@ export const useDashboardData = (): DashboardDataState => {
         () =>
             filtersQuery.isLoading ||
             summaryQuery.isLoading ||
-            byEntityQuery.isLoading ||
+            byHoldingCompanyQuery.isLoading ||
             byAssetTypeQuery.isLoading ||
+            byManagingEntityQuery.isLoading ||
             byAssetGroupQuery.isLoading ||
-            byAssetGroupStrategyQuery.isLoading ||
             assetsQuery.isLoading,
         [
             filtersQuery.isLoading,
             summaryQuery.isLoading,
-            byEntityQuery.isLoading,
+            byHoldingCompanyQuery.isLoading,
             byAssetTypeQuery.isLoading,
+            byManagingEntityQuery.isLoading,
             byAssetGroupQuery.isLoading,
-            byAssetGroupStrategyQuery.isLoading,
             assetsQuery.isLoading
         ]
     )
@@ -218,20 +212,20 @@ export const useDashboardData = (): DashboardDataState => {
             isTransitioning ||
             filtersQuery.isFetching ||
             summaryQuery.isFetching ||
-            byEntityQuery.isFetching ||
+            byHoldingCompanyQuery.isFetching ||
             byAssetTypeQuery.isFetching ||
+            byManagingEntityQuery.isFetching ||
             byAssetGroupQuery.isFetching ||
-            byAssetGroupStrategyQuery.isFetching ||
             assetsQuery.isFetching ||
             historicalNavQuery.isFetching,
         [
             isTransitioning,
             filtersQuery.isFetching,
             summaryQuery.isFetching,
-            byEntityQuery.isFetching,
+            byHoldingCompanyQuery.isFetching,
             byAssetTypeQuery.isFetching,
+            byManagingEntityQuery.isFetching,
             byAssetGroupQuery.isFetching,
-            byAssetGroupStrategyQuery.isFetching,
             assetsQuery.isFetching,
             historicalNavQuery.isFetching
         ]
@@ -245,19 +239,19 @@ export const useDashboardData = (): DashboardDataState => {
         () =>
             filtersQuery.error ||
             summaryQuery.error ||
-            byEntityQuery.error ||
+            byHoldingCompanyQuery.error ||
             byAssetTypeQuery.error ||
+            byManagingEntityQuery.error ||
             byAssetGroupQuery.error ||
-            byAssetGroupStrategyQuery.error ||
             assetsQuery.error ||
             historicalNavQuery.error,
         [
             filtersQuery.error,
             summaryQuery.error,
-            byEntityQuery.error,
+            byHoldingCompanyQuery.error,
             byAssetTypeQuery.error,
+            byManagingEntityQuery.error,
             byAssetGroupQuery.error,
-            byAssetGroupStrategyQuery.error,
             assetsQuery.error,
             historicalNavQuery.error
         ]
@@ -274,16 +268,15 @@ export const useDashboardData = (): DashboardDataState => {
         // Data
         filters: filtersQuery.data,
         summary: summaryQuery.data,
-        byEntity: byEntityQuery.data,
+        byHoldingCompany: byHoldingCompanyQuery.data,
         byAssetType: byAssetTypeQuery.data,
+        byManagingEntity: byManagingEntityQuery.data,
         byAssetGroup: byAssetGroupQuery.data,
-        byAssetGroupStrategy: byAssetGroupStrategyQuery.data,
         assets: assetsQuery.data,
         historicalNav: historicalNavQuery.data,
 
         // EUR aggregations
         eurSummary,
-        eurByEntity,
         eurByAssetType,
 
         // Tab availability
@@ -294,7 +287,7 @@ export const useDashboardData = (): DashboardDataState => {
         isFetching,
         isFiltersLoading: filtersQuery.isLoading,
         isSummaryLoading: summaryQuery.isLoading,
-        isChartsLoading: byEntityQuery.isLoading || byAssetTypeQuery.isLoading,
+        isChartsLoading: byHoldingCompanyQuery.isLoading || byAssetTypeQuery.isLoading,
         isAssetsLoading: assetsQuery.isLoading,
         isEurLoading,
 

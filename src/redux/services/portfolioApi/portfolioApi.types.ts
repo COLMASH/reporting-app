@@ -9,9 +9,10 @@
 
 export type GroupByField =
     | 'ownership_holding_entity'
+    | 'holding_company'
+    | 'managing_entity'
     | 'asset_type'
     | 'asset_group'
-    | 'asset_group_strategy'
     | 'geographic_focus'
     | 'denomination_currency'
     | 'asset_status'
@@ -24,10 +25,10 @@ export type SortOrder = 'asc' | 'desc'
 // ============================================================
 
 export interface PortfolioAssetsParams {
-    entity?: string
+    holding_company?: string
     asset_type?: string
+    managing_entity?: string
     asset_group?: string
-    asset_group_strategy?: string
     report_date?: string
     search?: string
     page?: number
@@ -38,10 +39,10 @@ export interface PortfolioAssetsParams {
 }
 
 export interface AggregationParams {
-    entity?: string
+    holding_company?: string
     asset_type?: string
+    managing_entity?: string
     asset_group?: string
-    asset_group_strategy?: string
     report_date?: string
 }
 
@@ -50,11 +51,11 @@ export interface FlexibleAggregationParams extends AggregationParams {
 }
 
 export interface HistoricalNavParams {
-    entity?: string
+    holding_company?: string
     asset_type?: string
     start_date?: string
     end_date?: string
-    group_by_entity?: boolean
+    group_by?: 'holding_company' | 'ownership_holding_entity'
 }
 
 // ============================================================
@@ -82,15 +83,26 @@ export interface StructuredNoteResponse {
 }
 
 export interface RealEstateResponse {
-    cost_original_asset: number | null
-    estimated_capex_budget: number | null
-    pivert_development_fees: number | null
-    estimated_total_cost: number | null
-    capex_invested: number | null
-    total_investment_to_date: number | null
-    equity_investment_to_date: number | null
-    pending_equity_investment: number | null
-    estimated_capital_gain: number | null
+    // Status
+    real_estate_status: string | null
+
+    // EUR columns (renamed with _eur suffix)
+    cost_original_asset_eur: number | null
+    estimated_capex_budget_eur: number | null
+    pivert_development_fees_eur: number | null
+    estimated_total_cost_eur: number | null
+    capex_invested_eur: number | null
+    total_investment_to_date_eur: number | null
+    equity_investment_to_date_eur: number | null
+    pending_equity_investment_eur: number | null
+    estimated_capital_gain_eur: number | null
+
+    // USD columns
+    estimated_total_cost_usd: number | null
+    total_investment_to_date_usd: number | null
+    equity_investment_to_date_usd: number | null
+    pending_equity_investment_usd: number | null
+    estimated_capital_gain_usd: number | null
 }
 
 // ============================================================
@@ -99,6 +111,7 @@ export interface RealEstateResponse {
 
 export interface FilterOptionsResponse {
     entities: string[]
+    holding_companies: string[]
     asset_types: string[]
     report_dates: string[]
 }
@@ -109,9 +122,10 @@ export interface AssetResponse {
     display_id: number | null
 
     // Classification
+    holding_company: string | null
     ownership_holding_entity: string
-    asset_group: string
-    asset_group_strategy: string | null
+    managing_entity: string
+    asset_group: string | null
     asset_type: string
     asset_subtype: string | null
     asset_subtype_2: string | null
@@ -154,6 +168,7 @@ export interface AssetResponse {
     unfunded_commitment_usd: number | null
     estimated_asset_value_usd: number | null
     total_asset_return_usd: number | null
+    unrealized_gain_usd: number | null
 
     // Financial - EUR
     total_investment_commitment_eur: number | null
@@ -161,6 +176,7 @@ export interface AssetResponse {
     unfunded_commitment_eur: number | null
     estimated_asset_value_eur: number | null
     total_asset_return_eur: number | null
+    unrealized_gain_eur: number | null
 
     // Timestamps
     created_at: string

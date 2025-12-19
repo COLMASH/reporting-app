@@ -22,10 +22,10 @@ export type AssetTabType =
 export type CurrencyType = 'USD' | 'EUR'
 
 export interface PortfolioFilters {
-    entity: string | null
+    holdingCompany: string | null
     assetType: string | null
+    managingEntity: string | null
     assetGroup: string | null
-    assetGroupStrategy: string | null
     reportDate: string | null
     tab: AssetTabType
     currency: CurrencyType
@@ -33,10 +33,10 @@ export interface PortfolioFilters {
 
 export interface PortfolioFiltersHook {
     filters: PortfolioFilters
-    setEntity: (entity: string | null) => void
+    setHoldingCompany: (holdingCompany: string | null) => void
     setAssetType: (assetType: string | null) => void
+    setManagingEntity: (managingEntity: string | null) => void
     setAssetGroup: (assetGroup: string | null) => void
-    setAssetGroupStrategy: (assetGroupStrategy: string | null) => void
     setReportDate: (reportDate: string | null) => void
     setTab: (tab: AssetTabType) => void
     setCurrency: (currency: CurrencyType) => void
@@ -78,10 +78,10 @@ export const usePortfolioFilters = (): PortfolioFiltersHook => {
         const tabParam = searchParams.get('tab')
         const currencyParam = searchParams.get('currency')
         return {
-            entity: searchParams.get('entity'),
+            holdingCompany: searchParams.get('holding_company'),
             assetType: searchParams.get('asset_type'),
+            managingEntity: searchParams.get('managing_entity'),
             assetGroup: searchParams.get('asset_group'),
-            assetGroupStrategy: searchParams.get('asset_group_strategy'),
             reportDate: searchParams.get('report_date'),
             tab: isValidTab(tabParam) ? tabParam : 'overview',
             currency: isValidCurrency(currencyParam) ? currencyParam : 'USD'
@@ -95,10 +95,10 @@ export const usePortfolioFilters = (): PortfolioFiltersHook => {
 
             // Map filter keys to URL param names
             const paramMapping: Record<string, string> = {
-                entity: 'entity',
+                holdingCompany: 'holding_company',
                 assetType: 'asset_type',
+                managingEntity: 'managing_entity',
                 assetGroup: 'asset_group',
-                assetGroupStrategy: 'asset_group_strategy',
                 reportDate: 'report_date',
                 tab: 'tab',
                 currency: 'currency'
@@ -123,20 +123,23 @@ export const usePortfolioFilters = (): PortfolioFiltersHook => {
     )
 
     // Individual setters
-    const setEntity = useCallback((entity: string | null) => updateUrl({ entity }), [updateUrl])
+    const setHoldingCompany = useCallback(
+        (holdingCompany: string | null) => updateUrl({ holdingCompany }),
+        [updateUrl]
+    )
 
     const setAssetType = useCallback(
         (assetType: string | null) => updateUrl({ assetType }),
         [updateUrl]
     )
 
-    const setAssetGroup = useCallback(
-        (assetGroup: string | null) => updateUrl({ assetGroup }),
+    const setManagingEntity = useCallback(
+        (managingEntity: string | null) => updateUrl({ managingEntity }),
         [updateUrl]
     )
 
-    const setAssetGroupStrategy = useCallback(
-        (assetGroupStrategy: string | null) => updateUrl({ assetGroupStrategy }),
+    const setAssetGroup = useCallback(
+        (assetGroup: string | null) => updateUrl({ assetGroup }),
         [updateUrl]
     )
 
@@ -166,28 +169,28 @@ export const usePortfolioFilters = (): PortfolioFiltersHook => {
     // Build params object for RTK Query (convert to snake_case)
     const queryParams = useMemo(() => {
         const params: Record<string, string | undefined> = {}
-        if (filters.entity) params.entity = filters.entity
+        if (filters.holdingCompany) params.holding_company = filters.holdingCompany
         if (filters.assetType) params.asset_type = filters.assetType
+        if (filters.managingEntity) params.managing_entity = filters.managingEntity
         if (filters.assetGroup) params.asset_group = filters.assetGroup
-        if (filters.assetGroupStrategy) params.asset_group_strategy = filters.assetGroupStrategy
         if (filters.reportDate) params.report_date = filters.reportDate
         return params
     }, [filters])
 
     const hasActiveFilters = Boolean(
-        filters.entity ||
+        filters.holdingCompany ||
             filters.assetType ||
+            filters.managingEntity ||
             filters.assetGroup ||
-            filters.assetGroupStrategy ||
             filters.reportDate
     )
 
     return {
         filters,
-        setEntity,
+        setHoldingCompany,
         setAssetType,
+        setManagingEntity,
         setAssetGroup,
-        setAssetGroupStrategy,
         setReportDate,
         setTab,
         setCurrency,

@@ -12,7 +12,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import type { PortfolioFilters } from '../../hooks/use-portfolio-filters'
 
-export type FilterKey = 'entity' | 'assetType' | 'assetGroup' | 'assetGroupStrategy'
+export type FilterKey = 'holdingCompany' | 'assetType' | 'managingEntity' | 'assetGroup'
 
 export interface ActiveFiltersProps {
     filters: PortfolioFilters
@@ -26,10 +26,10 @@ interface FilterConfig {
 }
 
 const FILTER_CONFIG: FilterConfig[] = [
-    { key: 'entity', label: 'Entity' },
+    { key: 'holdingCompany', label: 'Holding Company' },
     { key: 'assetType', label: 'Asset Type' },
-    { key: 'assetGroup', label: 'Asset Group' },
-    { key: 'assetGroupStrategy', label: 'Strategy' }
+    { key: 'managingEntity', label: 'Managing Entity' },
+    { key: 'assetGroup', label: 'Asset Group' }
 ]
 
 interface FilterChipProps {

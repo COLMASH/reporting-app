@@ -1,7 +1,7 @@
 'use client'
 
 /**
- * Stacked bar chart showing historical NAV over time by entity.
+ * Stacked bar chart showing historical NAV over time by holding company.
  * Uses API data transformer for time series pivoting.
  */
 
@@ -91,7 +91,7 @@ interface SegmentLabelProps {
     value?: string | number
     index?: number
     chartData: Array<Record<string, unknown>>
-    entity: string
+    company: string
     currency: CurrencyType
 }
 
@@ -103,7 +103,7 @@ const SegmentLabel = ({
     value,
     index,
     chartData,
-    entity,
+    company,
     currency
 }: SegmentLabelProps) => {
     const numX = typeof x === 'number' ? x : 0
@@ -129,7 +129,7 @@ const SegmentLabel = ({
             fontSize={10}
             textAnchor="start"
         >
-            {`${entity} - ${formatCompactCurrency(numValue, currency)} (${percentage.toFixed(1)}%)`}
+            {`${company} - ${formatCompactCurrency(numValue, currency)} (${percentage.toFixed(1)}%)`}
         </text>
     )
 }
@@ -140,19 +140,19 @@ export const HistoricalNavChart = ({
     isLoading = false,
     isFetching = false
 }: HistoricalNavChartProps) => {
-    const entities = useMemo(() => getHistoricalNavEntities(data), [data])
+    const companies = useMemo(() => getHistoricalNavEntities(data), [data])
 
     // Transform data and add total field for labels
     const chartData = useMemo(() => {
         const transformed = transformHistoricalForChart(data, currency)
         return transformed.map(item => {
-            const total = entities.reduce((sum, entity) => {
-                const val = item[entity]
+            const total = companies.reduce((sum, company) => {
+                const val = item[company]
                 return sum + (typeof val === 'number' ? val : 0)
             }, 0)
             return { ...item, _total: total }
         })
-    }, [data, entities, currency])
+    }, [data, companies, currency])
 
     const isLoadingState = isLoading || isFetching
 
@@ -167,7 +167,7 @@ export const HistoricalNavChart = ({
                     <CardTitle className="text-base font-medium">
                         Historical NAV ({currency})
                     </CardTitle>
-                    <CardDescription>Net asset value over time by entity</CardDescription>
+                    <CardDescription>Net asset value over time by holding company</CardDescription>
                 </div>
                 <TrendingUp className="text-muted-foreground h-5 w-5" />
             </CardHeader>
@@ -209,17 +209,17 @@ export const HistoricalNavChart = ({
                                     content={<CustomTooltip currency={currency} />}
                                     cursor={false}
                                 />
-                                {entities.map((entity, index) => (
+                                {companies.map((company, index) => (
                                     <Bar
-                                        key={entity}
-                                        dataKey={entity}
+                                        key={company}
+                                        dataKey={company}
                                         stackId="1"
                                         fill={getChartColor(index)}
                                         maxBarSize={60}
                                     >
-                                        {/* Segment label - entity name + value + percentage */}
+                                        {/* Segment label - company name + value + percentage */}
                                         <LabelList
-                                            dataKey={entity}
+                                            dataKey={company}
                                             content={props => {
                                                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                                                 const p = props as any
@@ -232,14 +232,14 @@ export const HistoricalNavChart = ({
                                                         value={p.value}
                                                         index={p.index}
                                                         chartData={chartData}
-                                                        entity={entity}
+                                                        company={company}
                                                         currency={currency}
                                                     />
                                                 )
                                             }}
                                         />
                                         {/* Total label only on topmost bar */}
-                                        {index === entities.length - 1 && (
+                                        {index === companies.length - 1 && (
                                             <LabelList
                                                 dataKey="_total"
                                                 position="top"

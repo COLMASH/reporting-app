@@ -1,8 +1,8 @@
 'use client'
 
 /**
- * Entity filter sidebar for portfolio dashboard.
- * Shows all entities with a "Consolidated View" option at the top.
+ * Holding company filter sidebar for portfolio dashboard.
+ * Shows all holding companies with a "Consolidated View" option at the top.
  * Responsive: Fixed sidebar on desktop, Sheet drawer on mobile.
  */
 
@@ -14,16 +14,16 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/co
 import { cn } from '@/lib/utils'
 
 export interface EntitySidebarProps {
-    entities: string[]
-    selectedEntity: string | null
-    onEntityChange: (entity: string | null) => void
+    holdingCompanies: string[]
+    selectedHoldingCompany: string | null
+    onHoldingCompanyChange: (holdingCompany: string | null) => void
     isLoading?: boolean
 }
 
 interface SidebarContentProps {
-    entities: string[]
-    selectedEntity: string | null
-    onEntityChange: (entity: string | null) => void
+    holdingCompanies: string[]
+    selectedHoldingCompany: string | null
+    onHoldingCompanyChange: (holdingCompany: string | null) => void
     onSelect?: () => void
 }
 
@@ -42,15 +42,15 @@ const SidebarSkeleton = () => (
 )
 
 const SidebarContent = ({
-    entities,
-    selectedEntity,
-    onEntityChange,
+    holdingCompanies,
+    selectedHoldingCompany,
+    onHoldingCompanyChange,
     onSelect
 }: SidebarContentProps) => {
-    const isConsolidated = selectedEntity === null
+    const isConsolidated = selectedHoldingCompany === null
 
-    const handleSelect = (entity: string | null) => {
-        onEntityChange(entity)
+    const handleSelect = (holdingCompany: string | null) => {
+        onHoldingCompanyChange(holdingCompany)
         onSelect?.()
     }
 
@@ -58,9 +58,11 @@ const SidebarContent = ({
         <>
             <div className="border-b p-4">
                 <h2 className="text-muted-foreground text-sm font-semibold tracking-wide uppercase">
-                    Entity Filter
+                    Company Filter
                 </h2>
-                <p className="text-muted-foreground mt-1 text-xs">{entities.length} entities</p>
+                <p className="text-muted-foreground mt-1 text-xs">
+                    {holdingCompanies.length} companies
+                </p>
             </div>
 
             <nav className="p-2">
@@ -82,14 +84,14 @@ const SidebarContent = ({
 
                 <div className="my-2 border-t" />
 
-                {/* Individual Entities */}
+                {/* Individual Companies */}
                 <div className="space-y-1">
-                    {entities.map(entity => {
-                        const isSelected = selectedEntity === entity
+                    {holdingCompanies.map(company => {
+                        const isSelected = selectedHoldingCompany === company
                         return (
                             <button
-                                key={entity}
-                                onClick={() => handleSelect(entity)}
+                                key={company}
+                                onClick={() => handleSelect(company)}
                                 className={cn(
                                     'flex w-full cursor-pointer items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors',
                                     {
@@ -99,7 +101,7 @@ const SidebarContent = ({
                                     }
                                 )}
                             >
-                                <span className="flex-1 truncate text-left">{entity}</span>
+                                <span className="flex-1 truncate text-left">{company}</span>
                                 {isSelected && <CheckCircle2 className="h-4 w-4 shrink-0" />}
                             </button>
                         )
@@ -111,9 +113,9 @@ const SidebarContent = ({
 }
 
 export const EntitySidebar = ({
-    entities,
-    selectedEntity,
-    onEntityChange,
+    holdingCompanies,
+    selectedHoldingCompany,
+    onHoldingCompanyChange,
     isLoading = false
 }: EntitySidebarProps) => {
     // Desktop sidebar - hidden on mobile
@@ -123,9 +125,9 @@ export const EntitySidebar = ({
                 <SidebarSkeleton />
             ) : (
                 <SidebarContent
-                    entities={entities}
-                    selectedEntity={selectedEntity}
-                    onEntityChange={onEntityChange}
+                    holdingCompanies={holdingCompanies}
+                    selectedHoldingCompany={selectedHoldingCompany}
+                    onHoldingCompanyChange={onHoldingCompanyChange}
                 />
             )}
         </aside>
@@ -134,9 +136,9 @@ export const EntitySidebar = ({
 
 // Mobile sidebar trigger and drawer
 export const MobileEntitySidebar = ({
-    entities,
-    selectedEntity,
-    onEntityChange,
+    holdingCompanies,
+    selectedHoldingCompany,
+    onHoldingCompanyChange,
     isLoading = false
 }: EntitySidebarProps) => {
     const [isOpen, setIsOpen] = useState(false)
@@ -146,20 +148,20 @@ export const MobileEntitySidebar = ({
             <SheetTrigger asChild>
                 <Button variant="outline" size="icon" className="lg:hidden">
                     <Menu className="h-5 w-5" />
-                    <span className="sr-only">Open entity filter</span>
+                    <span className="sr-only">Open company filter</span>
                 </Button>
             </SheetTrigger>
             <SheetContent side="left" className="w-60 p-0">
                 <SheetHeader className="sr-only">
-                    <SheetTitle>Entity Filter</SheetTitle>
+                    <SheetTitle>Company Filter</SheetTitle>
                 </SheetHeader>
                 {isLoading ? (
                     <SidebarSkeleton />
                 ) : (
                     <SidebarContent
-                        entities={entities}
-                        selectedEntity={selectedEntity}
-                        onEntityChange={onEntityChange}
+                        holdingCompanies={holdingCompanies}
+                        selectedHoldingCompany={selectedHoldingCompany}
+                        onHoldingCompanyChange={onHoldingCompanyChange}
                         onSelect={() => setIsOpen(false)}
                     />
                 )}

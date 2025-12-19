@@ -106,11 +106,15 @@ export const AssetDetailModal = ({
                         <div className="mt-4 space-y-6">
                             {/* Classification */}
                             <DetailSection title="Classification">
-                                <DetailRow label="Asset Group" value={asset.asset_group || 'N/A'} />
                                 <DetailRow
-                                    label="Strategy"
-                                    value={asset.asset_group_strategy || 'N/A'}
+                                    label="Holding Company"
+                                    value={asset.holding_company || 'N/A'}
                                 />
+                                <DetailRow
+                                    label="Managing Entity"
+                                    value={asset.managing_entity || 'N/A'}
+                                />
+                                <DetailRow label="Asset Group" value={asset.asset_group || 'N/A'} />
                                 <DetailRow label="Subtype" value={asset.asset_subtype || 'N/A'} />
                                 <DetailRow label="Status" value={asset.asset_status || 'N/A'} />
                                 <DetailRow
@@ -276,42 +280,56 @@ export const AssetDetailModal = ({
                             {asset.real_estate && (
                                 <>
                                     <Separator />
-                                    <DetailSection title="Real Estate Details">
+                                    <DetailSection title="Real Estate Details (EUR)">
+                                        {asset.real_estate.real_estate_status && (
+                                            <DetailRow
+                                                label="Status"
+                                                value={asset.real_estate.real_estate_status}
+                                            />
+                                        )}
                                         <DetailRow
                                             label="Original Cost"
                                             value={formatCurrency(
-                                                asset.real_estate.cost_original_asset
+                                                asset.real_estate.cost_original_asset_eur,
+                                                'EUR'
                                             )}
                                         />
                                         <DetailRow
                                             label="Capex Budget"
                                             value={formatCurrency(
-                                                asset.real_estate.estimated_capex_budget
+                                                asset.real_estate.estimated_capex_budget_eur,
+                                                'EUR'
                                             )}
                                         />
                                         <DetailRow
                                             label="Total Cost Estimate"
                                             value={formatCurrency(
-                                                asset.real_estate.estimated_total_cost
+                                                asset.real_estate.estimated_total_cost_eur,
+                                                'EUR'
                                             )}
                                         />
                                         <DetailRow
                                             label="Capex Invested"
-                                            value={formatCurrency(asset.real_estate.capex_invested)}
+                                            value={formatCurrency(
+                                                asset.real_estate.capex_invested_eur,
+                                                'EUR'
+                                            )}
                                         />
                                         <DetailRow
                                             label="Equity Investment"
                                             value={formatCurrency(
-                                                asset.real_estate.equity_investment_to_date
+                                                asset.real_estate.equity_investment_to_date_eur,
+                                                'EUR'
                                             )}
                                         />
                                         <DetailRow
                                             label="Estimated Capital Gain"
                                             value={formatCurrency(
-                                                asset.real_estate.estimated_capital_gain
+                                                asset.real_estate.estimated_capital_gain_eur,
+                                                'EUR'
                                             )}
                                             className={getPerformanceColorClass(
-                                                asset.real_estate.estimated_capital_gain
+                                                asset.real_estate.estimated_capital_gain_eur
                                             )}
                                         />
                                     </DetailSection>

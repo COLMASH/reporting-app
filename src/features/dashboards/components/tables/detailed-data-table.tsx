@@ -232,14 +232,14 @@ export const DetailedDataTable = ({
                                             onSort={handleSort}
                                         />
                                         <SortableColumn
-                                            column="asset_group"
-                                            label="Group"
+                                            column="managing_entity"
+                                            label="Managing Entity"
                                             currentSort={currentSort}
                                             onSort={handleSort}
                                         />
                                         <SortableColumn
-                                            column="asset_group_strategy"
-                                            label="Strategy"
+                                            column="asset_group"
+                                            label="Asset Group"
                                             currentSort={currentSort}
                                             onSort={handleSort}
                                         />
@@ -301,10 +301,10 @@ export const DetailedDataTable = ({
                                                     {asset.ownership_holding_entity}
                                                 </TableCell>
                                                 <TableCell className="max-w-[120px] truncate">
-                                                    {asset.asset_group}
+                                                    {asset.managing_entity}
                                                 </TableCell>
                                                 <TableCell className="max-w-[120px] truncate">
-                                                    {asset.asset_group_strategy || '—'}
+                                                    {asset.asset_group || '—'}
                                                 </TableCell>
                                                 <TableCell className="text-right">
                                                     {formatCompactCurrency(nav, currency)}
