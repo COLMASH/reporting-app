@@ -188,11 +188,11 @@ export const calculateReturnPercentage = (
 
 /**
  * Get performance color class based on value.
- * Returns green for positive, red for negative, muted for null/zero.
+ * Returns green for positive, red for negative, empty for null/zero (uses default color).
  */
 export const getPerformanceColorClass = (value: number | null | undefined): string => {
-    if (value === null || value === undefined) return 'text-muted-foreground'
+    if (value === null || value === undefined) return ''
     if (value > 0) return 'text-success'
     if (value < 0) return 'text-destructive'
-    return 'text-muted-foreground'
+    return ''
 }

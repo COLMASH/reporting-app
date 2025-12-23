@@ -12,6 +12,7 @@ export type GroupByField =
     | 'holding_company'
     | 'managing_entity'
     | 'asset_type'
+    | 'asset_subtype'
     | 'asset_group'
     | 'geographic_focus'
     | 'denomination_currency'
@@ -27,6 +28,7 @@ export type SortOrder = 'asc' | 'desc'
 export interface PortfolioAssetsParams {
     holding_company?: string
     asset_type?: string
+    asset_subtype?: string
     managing_entity?: string
     asset_group?: string
     geographic_focus?: string
@@ -42,6 +44,7 @@ export interface PortfolioAssetsParams {
 export interface AggregationParams {
     holding_company?: string
     asset_type?: string
+    asset_subtype?: string
     managing_entity?: string
     asset_group?: string
     geographic_focus?: string
@@ -55,6 +58,7 @@ export interface FlexibleAggregationParams extends AggregationParams {
 export interface HistoricalNavParams {
     holding_company?: string
     asset_type?: string
+    asset_subtype?: string
     geographic_focus?: string
     start_date?: string
     end_date?: string

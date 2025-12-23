@@ -57,6 +57,8 @@ export interface DetailedDataTableProps {
     isLoading?: boolean
     isFetching?: boolean
     currency?: CurrencyType
+    assetType?: string | null
+    holdingCompany?: string | null
     onRowClick?: (asset: AssetResponse) => void
     onPageChange?: (page: number) => void
     onPageSizeChange?: (pageSize: number) => void
@@ -122,6 +124,8 @@ export const DetailedDataTable = ({
     isLoading = false,
     isFetching = false,
     currency = 'USD',
+    assetType,
+    holdingCompany,
     onRowClick,
     onPageChange,
     onPageSizeChange,
@@ -135,6 +139,10 @@ export const DetailedDataTable = ({
     // Column field names based on currency
     const navColumn = isEur ? 'estimated_asset_value_eur' : 'estimated_asset_value_usd'
     const costColumn = isEur ? 'paid_in_capital_eur' : 'paid_in_capital_usd'
+    const unfundedColumn = isEur ? 'unfunded_commitment_eur' : 'unfunded_commitment_usd'
+
+    // Show unfunded column only for Alternatives + ILV
+    const showUnfundedColumn = assetType === 'Alternative assets' && holdingCompany === 'ILV'
     const [localSearch, setLocalSearch] = useState(searchValue)
     const debounceTimerRef = useRef<NodeJS.Timeout | null>(null)
 
@@ -285,6 +293,15 @@ export const DetailedDataTable = ({
                                             onSort={handleSort}
                                             align="right"
                                         />
+                                        {showUnfundedColumn && (
+                                            <SortableColumn
+                                                column={unfundedColumn}
+                                                label={`Unfunded (${currency})`}
+                                                currentSort={currentSort}
+                                                onSort={handleSort}
+                                                align="right"
+                                            />
+                                        )}
                                         <TableHead className="text-right">Report Date</TableHead>
                                     </TableRow>
                                 </TableHeader>
@@ -357,6 +374,16 @@ export const DetailedDataTable = ({
                                                 >
                                                     {formatPercentageWithSign(returnPct)}
                                                 </TableCell>
+                                                {showUnfundedColumn && (
+                                                    <TableCell className="text-right">
+                                                        {formatCompactCurrency(
+                                                            isEur
+                                                                ? asset.unfunded_commitment_eur
+                                                                : asset.unfunded_commitment_usd,
+                                                            currency
+                                                        )}
+                                                    </TableCell>
+                                                )}
                                                 <TableCell className="text-right">
                                                     {formatDate(asset.report_date)}
                                                 </TableCell>
@@ -418,6 +445,16 @@ export const DetailedDataTable = ({
                                                     summary.weighted_avg_return
                                                 )}
                                             </TableCell>
+                                            {showUnfundedColumn && (
+                                                <TableCell className="text-right">
+                                                    {formatCompactCurrency(
+                                                        isEur
+                                                            ? summary.total_unfunded_commitment_eur
+                                                            : summary.total_unfunded_commitment_usd,
+                                                        currency
+                                                    )}
+                                                </TableCell>
+                                            )}
                                             <TableCell>—</TableCell>
                                         </TableRow>
                                     </TableFooter>

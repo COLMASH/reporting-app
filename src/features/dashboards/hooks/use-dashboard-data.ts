@@ -35,6 +35,7 @@ export interface DashboardDataState {
     summary: PortfolioSummaryResponse | undefined
     byHoldingCompany: FlexibleAggregationResponse | undefined
     byAssetType: AssetTypeAggregationResponse | undefined
+    byAssetSubtype: FlexibleAggregationResponse | undefined
     byManagingEntity: FlexibleAggregationResponse | undefined
     byAssetGroup: FlexibleAggregationResponse | undefined
     byGeographicFocus: FlexibleAggregationResponse | undefined
@@ -157,6 +158,11 @@ export const useDashboardData = (): DashboardDataState => {
     const byGeographicFocusQuery = useGetFlexibleAggregationQuery({
         ...queryParams,
         group_by: 'geographic_focus'
+    })
+
+    const byAssetSubtypeQuery = useGetFlexibleAggregationQuery({
+        ...queryParams,
+        group_by: 'asset_subtype'
     })
 
     const assetsQuery = useGetAssetsQuery({
@@ -286,6 +292,7 @@ export const useDashboardData = (): DashboardDataState => {
         summary: summaryQuery.data,
         byHoldingCompany: byHoldingCompanyQuery.data,
         byAssetType: byAssetTypeQuery.data,
+        byAssetSubtype: byAssetSubtypeQuery.data,
         byManagingEntity: byManagingEntityQuery.data,
         byAssetGroup: byAssetGroupQuery.data,
         byGeographicFocus: byGeographicFocusQuery.data,

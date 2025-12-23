@@ -24,6 +24,7 @@ export type CurrencyType = 'USD' | 'EUR'
 export interface PortfolioFilters {
     holdingCompany: string | null
     assetType: string | null
+    assetSubtype: string | null
     managingEntity: string | null
     assetGroup: string | null
     geographicFocus: string | null
@@ -36,6 +37,7 @@ export interface PortfolioFiltersHook {
     filters: PortfolioFilters
     setHoldingCompany: (holdingCompany: string | null) => void
     setAssetType: (assetType: string | null) => void
+    setAssetSubtype: (assetSubtype: string | null) => void
     setManagingEntity: (managingEntity: string | null) => void
     setAssetGroup: (assetGroup: string | null) => void
     setGeographicFocus: (geographicFocus: string | null) => void
@@ -82,6 +84,7 @@ export const usePortfolioFilters = (): PortfolioFiltersHook => {
         return {
             holdingCompany: searchParams.get('holding_company'),
             assetType: searchParams.get('asset_type'),
+            assetSubtype: searchParams.get('asset_subtype'),
             managingEntity: searchParams.get('managing_entity'),
             assetGroup: searchParams.get('asset_group'),
             geographicFocus: searchParams.get('geographic_focus'),
@@ -100,6 +103,7 @@ export const usePortfolioFilters = (): PortfolioFiltersHook => {
             const paramMapping: Record<string, string> = {
                 holdingCompany: 'holding_company',
                 assetType: 'asset_type',
+                assetSubtype: 'asset_subtype',
                 managingEntity: 'managing_entity',
                 assetGroup: 'asset_group',
                 geographicFocus: 'geographic_focus',
@@ -134,6 +138,11 @@ export const usePortfolioFilters = (): PortfolioFiltersHook => {
 
     const setAssetType = useCallback(
         (assetType: string | null) => updateUrl({ assetType }),
+        [updateUrl]
+    )
+
+    const setAssetSubtype = useCallback(
+        (assetSubtype: string | null) => updateUrl({ assetSubtype }),
         [updateUrl]
     )
 
@@ -180,6 +189,7 @@ export const usePortfolioFilters = (): PortfolioFiltersHook => {
         const params: Record<string, string | undefined> = {}
         if (filters.holdingCompany) params.holding_company = filters.holdingCompany
         if (filters.assetType) params.asset_type = filters.assetType
+        if (filters.assetSubtype) params.asset_subtype = filters.assetSubtype
         if (filters.managingEntity) params.managing_entity = filters.managingEntity
         if (filters.assetGroup) params.asset_group = filters.assetGroup
         if (filters.geographicFocus) params.geographic_focus = filters.geographicFocus
@@ -190,6 +200,7 @@ export const usePortfolioFilters = (): PortfolioFiltersHook => {
     const hasActiveFilters = Boolean(
         filters.holdingCompany ||
             filters.assetType ||
+            filters.assetSubtype ||
             filters.managingEntity ||
             filters.assetGroup ||
             filters.geographicFocus ||
@@ -200,6 +211,7 @@ export const usePortfolioFilters = (): PortfolioFiltersHook => {
         filters,
         setHoldingCompany,
         setAssetType,
+        setAssetSubtype,
         setManagingEntity,
         setAssetGroup,
         setGeographicFocus,

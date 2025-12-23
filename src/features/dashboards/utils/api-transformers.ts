@@ -187,6 +187,33 @@ export const getAvailableAssetTypes = (
     return new Set(data.groups.filter(g => g.count > 0).map(g => g.asset_type))
 }
 
+/**
+ * Transform flexible aggregation data for summary table.
+ * Used for asset subtype breakdown.
+ * Note: FlexibleAggregationGroup doesn't have unrealized_gain or EUR variants,
+ * so those values will be null.
+ * @param data - Flexible aggregation response from API
+ * @param currency - Currency to use for values ('USD' or 'EUR')
+ */
+export const transformFlexibleForTable = (
+    data: FlexibleAggregationResponse | undefined,
+    currency: 'USD' | 'EUR' = 'USD'
+): AssetTypeSummaryRow[] => {
+    if (!data) return []
+
+    const isEur = currency === 'EUR'
+
+    return data.groups.map((group: FlexibleAggregationGroup) => ({
+        assetType: group.label,
+        value: isEur ? group.value_eur : group.value_usd,
+        percentage: group.percentage,
+        count: group.count,
+        paidInCapital: group.paid_in_capital_usd, // Note: EUR not available in FlexibleAggregationGroup
+        unfundedCommitment: group.unfunded_commitment_usd, // Note: EUR not available
+        unrealizedGain: null // Note: Not available in FlexibleAggregationGroup
+    }))
+}
+
 // ============================================================
 // FLEXIBLE AGGREGATION TRANSFORMERS
 // ============================================================

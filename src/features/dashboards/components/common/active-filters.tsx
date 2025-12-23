@@ -15,6 +15,7 @@ import type { PortfolioFilters } from '../../hooks/use-portfolio-filters'
 export type FilterKey =
     | 'holdingCompany'
     | 'assetType'
+    | 'assetSubtype'
     | 'managingEntity'
     | 'assetGroup'
     | 'geographicFocus'
@@ -33,6 +34,7 @@ interface FilterConfig {
 const FILTER_CONFIG: FilterConfig[] = [
     { key: 'holdingCompany', label: 'Holding Company' },
     { key: 'assetType', label: 'Asset Type' },
+    { key: 'assetSubtype', label: 'Asset Subtype' },
     { key: 'managingEntity', label: 'Managing Entity' },
     { key: 'assetGroup', label: 'Asset Group' },
     { key: 'geographicFocus', label: 'Geographic Focus' }

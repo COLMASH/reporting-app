@@ -31,7 +31,10 @@ import type { AssetTypeAggregationResponse } from '@/redux/services/portfolioApi
 import type { CurrencyType } from '../../hooks/use-portfolio-filters'
 
 export interface AssetTypeSummaryTableProps {
-    data: AssetTypeAggregationResponse | undefined
+    data?: AssetTypeAggregationResponse | undefined
+    rows?: AssetTypeSummaryRow[]
+    title?: string
+    firstColumnLabel?: string
     currency?: CurrencyType
     isLoading?: boolean
     isFetching?: boolean
@@ -90,6 +93,9 @@ const SortableColumn = ({
 
 export const AssetTypeSummaryTable = ({
     data,
+    rows,
+    title = 'Asset Type Summary',
+    firstColumnLabel = 'Asset Type',
     currency = 'USD',
     isLoading = false,
     isFetching = false,
@@ -104,7 +110,11 @@ export const AssetTypeSummaryTable = ({
     })
 
     // Transform data with currency-aware field extraction
-    const rawTableData = useMemo(() => transformAssetTypeForTable(data, currency), [data, currency])
+    // Use pre-transformed rows if provided, otherwise transform from data
+    const rawTableData = useMemo(() => {
+        if (rows) return rows
+        return transformAssetTypeForTable(data, currency)
+    }, [rows, data, currency])
 
     // Sort and paginate data
     // Calculate totals from all data (not paginated)
@@ -165,8 +175,11 @@ export const AssetTypeSummaryTable = ({
         <Card className="relative">
             <ShimmerOverlay isActive={isLoadingState} />
             <CardHeader className="pb-4">
-                <CardTitle className="text-base font-medium">Asset Type Summary</CardTitle>
-                <CardDescription>{rawTableData.length} asset types</CardDescription>
+                <CardTitle className="text-base font-medium">{title}</CardTitle>
+                <CardDescription>
+                    {rawTableData.length}{' '}
+                    {title.toLowerCase().includes('subtype') ? 'subtypes' : 'asset types'}
+                </CardDescription>
             </CardHeader>
             <CardContent>
                 {isLoadingState ? (
@@ -183,7 +196,7 @@ export const AssetTypeSummaryTable = ({
                                     <TableRow>
                                         <SortableColumn
                                             column="assetType"
-                                            label="Asset Type"
+                                            label={firstColumnLabel}
                                             sortBy={tableState.sortBy}
                                             sortOrder={tableState.sortOrder}
                                             onSort={handleSort}

@@ -10,7 +10,7 @@ import { useState, useCallback, useEffect, useMemo } from 'react'
 import { usePortfolioFilters, type AssetTabType } from '../hooks/use-portfolio-filters'
 import { useDashboardData, useAssetTable } from '../hooks/use-dashboard-data'
 import { getAssetTypeFilter, TAB_TO_ASSET_TYPE, TAB_CONFIG } from './navigation/asset-type-tabs'
-import { sortCompaniesByNav } from '../utils/api-transformers'
+import { sortCompaniesByNav, transformFlexibleForTable } from '../utils/api-transformers'
 
 // Layout components
 import { EntitySidebar, MobileEntitySidebar } from './layout/entity-sidebar'
@@ -48,6 +48,7 @@ export const CeoDashboard = () => {
         setManagingEntity,
         setAssetGroup,
         setGeographicFocus,
+        setAssetSubtype,
         clearFilters
     } = usePortfolioFilters()
 
@@ -152,6 +153,13 @@ export const CeoDashboard = () => {
         [setGeographicFocus]
     )
 
+    const handleAssetSubtypeClick = useCallback(
+        (assetSubtype: string) => {
+            setAssetSubtype(assetSubtype)
+        },
+        [setAssetSubtype]
+    )
+
     const handleRowClick = useCallback((asset: AssetResponse) => {
         setSelectedAsset(asset)
         setIsModalOpen(true)
@@ -171,7 +179,9 @@ export const CeoDashboard = () => {
         const eurToUsd: Record<string, string> = {
             estimated_asset_value_eur: 'estimated_asset_value_usd',
             paid_in_capital_eur: 'paid_in_capital_usd',
-            total_asset_return_eur: 'total_asset_return_usd'
+            total_asset_return_eur: 'total_asset_return_usd',
+            unrealized_gain_eur: 'unrealized_gain_usd',
+            unfunded_commitment_eur: 'unfunded_commitment_usd'
         }
         return eurToUsd[column] || column
     }
@@ -188,9 +198,9 @@ export const CeoDashboard = () => {
 
     const handleClearFilter = useCallback(
         (filterKey: FilterKey) => {
-            // When clearing assetType, also reset tab to overview
+            // When clearing assetType, also reset tab to overview and clear subtype
             if (filterKey === 'assetType') {
-                setFilters({ assetType: null, tab: 'overview' })
+                setFilters({ assetType: null, assetSubtype: null, tab: 'overview' })
             } else {
                 setFilters({ [filterKey]: null })
             }
@@ -212,6 +222,15 @@ export const CeoDashboard = () => {
         () => sortCompaniesByNav(holdingCompanies, dashboardData.allCompaniesNav),
         [holdingCompanies, dashboardData.allCompaniesNav]
     )
+
+    // Transform subtype data for the summary table (non-overview tabs)
+    const subtypeTableRows = useMemo(
+        () => transformFlexibleForTable(dashboardData.byAssetSubtype, filters.currency),
+        [dashboardData.byAssetSubtype, filters.currency]
+    )
+
+    // Determine if we should show subtype table (non-overview tabs)
+    const isOverviewTab = filters.tab === 'overview'
 
     return (
         <div className="flex h-[calc(100vh-4rem)] overflow-hidden">
@@ -338,15 +357,28 @@ export const CeoDashboard = () => {
                         isFetching={dashboardData.isFetching}
                     />
 
-                    {/* Summary Table */}
-                    <AssetTypeSummaryTable
-                        data={dashboardData.byAssetType}
-                        currency={filters.currency}
-                        isLoading={dashboardData.isChartsLoading}
-                        isFetching={dashboardData.isFetching}
-                        onRowClick={handleAssetTypeClick}
-                        selectedAssetType={filters.assetType}
-                    />
+                    {/* Summary Table - Shows asset types on overview, subtypes on other tabs */}
+                    {isOverviewTab ? (
+                        <AssetTypeSummaryTable
+                            data={dashboardData.byAssetType}
+                            currency={filters.currency}
+                            isLoading={dashboardData.isChartsLoading}
+                            isFetching={dashboardData.isFetching}
+                            onRowClick={handleAssetTypeClick}
+                            selectedAssetType={filters.assetType}
+                        />
+                    ) : (
+                        <AssetTypeSummaryTable
+                            rows={subtypeTableRows}
+                            title="Asset Subtype Summary"
+                            firstColumnLabel="Asset Subtype"
+                            currency={filters.currency}
+                            isLoading={dashboardData.isChartsLoading}
+                            isFetching={dashboardData.isFetching}
+                            onRowClick={handleAssetSubtypeClick}
+                            selectedAssetType={filters.assetSubtype}
+                        />
+                    )}
 
                     {/* Detailed Data Table */}
                     <DetailedDataTable
@@ -355,6 +387,8 @@ export const CeoDashboard = () => {
                         isLoading={tableData.isLoading}
                         isFetching={tableData.isFetching}
                         currency={filters.currency}
+                        assetType={filters.assetType}
+                        holdingCompany={filters.holdingCompany}
                         onRowClick={handleRowClick}
                         onPageChange={handlePageChange}
                         onPageSizeChange={handlePageSizeChange}
