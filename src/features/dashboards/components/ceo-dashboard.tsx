@@ -6,10 +6,11 @@
  * Supports URL-based filtering for shareable links.
  */
 
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useMemo } from 'react'
 import { usePortfolioFilters, type AssetTabType } from '../hooks/use-portfolio-filters'
 import { useDashboardData, useAssetTable } from '../hooks/use-dashboard-data'
 import { getAssetTypeFilter, TAB_TO_ASSET_TYPE, TAB_CONFIG } from './navigation/asset-type-tabs'
+import { sortCompaniesByNav } from '../utils/api-transformers'
 
 // Layout components
 import { EntitySidebar, MobileEntitySidebar } from './layout/entity-sidebar'
@@ -222,16 +223,25 @@ export const CeoDashboard = () => {
     const isHoldingCompanyActive = ACTIVE_HOLDING_COMPANIES.has(filters.holdingCompany || '')
 
     // Get holding companies from filters, with fallback to entities for backwards compatibility
-    const holdingCompanies =
-        (dashboardData.filters?.holding_companies?.length ?? 0) > 0
-            ? (dashboardData.filters?.holding_companies ?? [])
-            : (dashboardData.filters?.entities ?? [])
+    const holdingCompanies = useMemo(
+        () =>
+            (dashboardData.filters?.holding_companies?.length ?? 0) > 0
+                ? (dashboardData.filters?.holding_companies ?? [])
+                : (dashboardData.filters?.entities ?? []),
+        [dashboardData.filters?.holding_companies, dashboardData.filters?.entities]
+    )
+
+    // Sort companies by NAV (descending) - uses unfiltered data for stable ordering
+    const sortedHoldingCompanies = useMemo(
+        () => sortCompaniesByNav(holdingCompanies, dashboardData.allCompaniesNav),
+        [holdingCompanies, dashboardData.allCompaniesNav]
+    )
 
     return (
         <div className="flex h-[calc(100vh-4rem)] overflow-hidden">
             {/* Holding Company Sidebar */}
             <EntitySidebar
-                holdingCompanies={holdingCompanies}
+                holdingCompanies={sortedHoldingCompanies}
                 selectedHoldingCompany={filters.holdingCompany}
                 onHoldingCompanyChange={setHoldingCompany}
                 isLoading={dashboardData.isFiltersLoading}
@@ -257,7 +267,7 @@ export const CeoDashboard = () => {
                     isLoading={dashboardData.isFiltersLoading}
                     mobileMenu={
                         <MobileEntitySidebar
-                            holdingCompanies={holdingCompanies}
+                            holdingCompanies={sortedHoldingCompanies}
                             selectedHoldingCompany={filters.holdingCompany}
                             onHoldingCompanyChange={setHoldingCompany}
                             isLoading={dashboardData.isFiltersLoading}

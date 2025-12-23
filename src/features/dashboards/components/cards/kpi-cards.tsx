@@ -7,7 +7,7 @@
  */
 
 import { useMemo } from 'react'
-import { DollarSign, TrendingUp, Briefcase, PiggyBank } from 'lucide-react'
+import { DollarSign, TrendingUp, Briefcase, PiggyBank, BarChart3 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ShimmerOverlay } from '@/components/ui/shimmer-overlay'
 import {
@@ -72,6 +72,11 @@ export const KpiCards = ({
             return nav - cost
         }
 
+        const getUnrealizedGain = () => {
+            if (isEur) return eurSummary?.total_unrealized_gain_eur
+            return data?.total_unrealized_gain_usd
+        }
+
         return [
             {
                 title: `Total NAV (${currency})`,
@@ -82,6 +87,12 @@ export const KpiCards = ({
                 title: `Total Invested (${currency})`,
                 icon: PiggyBank,
                 getValue: () => formatCompactCurrency(getCost(), currency)
+            },
+            {
+                title: `Unrealized Gain/Loss (${currency})`,
+                icon: BarChart3,
+                getValue: () => formatCompactCurrency(getUnrealizedGain(), currency),
+                getColorClass: () => getPerformanceColorClass(getUnrealizedGain())
             },
             {
                 title: 'Total Return',
@@ -108,7 +119,7 @@ export const KpiCards = ({
     }, [data, eurSummary, currency, isEur])
 
     return (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
             {kpiConfig.map(config => {
                 const value = data || (isEur && eurSummary) ? config.getValue() : '—'
                 const subValue = data || (isEur && eurSummary) ? config.getSubValue?.() : null

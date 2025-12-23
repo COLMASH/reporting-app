@@ -226,8 +226,8 @@ export const DetailedDataTable = ({
                                             onSort={handleSort}
                                         />
                                         <SortableColumn
-                                            column="ownership_holding_entity"
-                                            label="Entity"
+                                            column="holding_company"
+                                            label="Holding Company"
                                             currentSort={currentSort}
                                             onSort={handleSort}
                                         />
@@ -244,6 +244,12 @@ export const DetailedDataTable = ({
                                             onSort={handleSort}
                                         />
                                         <SortableColumn
+                                            column="geographic_focus"
+                                            label="Geographic Focus"
+                                            currentSort={currentSort}
+                                            onSort={handleSort}
+                                        />
+                                        <SortableColumn
                                             column={navColumn}
                                             label={`NAV (${currency})`}
                                             currentSort={currentSort}
@@ -253,6 +259,17 @@ export const DetailedDataTable = ({
                                         <SortableColumn
                                             column={costColumn}
                                             label={`Cost (${currency})`}
+                                            currentSort={currentSort}
+                                            onSort={handleSort}
+                                            align="right"
+                                        />
+                                        <SortableColumn
+                                            column={
+                                                isEur
+                                                    ? 'unrealized_gain_eur'
+                                                    : 'unrealized_gain_usd'
+                                            }
+                                            label={`Unrealized G/L (${currency})`}
                                             currentSort={currentSort}
                                             onSort={handleSort}
                                             align="right"
@@ -298,7 +315,7 @@ export const DetailedDataTable = ({
                                                 </TableCell>
                                                 <TableCell>{asset.asset_type}</TableCell>
                                                 <TableCell className="max-w-[120px] truncate">
-                                                    {asset.ownership_holding_entity}
+                                                    {asset.holding_company || '—'}
                                                 </TableCell>
                                                 <TableCell className="max-w-[120px] truncate">
                                                     {asset.managing_entity}
@@ -306,11 +323,31 @@ export const DetailedDataTable = ({
                                                 <TableCell className="max-w-[120px] truncate">
                                                     {asset.asset_group || '—'}
                                                 </TableCell>
+                                                <TableCell className="max-w-[120px] truncate">
+                                                    {asset.geographic_focus || '—'}
+                                                </TableCell>
                                                 <TableCell className="text-right">
                                                     {formatCompactCurrency(nav, currency)}
                                                 </TableCell>
                                                 <TableCell className="text-right">
                                                     {formatCompactCurrency(cost, currency)}
+                                                </TableCell>
+                                                <TableCell
+                                                    className={cn(
+                                                        'text-right',
+                                                        getPerformanceColorClass(
+                                                            isEur
+                                                                ? asset.unrealized_gain_eur
+                                                                : asset.unrealized_gain_usd
+                                                        )
+                                                    )}
+                                                >
+                                                    {formatCompactCurrency(
+                                                        isEur
+                                                            ? asset.unrealized_gain_eur
+                                                            : asset.unrealized_gain_usd,
+                                                        currency
+                                                    )}
                                                 </TableCell>
                                                 <TableCell
                                                     className={cn(
@@ -335,6 +372,7 @@ export const DetailedDataTable = ({
                                             <TableCell>—</TableCell>
                                             <TableCell>—</TableCell>
                                             <TableCell>—</TableCell>
+                                            <TableCell>—</TableCell>
                                             <TableCell className="text-right">
                                                 {formatCompactCurrency(
                                                     isEur
@@ -348,6 +386,23 @@ export const DetailedDataTable = ({
                                                     isEur
                                                         ? summary.total_paid_in_capital_eur
                                                         : summary.total_paid_in_capital_usd,
+                                                    currency
+                                                )}
+                                            </TableCell>
+                                            <TableCell
+                                                className={cn(
+                                                    'text-right',
+                                                    getPerformanceColorClass(
+                                                        isEur
+                                                            ? summary.total_unrealized_gain_eur
+                                                            : summary.total_unrealized_gain_usd
+                                                    )
+                                                )}
+                                            >
+                                                {formatCompactCurrency(
+                                                    isEur
+                                                        ? summary.total_unrealized_gain_eur
+                                                        : summary.total_unrealized_gain_usd,
                                                     currency
                                                 )}
                                             </TableCell>

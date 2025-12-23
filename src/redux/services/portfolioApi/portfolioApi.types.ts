@@ -201,9 +201,11 @@ export interface PortfolioSummaryResponse {
     total_estimated_value_usd: number
     total_paid_in_capital_usd: number
     total_unfunded_commitment_usd: number
+    total_unrealized_gain_usd: number
     total_estimated_value_eur: number
     total_paid_in_capital_eur: number
     total_unfunded_commitment_eur: number
+    total_unrealized_gain_eur: number
     weighted_avg_return: number | null
 }
 
@@ -236,6 +238,8 @@ export interface AssetTypeGroup {
     paid_in_capital_eur: number
     unfunded_commitment_usd: number
     unfunded_commitment_eur: number
+    unrealized_gain_usd: number
+    unrealized_gain_eur: number
 }
 
 export interface AssetTypeAggregationResponse {

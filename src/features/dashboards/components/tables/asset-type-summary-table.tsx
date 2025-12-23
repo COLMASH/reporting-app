@@ -21,7 +21,11 @@ import { Button } from '@/components/ui/button'
 import { ShimmerOverlay } from '@/components/ui/shimmer-overlay'
 import { ArrowUpDown, ArrowUp, ArrowDown, ChevronLeft, ChevronRight } from 'lucide-react'
 import { transformAssetTypeForTable, type AssetTypeSummaryRow } from '../../utils/api-transformers'
-import { formatCompactCurrency, formatPercentage } from '@/redux/services/portfolioApi'
+import {
+    formatCompactCurrency,
+    formatPercentage,
+    getPerformanceColorClass
+} from '@/redux/services/portfolioApi'
 import { cn } from '@/lib/utils'
 import type { AssetTypeAggregationResponse } from '@/redux/services/portfolioApi'
 import type { CurrencyType } from '../../hooks/use-portfolio-filters'
@@ -109,9 +113,10 @@ export const AssetTypeSummaryTable = ({
             (acc, row) => ({
                 value: acc.value + (row.value || 0),
                 paidInCapital: acc.paidInCapital + (row.paidInCapital || 0),
+                unrealizedGain: acc.unrealizedGain + (row.unrealizedGain || 0),
                 count: acc.count + row.count
             }),
-            { value: 0, paidInCapital: 0, count: 0 }
+            { value: 0, paidInCapital: 0, unrealizedGain: 0, count: 0 }
         )
     }, [rawTableData])
 
@@ -200,6 +205,14 @@ export const AssetTypeSummaryTable = ({
                                             align="right"
                                         />
                                         <SortableColumn
+                                            column="unrealizedGain"
+                                            label={`Unrealized G/L (${currency})`}
+                                            sortBy={tableState.sortBy}
+                                            sortOrder={tableState.sortOrder}
+                                            onSort={handleSort}
+                                            align="right"
+                                        />
+                                        <SortableColumn
                                             column="percentage"
                                             label="Allocation"
                                             sortBy={tableState.sortBy}
@@ -246,6 +259,17 @@ export const AssetTypeSummaryTable = ({
                                                         currency
                                                     )}
                                                 </TableCell>
+                                                <TableCell
+                                                    className={cn(
+                                                        'text-right',
+                                                        getPerformanceColorClass(row.unrealizedGain)
+                                                    )}
+                                                >
+                                                    {formatCompactCurrency(
+                                                        row.unrealizedGain,
+                                                        currency
+                                                    )}
+                                                </TableCell>
                                                 <TableCell className="text-right">
                                                     {formatPercentage(row.percentage / 100)}
                                                 </TableCell>
@@ -264,6 +288,14 @@ export const AssetTypeSummaryTable = ({
                                         </TableCell>
                                         <TableCell className="text-right">
                                             {formatCompactCurrency(totals.paidInCapital, currency)}
+                                        </TableCell>
+                                        <TableCell
+                                            className={cn(
+                                                'text-right',
+                                                getPerformanceColorClass(totals.unrealizedGain)
+                                            )}
+                                        >
+                                            {formatCompactCurrency(totals.unrealizedGain, currency)}
                                         </TableCell>
                                         <TableCell className="text-right">100%</TableCell>
                                         <TableCell className="text-right">{totals.count}</TableCell>

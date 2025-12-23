@@ -40,6 +40,9 @@ export interface DashboardDataState {
     assets: AssetListResponse | undefined
     historicalNav: HistoricalNavResponse | undefined
 
+    // Sidebar sorting - unfiltered NAV for all companies
+    allCompaniesNav: FlexibleAggregationResponse | undefined
+
     // EUR aggregations (computed from all assets)
     eurSummary: EurSummary | undefined
     eurByAssetType: AssetTypeAggregationResponse | undefined
@@ -120,6 +123,12 @@ export const useDashboardData = (): DashboardDataState => {
         group_by: 'holding_company'
     })
 
+    // Sidebar sorting query - always fetches ALL companies' NAV (ignores holding_company filter)
+    const sidebarNavQuery = useGetFlexibleAggregationQuery({
+        report_date: queryParams.report_date,
+        group_by: 'holding_company'
+    })
+
     const byAssetTypeQuery = useGetByAssetTypeQuery(queryParams as AggregationParams)
 
     // Tab availability: exclude asset_type to show all available tabs for selected holding company
@@ -167,6 +176,7 @@ export const useDashboardData = (): DashboardDataState => {
             total_estimated_value_eur: data.total_estimated_value_eur,
             total_paid_in_capital_eur: data.total_paid_in_capital_eur,
             total_unfunded_commitment_eur: data.total_unfunded_commitment_eur,
+            total_unrealized_gain_eur: data.total_unrealized_gain_eur,
             total_return_amount_eur:
                 data.total_estimated_value_eur - data.total_paid_in_capital_eur,
             total_assets: data.total_assets,
@@ -274,6 +284,9 @@ export const useDashboardData = (): DashboardDataState => {
         byAssetGroup: byAssetGroupQuery.data,
         assets: assetsQuery.data,
         historicalNav: historicalNavQuery.data,
+
+        // Sidebar sorting
+        allCompaniesNav: sidebarNavQuery.data,
 
         // EUR aggregations
         eurSummary,

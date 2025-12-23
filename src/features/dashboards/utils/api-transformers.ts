@@ -152,6 +152,7 @@ export interface AssetTypeSummaryRow {
     count: number
     paidInCapital: number | null
     unfundedCommitment: number | null
+    unrealizedGain: number | null
 }
 
 export const transformAssetTypeForTable = (
@@ -168,7 +169,8 @@ export const transformAssetTypeForTable = (
         percentage: group.percentage,
         count: group.count,
         paidInCapital: isEur ? group.paid_in_capital_eur : group.paid_in_capital_usd,
-        unfundedCommitment: isEur ? group.unfunded_commitment_eur : group.unfunded_commitment_usd
+        unfundedCommitment: isEur ? group.unfunded_commitment_eur : group.unfunded_commitment_usd,
+        unrealizedGain: isEur ? group.unrealized_gain_eur : group.unrealized_gain_usd
     }))
 }
 
@@ -356,5 +358,39 @@ export const formatChartMonth = (dateStr: string): string => {
     return date.toLocaleDateString('en-US', {
         month: 'short',
         year: 'numeric'
+    })
+}
+
+// ============================================================
+// COMPANY SORTING UTILITIES
+// ============================================================
+
+/**
+ * Sort holding company names by their NAV (Net Asset Value) in descending order.
+ * Always uses USD for consistent sorting regardless of display currency.
+ *
+ * @param companies - Array of company names from filters
+ * @param aggregationData - FlexibleAggregationResponse with company NAV data (should be unfiltered)
+ * @returns Sorted array of company names (highest NAV first)
+ */
+export const sortCompaniesByNav = (
+    companies: string[],
+    aggregationData: FlexibleAggregationResponse | undefined
+): string[] => {
+    if (!aggregationData?.groups || companies.length === 0) {
+        return companies
+    }
+
+    // Create a map of company name to NAV value (USD) for O(1) lookup
+    const navMap = new Map<string, number>()
+    aggregationData.groups.forEach(group => {
+        navMap.set(group.label, group.value_usd ?? 0)
+    })
+
+    // Sort companies by NAV descending
+    return [...companies].sort((a, b) => {
+        const navA = navMap.get(a) ?? 0
+        const navB = navMap.get(b) ?? 0
+        return navB - navA
     })
 }
