@@ -29,6 +29,7 @@ export interface PortfolioAssetsParams {
     asset_type?: string
     managing_entity?: string
     asset_group?: string
+    geographic_focus?: string
     report_date?: string
     search?: string
     page?: number
@@ -43,6 +44,7 @@ export interface AggregationParams {
     asset_type?: string
     managing_entity?: string
     asset_group?: string
+    geographic_focus?: string
     report_date?: string
 }
 
@@ -53,6 +55,7 @@ export interface FlexibleAggregationParams extends AggregationParams {
 export interface HistoricalNavParams {
     holding_company?: string
     asset_type?: string
+    geographic_focus?: string
     start_date?: string
     end_date?: string
     group_by?: 'holding_company' | 'ownership_holding_entity'

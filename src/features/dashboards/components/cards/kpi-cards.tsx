@@ -13,8 +13,7 @@ import { ShimmerOverlay } from '@/components/ui/shimmer-overlay'
 import {
     formatCompactCurrency,
     formatPercentageWithSign,
-    formatNumber,
-    getPerformanceColorClass
+    formatNumber
 } from '@/redux/services/portfolioApi'
 import { cn } from '@/lib/utils'
 import type { PortfolioSummaryResponse } from '@/redux/services/portfolioApi'
@@ -91,8 +90,7 @@ export const KpiCards = ({
             {
                 title: `Unrealized Gain/Loss (${currency})`,
                 icon: BarChart3,
-                getValue: () => formatCompactCurrency(getUnrealizedGain(), currency),
-                getColorClass: () => getPerformanceColorClass(getUnrealizedGain())
+                getValue: () => formatCompactCurrency(getUnrealizedGain(), currency)
             },
             {
                 title: 'Total Return',
@@ -102,8 +100,7 @@ export const KpiCards = ({
                     const returnAmount = getReturnAmount()
                     if (returnAmount === undefined || returnAmount === null) return null
                     return formatCompactCurrency(returnAmount, currency)
-                },
-                getColorClass: () => getPerformanceColorClass(data?.weighted_avg_return)
+                }
             },
             {
                 title: 'Positions',

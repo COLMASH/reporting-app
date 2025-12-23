@@ -32,38 +32,9 @@ import { AssetTypeSummaryTable } from './tables/asset-type-summary-table'
 import { DetailedDataTable } from './tables/detailed-data-table'
 import { AssetDetailModal } from './tables/asset-detail-modal'
 
-import { Card, CardContent } from '@/components/ui/card'
-import { Construction, Layers, Target } from 'lucide-react'
+import { Layers, Target, Globe } from 'lucide-react'
 
 import type { AssetResponse, SortOrder } from '@/redux/services/portfolioApi'
-
-// Holding companies with active dashboards (empty string = Consolidated View)
-const ACTIVE_HOLDING_COMPANIES = new Set(['', 'Isis Invest'])
-
-/**
- * Work in Progress placeholder for companies without active dashboards
- */
-const WorkInProgressPlaceholder = ({ entityName }: { entityName: string }) => (
-    <div className="flex flex-1 items-center justify-center p-6">
-        <Card className="max-w-md">
-            <CardContent className="flex flex-col items-center gap-4 pt-6 text-center">
-                <div className="bg-muted flex h-16 w-16 items-center justify-center rounded-full">
-                    <Construction className="text-muted-foreground h-8 w-8" />
-                </div>
-                <div className="space-y-2">
-                    <h3 className="text-lg font-semibold">{entityName} Dashboard</h3>
-                    <p className="text-muted-foreground text-sm">
-                        This company dashboard is currently under development. Please check back
-                        soon or select another company.
-                    </p>
-                </div>
-                <div className="bg-muted text-muted-foreground rounded-full px-3 py-1 text-xs font-medium">
-                    Work in Progress
-                </div>
-            </CardContent>
-        </Card>
-    </div>
-)
 
 export const CeoDashboard = () => {
     // URL-synchronized filters
@@ -76,6 +47,7 @@ export const CeoDashboard = () => {
         setFilters,
         setManagingEntity,
         setAssetGroup,
+        setGeographicFocus,
         clearFilters
     } = usePortfolioFilters()
 
@@ -173,6 +145,13 @@ export const CeoDashboard = () => {
         [setAssetGroup]
     )
 
+    const handleGeographicFocusClick = useCallback(
+        (geographicFocus: string) => {
+            setGeographicFocus(geographicFocus)
+        },
+        [setGeographicFocus]
+    )
+
     const handleRowClick = useCallback((asset: AssetResponse) => {
         setSelectedAsset(asset)
         setIsModalOpen(true)
@@ -218,9 +197,6 @@ export const CeoDashboard = () => {
         },
         [setFilters]
     )
-
-    // Check if holding company has an active dashboard
-    const isHoldingCompanyActive = ACTIVE_HOLDING_COMPANIES.has(filters.holdingCompany || '')
 
     // Get holding companies from filters, with fallback to entities for backwards compatibility
     const holdingCompanies = useMemo(
@@ -275,117 +251,122 @@ export const CeoDashboard = () => {
                     }
                 />
 
-                {isHoldingCompanyActive ? (
-                    <>
-                        {/* Asset Type Tabs */}
-                        <div className="px-6 pt-4">
-                            <AssetTypeTabs
-                                activeTab={filters.tab}
-                                onTabChange={setTab}
-                                availableAssetTypes={dashboardData.availableAssetTypes}
-                                isLoading={dashboardData.isLoading}
-                            />
-                        </div>
+                {/* Asset Type Tabs */}
+                <div className="px-6 pt-4">
+                    <AssetTypeTabs
+                        activeTab={filters.tab}
+                        onTabChange={setTab}
+                        availableAssetTypes={dashboardData.availableAssetTypes}
+                        isLoading={dashboardData.isLoading}
+                    />
+                </div>
 
-                        {/* Active Filters */}
-                        <ActiveFilters
-                            filters={filters}
-                            onClearFilter={handleClearFilter}
-                            onClearAll={clearFilters}
+                {/* Active Filters */}
+                <ActiveFilters
+                    filters={filters}
+                    onClearFilter={handleClearFilter}
+                    onClearAll={clearFilters}
+                />
+
+                {/* Dashboard Content */}
+                <main className="flex-1 space-y-6 overflow-y-auto p-6">
+                    {/* KPI Cards */}
+                    <KpiCards
+                        data={dashboardData.summary}
+                        eurSummary={dashboardData.eurSummary}
+                        currency={filters.currency}
+                        isLoading={dashboardData.isSummaryLoading || dashboardData.isEurLoading}
+                        isFetching={dashboardData.isFetching}
+                    />
+
+                    {/* Charts Grid - 2x2 */}
+                    <div className="grid gap-6 lg:grid-cols-2">
+                        <EntityDonutChart
+                            data={dashboardData.byHoldingCompany}
+                            currency={filters.currency}
+                            isLoading={dashboardData.isChartsLoading}
+                            isFetching={dashboardData.isFetching}
+                            onEntityClick={handleHoldingCompanyClick}
                         />
-
-                        {/* Dashboard Content */}
-                        <main className="flex-1 space-y-6 overflow-y-auto p-6">
-                            {/* KPI Cards */}
-                            <KpiCards
-                                data={dashboardData.summary}
-                                eurSummary={dashboardData.eurSummary}
-                                currency={filters.currency}
-                                isLoading={
-                                    dashboardData.isSummaryLoading || dashboardData.isEurLoading
-                                }
-                                isFetching={dashboardData.isFetching}
-                            />
-
-                            {/* Charts Grid - 2x2 */}
-                            <div className="grid gap-6 lg:grid-cols-2">
-                                <EntityDonutChart
-                                    data={dashboardData.byHoldingCompany}
-                                    currency={filters.currency}
-                                    isLoading={dashboardData.isChartsLoading}
-                                    isFetching={dashboardData.isFetching}
-                                    onEntityClick={handleHoldingCompanyClick}
-                                />
-                                <AssetTypeDonutChart
-                                    data={dashboardData.byAssetType}
-                                    currency={filters.currency}
-                                    isLoading={dashboardData.isChartsLoading}
-                                    isFetching={dashboardData.isFetching}
-                                    onAssetTypeClick={handleAssetTypeClick}
-                                />
-                                <DistributionDonutChart
-                                    title="Distribution by Managing Entity"
-                                    description="Portfolio allocation by managing entity"
-                                    icon={Layers}
-                                    data={dashboardData.byManagingEntity}
-                                    currency={filters.currency}
-                                    isLoading={dashboardData.isChartsLoading}
-                                    isFetching={dashboardData.isFetching}
-                                    onClick={handleManagingEntityClick}
-                                />
-                                <DistributionDonutChart
-                                    title="Distribution by Asset Group"
-                                    description="Portfolio allocation by asset group"
-                                    icon={Target}
-                                    data={dashboardData.byAssetGroup}
-                                    currency={filters.currency}
-                                    isLoading={dashboardData.isChartsLoading}
-                                    isFetching={dashboardData.isFetching}
-                                    onClick={handleAssetGroupClick}
-                                />
-                            </div>
-
-                            {/* Historical NAV Chart */}
-                            <HistoricalNavChart
-                                data={dashboardData.historicalNav}
-                                currency={filters.currency}
-                                isLoading={dashboardData.isChartsLoading}
-                                isFetching={dashboardData.isFetching}
-                            />
-
-                            {/* Summary Table */}
-                            <AssetTypeSummaryTable
+                        {filters.tab === 'overview' ? (
+                            <AssetTypeDonutChart
                                 data={dashboardData.byAssetType}
                                 currency={filters.currency}
                                 isLoading={dashboardData.isChartsLoading}
                                 isFetching={dashboardData.isFetching}
-                                onRowClick={handleAssetTypeClick}
-                                selectedAssetType={filters.assetType}
+                                onAssetTypeClick={handleAssetTypeClick}
                             />
-
-                            {/* Detailed Data Table */}
-                            <DetailedDataTable
-                                data={tableData.data}
-                                summary={dashboardData.summary}
-                                isLoading={tableData.isLoading}
-                                isFetching={tableData.isFetching}
+                        ) : (
+                            <DistributionDonutChart
+                                title="Distribution by Geographic Focus"
+                                description="Portfolio allocation by region"
+                                icon={Globe}
+                                data={dashboardData.byGeographicFocus}
                                 currency={filters.currency}
-                                onRowClick={handleRowClick}
-                                onPageChange={handlePageChange}
-                                onPageSizeChange={handlePageSizeChange}
-                                onSortChange={handleSortChange}
-                                onSearchChange={handleSearchChange}
-                                currentSort={{
-                                    sortBy: tableParams.sortBy,
-                                    sortOrder: tableParams.sortOrder
-                                }}
-                                searchValue={tableParams.search}
+                                isLoading={dashboardData.isChartsLoading}
+                                isFetching={dashboardData.isFetching}
+                                onClick={handleGeographicFocusClick}
                             />
-                        </main>
-                    </>
-                ) : (
-                    <WorkInProgressPlaceholder entityName={filters.holdingCompany || 'Unknown'} />
-                )}
+                        )}
+                        <DistributionDonutChart
+                            title="Distribution by Managing Entity"
+                            description="Portfolio allocation by managing entity"
+                            icon={Layers}
+                            data={dashboardData.byManagingEntity}
+                            currency={filters.currency}
+                            isLoading={dashboardData.isChartsLoading}
+                            isFetching={dashboardData.isFetching}
+                            onClick={handleManagingEntityClick}
+                        />
+                        <DistributionDonutChart
+                            title="Distribution by Asset Group"
+                            description="Portfolio allocation by asset group"
+                            icon={Target}
+                            data={dashboardData.byAssetGroup}
+                            currency={filters.currency}
+                            isLoading={dashboardData.isChartsLoading}
+                            isFetching={dashboardData.isFetching}
+                            onClick={handleAssetGroupClick}
+                        />
+                    </div>
+
+                    {/* Historical NAV Chart */}
+                    <HistoricalNavChart
+                        data={dashboardData.historicalNav}
+                        currency={filters.currency}
+                        isLoading={dashboardData.isChartsLoading}
+                        isFetching={dashboardData.isFetching}
+                    />
+
+                    {/* Summary Table */}
+                    <AssetTypeSummaryTable
+                        data={dashboardData.byAssetType}
+                        currency={filters.currency}
+                        isLoading={dashboardData.isChartsLoading}
+                        isFetching={dashboardData.isFetching}
+                        onRowClick={handleAssetTypeClick}
+                        selectedAssetType={filters.assetType}
+                    />
+
+                    {/* Detailed Data Table */}
+                    <DetailedDataTable
+                        data={tableData.data}
+                        summary={dashboardData.summary}
+                        isLoading={tableData.isLoading}
+                        isFetching={tableData.isFetching}
+                        currency={filters.currency}
+                        onRowClick={handleRowClick}
+                        onPageChange={handlePageChange}
+                        onPageSizeChange={handlePageSizeChange}
+                        onSortChange={handleSortChange}
+                        onSearchChange={handleSearchChange}
+                        currentSort={{
+                            sortBy: tableParams.sortBy,
+                            sortOrder: tableParams.sortOrder
+                        }}
+                        searchValue={tableParams.search}
+                    />
+                </main>
             </div>
 
             {/* Asset Detail Modal */}

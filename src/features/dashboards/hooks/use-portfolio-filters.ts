@@ -26,6 +26,7 @@ export interface PortfolioFilters {
     assetType: string | null
     managingEntity: string | null
     assetGroup: string | null
+    geographicFocus: string | null
     reportDate: string | null
     tab: AssetTabType
     currency: CurrencyType
@@ -37,6 +38,7 @@ export interface PortfolioFiltersHook {
     setAssetType: (assetType: string | null) => void
     setManagingEntity: (managingEntity: string | null) => void
     setAssetGroup: (assetGroup: string | null) => void
+    setGeographicFocus: (geographicFocus: string | null) => void
     setReportDate: (reportDate: string | null) => void
     setTab: (tab: AssetTabType) => void
     setCurrency: (currency: CurrencyType) => void
@@ -82,6 +84,7 @@ export const usePortfolioFilters = (): PortfolioFiltersHook => {
             assetType: searchParams.get('asset_type'),
             managingEntity: searchParams.get('managing_entity'),
             assetGroup: searchParams.get('asset_group'),
+            geographicFocus: searchParams.get('geographic_focus'),
             reportDate: searchParams.get('report_date'),
             tab: isValidTab(tabParam) ? tabParam : 'overview',
             currency: isValidCurrency(currencyParam) ? currencyParam : 'USD'
@@ -99,6 +102,7 @@ export const usePortfolioFilters = (): PortfolioFiltersHook => {
                 assetType: 'asset_type',
                 managingEntity: 'managing_entity',
                 assetGroup: 'asset_group',
+                geographicFocus: 'geographic_focus',
                 reportDate: 'report_date',
                 tab: 'tab',
                 currency: 'currency'
@@ -143,6 +147,11 @@ export const usePortfolioFilters = (): PortfolioFiltersHook => {
         [updateUrl]
     )
 
+    const setGeographicFocus = useCallback(
+        (geographicFocus: string | null) => updateUrl({ geographicFocus }),
+        [updateUrl]
+    )
+
     const setReportDate = useCallback(
         (reportDate: string | null) => updateUrl({ reportDate }),
         [updateUrl]
@@ -173,6 +182,7 @@ export const usePortfolioFilters = (): PortfolioFiltersHook => {
         if (filters.assetType) params.asset_type = filters.assetType
         if (filters.managingEntity) params.managing_entity = filters.managingEntity
         if (filters.assetGroup) params.asset_group = filters.assetGroup
+        if (filters.geographicFocus) params.geographic_focus = filters.geographicFocus
         if (filters.reportDate) params.report_date = filters.reportDate
         return params
     }, [filters])
@@ -182,6 +192,7 @@ export const usePortfolioFilters = (): PortfolioFiltersHook => {
             filters.assetType ||
             filters.managingEntity ||
             filters.assetGroup ||
+            filters.geographicFocus ||
             filters.reportDate
     )
 
@@ -191,6 +202,7 @@ export const usePortfolioFilters = (): PortfolioFiltersHook => {
         setAssetType,
         setManagingEntity,
         setAssetGroup,
+        setGeographicFocus,
         setReportDate,
         setTab,
         setCurrency,
