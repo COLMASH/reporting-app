@@ -388,7 +388,6 @@ export const CeoDashboard = () => {
                         isFetching={tableData.isFetching}
                         currency={filters.currency}
                         assetType={filters.assetType}
-                        holdingCompany={filters.holdingCompany}
                         onRowClick={handleRowClick}
                         onPageChange={handlePageChange}
                         onPageSizeChange={handlePageSizeChange}

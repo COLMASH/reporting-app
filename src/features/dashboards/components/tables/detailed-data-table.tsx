@@ -58,7 +58,6 @@ export interface DetailedDataTableProps {
     isFetching?: boolean
     currency?: CurrencyType
     assetType?: string | null
-    holdingCompany?: string | null
     onRowClick?: (asset: AssetResponse) => void
     onPageChange?: (page: number) => void
     onPageSizeChange?: (pageSize: number) => void
@@ -125,7 +124,6 @@ export const DetailedDataTable = ({
     isFetching = false,
     currency = 'USD',
     assetType,
-    holdingCompany,
     onRowClick,
     onPageChange,
     onPageSizeChange,
@@ -141,8 +139,8 @@ export const DetailedDataTable = ({
     const costColumn = isEur ? 'paid_in_capital_eur' : 'paid_in_capital_usd'
     const unfundedColumn = isEur ? 'unfunded_commitment_eur' : 'unfunded_commitment_usd'
 
-    // Show unfunded column only for Alternatives + ILV
-    const showUnfundedColumn = assetType === 'Alternative assets' && holdingCompany === 'ILV'
+    // Show unfunded column only for Alternatives (all companies)
+    const showUnfundedColumn = assetType === 'Alternative assets'
     const [localSearch, setLocalSearch] = useState(searchValue)
     const debounceTimerRef = useRef<NodeJS.Timeout | null>(null)
 
