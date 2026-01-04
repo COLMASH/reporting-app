@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useCallback, useEffect } from 'react'
-import { Loader2, Sparkles, Globe } from 'lucide-react'
+import { Loader2, Sparkles } from 'lucide-react'
 import {
     Dialog,
     DialogContent,
@@ -14,7 +14,6 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { Switch } from '@/components/ui/switch'
 import {
     Select,
     SelectContent,
@@ -66,9 +65,7 @@ export const CreateReportDialog = ({
     const [reportDate, setReportDate] = useState<string | null>(null)
     const [holdingCompanyFilter, setHoldingCompanyFilter] = useState<string | null>(null)
     const [assetTypeFilter, setAssetTypeFilter] = useState<string | null>(null)
-    const [entityFilter, setEntityFilter] = useState<string | null>(null)
     const [userPrompt, setUserPrompt] = useState('')
-    const [researchEnabled, setResearchEnabled] = useState(false)
 
     // Fetch filter options from API
     const { data: filters, isLoading: isLoadingFilters } = useGetFiltersQuery()
@@ -96,9 +93,7 @@ export const CreateReportDialog = ({
             setReportDate(null)
             setHoldingCompanyFilter(null)
             setAssetTypeFilter(null)
-            setEntityFilter(null)
             setUserPrompt('')
-            setResearchEnabled(false)
         }
     }, [open])
 
@@ -110,9 +105,9 @@ export const CreateReportDialog = ({
                 report_date: scope === 'single_date' ? reportDate : null,
                 holding_company_filter: holdingCompanyFilter,
                 asset_type_filter: assetTypeFilter,
-                entity_filter: entityFilter,
+                entity_filter: null,
                 user_prompt: userPrompt.trim() || null,
-                research_enabled: researchEnabled
+                research_enabled: false
             }
 
             await onSubmit(request)
@@ -124,17 +119,7 @@ export const CreateReportDialog = ({
                 description: error instanceof Error ? error.message : 'Please try again.'
             })
         }
-    }, [
-        title,
-        scope,
-        reportDate,
-        holdingCompanyFilter,
-        assetTypeFilter,
-        entityFilter,
-        userPrompt,
-        researchEnabled,
-        onSubmit
-    ])
+    }, [title, scope, reportDate, holdingCompanyFilter, assetTypeFilter, userPrompt, onSubmit])
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -266,28 +251,6 @@ export const CreateReportDialog = ({
                         </Select>
                     </div>
 
-                    {/* Entity Filter */}
-                    <div className="grid gap-2">
-                        <Label htmlFor="entity">Ownership Entity</Label>
-                        <Select
-                            value={entityFilter || 'all'}
-                            onValueChange={value => setEntityFilter(value === 'all' ? null : value)}
-                            disabled={isLoadingFilters}
-                        >
-                            <SelectTrigger id="entity">
-                                <SelectValue placeholder="All entities" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">All Entities</SelectItem>
-                                {filters?.entities?.map(entity => (
-                                    <SelectItem key={entity} value={entity}>
-                                        {entity}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
-
                     {/* Custom Prompt */}
                     <div className="grid gap-2">
                         <Label htmlFor="prompt">Custom Instructions (Optional)</Label>
@@ -301,26 +264,6 @@ export const CreateReportDialog = ({
                         <p className="text-muted-foreground text-xs">
                             Provide specific focus areas or questions for the AI analysis.
                         </p>
-                    </div>
-
-                    {/* Research Toggle */}
-                    <div className="flex items-center justify-between rounded-lg border p-3">
-                        <div className="flex items-center gap-3">
-                            <Globe className="text-muted-foreground h-5 w-5" />
-                            <div>
-                                <Label htmlFor="research" className="cursor-pointer font-medium">
-                                    Enable Internet Research
-                                </Label>
-                                <p className="text-muted-foreground text-xs">
-                                    Allow AI to search for current market data (slower)
-                                </p>
-                            </div>
-                        </div>
-                        <Switch
-                            id="research"
-                            checked={researchEnabled}
-                            onCheckedChange={setResearchEnabled}
-                        />
                     </div>
                 </div>
 
