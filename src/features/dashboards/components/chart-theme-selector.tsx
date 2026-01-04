@@ -12,7 +12,7 @@ import { ChartTheme, chartThemeLabels } from '../config/chart-themes'
 import { Palette } from 'lucide-react'
 
 export const ChartThemeSelector = () => {
-    const [theme, setTheme] = useState<ChartTheme>('green')
+    const [theme, setTheme] = useState<ChartTheme>('colored')
 
     useEffect(() => {
         const storedTheme = localStorage.getItem('chart-theme') as ChartTheme
@@ -20,7 +20,7 @@ export const ChartThemeSelector = () => {
             setTheme(storedTheme)
             applyTheme(storedTheme)
         } else {
-            applyTheme('green')
+            applyTheme('colored')
         }
     }, [])
 

@@ -4,6 +4,8 @@ import { useSearchParams } from 'next/navigation'
 import { Plus, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
+import { ThemeToggle } from '@/components/common/theme-toggle'
+import { UserAvatar } from '@/features/auth/components/user-avatar'
 import { ReportsDataTable } from './reports-data-table'
 import { CreateReportDialog } from './create-report-dialog'
 import { ReportDetailDialog } from './report-detail-dialog'
@@ -87,10 +89,14 @@ export const PortfolioReportsPage = () => {
                         Generate AI-powered analysis reports for your portfolio.
                     </p>
                 </div>
-                <Button onClick={openCreateDialog} className="shrink-0">
-                    <Plus className="mr-2 h-4 w-4" />
-                    Create Report
-                </Button>
+                <div className="flex items-center gap-3">
+                    <Button onClick={openCreateDialog} className="shrink-0">
+                        <Plus className="mr-2 h-4 w-4" />
+                        Create Report
+                    </Button>
+                    <ThemeToggle />
+                    <UserAvatar />
+                </div>
             </div>
 
             {/* Reports Table */}
