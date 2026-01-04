@@ -233,7 +233,7 @@ export const CeoDashboard = () => {
     const isOverviewTab = filters.tab === 'overview'
 
     return (
-        <div className="flex h-[calc(100vh-4rem)] overflow-hidden">
+        <div className="flex h-screen overflow-hidden">
             {/* Holding Company Sidebar */}
             <EntitySidebar
                 holdingCompanies={sortedHoldingCompanies}

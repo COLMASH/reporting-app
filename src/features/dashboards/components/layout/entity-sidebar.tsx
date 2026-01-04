@@ -7,11 +7,13 @@
  */
 
 import { useState } from 'react'
-import { Building2, CheckCircle2, Menu } from 'lucide-react'
+import Link from 'next/link'
+import { Building2, CheckCircle2, Menu, Bot } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import { cn } from '@/lib/utils'
+import { ROUTES } from '@/routes'
 
 export interface EntitySidebarProps {
     holdingCompanies: string[]
@@ -55,7 +57,7 @@ const SidebarContent = ({
     }
 
     return (
-        <>
+        <div className="flex h-full flex-col">
             <div className="border-b p-4">
                 <h2 className="text-muted-foreground text-sm font-semibold tracking-wide uppercase">
                     Company Filter
@@ -65,7 +67,7 @@ const SidebarContent = ({
                 </p>
             </div>
 
-            <nav className="p-2">
+            <nav className="flex-1 overflow-y-auto p-2">
                 {/* Consolidated View Option */}
                 <button
                     onClick={() => handleSelect(null)}
@@ -108,7 +110,19 @@ const SidebarContent = ({
                     })}
                 </div>
             </nav>
-        </>
+
+            {/* AI Reports Link */}
+            <div className="border-t p-2">
+                <Link
+                    href={ROUTES.PORTFOLIO_REPORTS}
+                    onClick={() => onSelect?.()}
+                    className="hover:bg-muted flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors"
+                >
+                    <Bot className="h-4 w-4" />
+                    <span>AI Reports</span>
+                </Link>
+            </div>
+        </div>
     )
 }
 
@@ -120,7 +134,7 @@ export const EntitySidebar = ({
 }: EntitySidebarProps) => {
     // Desktop sidebar - hidden on mobile
     return (
-        <aside className="bg-background hidden w-60 shrink-0 border-r lg:block">
+        <aside className="bg-background hidden h-full w-60 shrink-0 border-r lg:block">
             {isLoading ? (
                 <SidebarSkeleton />
             ) : (

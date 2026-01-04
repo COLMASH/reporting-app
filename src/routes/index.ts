@@ -2,6 +2,7 @@ export const ROUTES = Object.freeze({
     HOME: '/',
     DASHBOARD: '/dashboard',
     PORTFOLIO_DASHBOARDS: '/dashboards',
+    PORTFOLIO_REPORTS: '/portfolio-reports',
     API: Object.freeze({
         AUTH: '/api/auth'
     })

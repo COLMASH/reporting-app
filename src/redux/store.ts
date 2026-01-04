@@ -15,6 +15,7 @@ import { filesApi } from './services/filesApi'
 import { reportingAnalysesApi } from './services/reportingAnalysesApi'
 import { resultsApi } from './services/resultsApi'
 import { portfolioApi } from './services/portfolioApi'
+import { portfolioReportsApi } from './services/portfolioReportsApi'
 import themeSlice from './features/themeSlice'
 import activeAnalysesSlice from './features/activeAnalysesSlice'
 
@@ -31,7 +32,8 @@ const rootReducer = combineReducers({
     [filesApi.reducerPath]: filesApi.reducer,
     [reportingAnalysesApi.reducerPath]: reportingAnalysesApi.reducer,
     [resultsApi.reducerPath]: resultsApi.reducer,
-    [portfolioApi.reducerPath]: portfolioApi.reducer
+    [portfolioApi.reducerPath]: portfolioApi.reducer,
+    [portfolioReportsApi.reducerPath]: portfolioReportsApi.reducer
 })
 
 const persistedReducer = persistReducer(persistConfig, rootReducer)
@@ -47,7 +49,8 @@ export const store = configureStore({
             filesApi.middleware,
             reportingAnalysesApi.middleware,
             resultsApi.middleware,
-            portfolioApi.middleware
+            portfolioApi.middleware,
+            portfolioReportsApi.middleware
         ])
 })
 
