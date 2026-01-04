@@ -1,7 +1,13 @@
 'use client'
 
 import { Download, Trash2, X, Loader2, Clock, Zap, FileText } from 'lucide-react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle
+} from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import {
     AlertDialog,
@@ -55,6 +61,9 @@ export const ReportDetailDialog = ({
                                 <FileText className="h-5 w-5 shrink-0" />
                                 <span className="truncate">{report.title}</span>
                             </DialogTitle>
+                            <DialogDescription className="sr-only">
+                                View AI-generated portfolio analysis report
+                            </DialogDescription>
                             <div className="text-muted-foreground mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
                                 <ReportStatusBadge status={report.status} />
                                 <span>{formatDate(report.created_at)}</span>

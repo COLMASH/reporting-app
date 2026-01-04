@@ -30,15 +30,21 @@ interface SidebarContentProps {
 }
 
 const SidebarSkeleton = () => (
-    <div className="p-4">
-        <div className="mb-4">
-            <Skeleton className="mb-2 h-5 w-24" />
-            <Skeleton className="h-4 w-16" />
+    <div className="flex h-full flex-col">
+        <div className="p-4">
+            <div className="mb-4">
+                <Skeleton className="mb-2 h-5 w-24" />
+                <Skeleton className="h-4 w-16" />
+            </div>
+            <div className="space-y-2">
+                {Array.from({ length: 6 }).map((_, i) => (
+                    <Skeleton key={i} className="h-10 w-full" />
+                ))}
+            </div>
         </div>
-        <div className="space-y-2">
-            {Array.from({ length: 6 }).map((_, i) => (
-                <Skeleton key={i} className="h-10 w-full" />
-            ))}
+        {/* AI Reports skeleton */}
+        <div className="mt-auto border-t p-2">
+            <Skeleton className="h-10 w-full" />
         </div>
     </div>
 )
