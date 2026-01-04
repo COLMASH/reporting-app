@@ -37,6 +37,15 @@ export const createBaseQuery = (
                 return result
             }
 
+            // Handle 403 with "Not authenticated" - backend returns 403 for expired tokens
+            if (result.error.status === 403) {
+                const errorData = result.error.data as { detail?: string } | undefined
+                if (errorData?.detail?.toLowerCase().includes('not authenticated')) {
+                    await signOut({ callbackUrl: '/' })
+                    return result
+                }
+            }
+
             // Show error toast only for mutations (not GET queries)
             // This prevents error toasts on page load for failed queries
             const isQuery =
