@@ -8,7 +8,7 @@ import { ThemeToggle } from '@/components/common/theme-toggle'
 export default async function HomePage() {
     const session = await auth()
 
-    if (session?.user) {
+    if (session?.user && !session.error) {
         redirect(ROUTES.PORTFOLIO_DASHBOARDS)
     }
 

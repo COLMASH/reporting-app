@@ -7,7 +7,11 @@ import { ROUTES } from '@/routes'
  * Check if the current path is a protected route
  */
 const isProtectedRoute = (pathname: string): boolean => {
-    return pathname.startsWith(ROUTES.DASHBOARD) || pathname.startsWith(ROUTES.PORTFOLIO_DASHBOARDS)
+    return (
+        pathname.startsWith(ROUTES.DASHBOARD) ||
+        pathname.startsWith(ROUTES.PORTFOLIO_DASHBOARDS) ||
+        pathname.startsWith(ROUTES.PORTFOLIO_REPORTS)
+    )
 }
 
 export async function middleware(request: NextRequest) {
@@ -51,5 +55,5 @@ export async function middleware(request: NextRequest) {
 // Note: Next.js doesn't support dynamic values in middleware config
 // so we must hardcode the paths here instead of using ROUTES constants
 export const config = {
-    matcher: ['/dashboard/:path*', '/dashboards/:path*']
+    matcher: ['/dashboard/:path*', '/dashboards/:path*', '/portfolio-reports/:path*']
 }
