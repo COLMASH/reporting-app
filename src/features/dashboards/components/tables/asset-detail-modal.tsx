@@ -72,9 +72,11 @@ export const AssetDetailModal = ({
 }: AssetDetailModalProps) => {
     if (!asset && !isLoading) return null
 
+    // Calculate return as (Current Value - Cost) / Cost (matches table calculation)
     const returnPct =
         asset?.paid_in_capital_usd && asset.paid_in_capital_usd > 0
-            ? (asset.total_asset_return_usd || 0) / asset.paid_in_capital_usd
+            ? ((asset.estimated_asset_value_usd || 0) - asset.paid_in_capital_usd) /
+              asset.paid_in_capital_usd
             : null
 
     return (
@@ -145,7 +147,10 @@ export const AssetDetailModal = ({
                                 />
                                 <DetailRow
                                     label="Total Return"
-                                    value={formatCurrency(asset.total_asset_return_usd)}
+                                    value={formatCurrency(
+                                        (asset.estimated_asset_value_usd || 0) -
+                                            (asset.paid_in_capital_usd || 0)
+                                    )}
                                     className={getPerformanceColorClass(returnPct)}
                                 />
                                 <DetailRow
