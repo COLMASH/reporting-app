@@ -1,7 +1,8 @@
 'use client'
 
 import { useEffect, useState, useCallback, useRef } from 'react'
-import { useGetReportQuery } from '@/redux/services/portfolioReportsApi'
+import { useGetReportQuery, portfolioReportsApi } from '@/redux/services/portfolioReportsApi'
+import { useAppDispatch } from '@/redux/hooks'
 import type { ReportStatus } from '../types'
 
 /**
@@ -45,6 +46,7 @@ export const useReportPolling = (
     reportId: string | null,
     options?: { skip?: boolean }
 ): UseReportPollingResult => {
+    const dispatch = useAppDispatch()
     const [isPolling, setIsPolling] = useState(false)
     const [elapsedTime, setElapsedTime] = useState(0)
     const [isTimedOut, setIsTimedOut] = useState(false)
@@ -71,6 +73,8 @@ export const useReportPolling = (
         }
 
         if (isTerminalStatus(data.status)) {
+            // Invalidate the list cache so it refetches with the updated status
+            dispatch(portfolioReportsApi.util.invalidateTags([{ type: 'Report', id: 'LIST' }]))
             stopPolling()
             return
         }
@@ -103,7 +107,7 @@ export const useReportPolling = (
                 clearTimeout(timeoutRef.current)
             }
         }
-    }, [data, options?.skip, reportId, refetch, stopPolling])
+    }, [data, options?.skip, reportId, refetch, stopPolling, dispatch])
 
     // Reset state when reportId changes
     useEffect(() => {
