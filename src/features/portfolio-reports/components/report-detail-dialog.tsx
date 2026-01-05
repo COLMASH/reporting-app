@@ -48,7 +48,9 @@ export const ReportDetailDialog = ({
 }: ReportDetailDialogProps) => {
     if (!report) return null
 
-    const hasContent = report.status === 'completed' && report.markdown_content
+    // Case-insensitive status check
+    const normalizedStatus = report.status?.toLowerCase()
+    const hasContent = normalizedStatus === 'completed' && report.markdown_content
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -78,7 +80,7 @@ export const ReportDetailDialog = ({
                 <div className="flex-1 overflow-y-auto px-6 py-4">
                     {hasContent ? (
                         <MarkdownRenderer content={report.markdown_content!} />
-                    ) : report.status === 'failed' ? (
+                    ) : normalizedStatus === 'failed' ? (
                         <div className="flex flex-col items-center justify-center py-16 text-center">
                             <div className="bg-destructive/10 mb-4 rounded-full p-4">
                                 <X className="text-destructive h-8 w-8" />

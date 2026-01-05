@@ -46,7 +46,9 @@ const STATUS_CONFIG: Record<
 }
 
 export const ReportStatusBadge = ({ status, className }: ReportStatusBadgeProps) => {
-    const config = STATUS_CONFIG[status]
+    // Normalize status to lowercase for consistent matching (handles API returning uppercase)
+    const normalizedStatus = (status?.toLowerCase() || 'pending') as ReportStatus
+    const config = STATUS_CONFIG[normalizedStatus]
     const Icon = config.icon
 
     return (

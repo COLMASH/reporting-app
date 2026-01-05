@@ -43,7 +43,7 @@ import { cn } from '@/lib/utils'
 import { ReportStatusBadge } from './report-status-badge'
 import { ElapsedTime } from './elapsed-time'
 import { formatRelativeTime, getFiltersSummary } from '../utils/report-utils'
-import { useReportPolling } from '../hooks/use-report-polling'
+import { useGetReportsQuery } from '@/redux/services/portfolioReportsApi'
 import type { ReportResponse } from '../types'
 
 interface ReportsDataTableProps {
@@ -68,46 +68,39 @@ interface ReportRowProps {
 }
 
 const ReportRow = ({ report, onView, onDelete, isDeleting }: ReportRowProps) => {
-    const needsPolling = report.status === 'pending' || report.status === 'in_progress'
-    const { data: polledReport } = useReportPolling(needsPolling ? report.id : null, {
-        skip: !needsPolling
-    })
-
-    const currentReport = polledReport ?? report
-    const isActive = currentReport.status === 'pending' || currentReport.status === 'in_progress'
-    const canView = currentReport.status === 'completed'
+    // Case-insensitive status check
+    const status = report.status?.toLowerCase()
+    const isActive = status === 'pending' || status === 'in_progress'
+    const canView = status === 'completed'
 
     return (
         <TableRow
             className={cn({
                 'hover:bg-muted/80 cursor-pointer': canView
             })}
-            onClick={canView ? () => onView(currentReport) : undefined}
+            onClick={canView ? () => onView(report) : undefined}
         >
             <TableCell className="max-w-[300px]">
                 <div className="flex items-center gap-2">
                     <FileText className="text-muted-foreground h-4 w-4 shrink-0" />
-                    <span className="truncate font-medium">{currentReport.title}</span>
+                    <span className="truncate font-medium">{report.title}</span>
                 </div>
             </TableCell>
             <TableCell>
-                <ReportStatusBadge status={currentReport.status} />
+                <ReportStatusBadge status={report.status} />
             </TableCell>
             <TableCell className="text-muted-foreground max-w-[200px] truncate">
-                {getFiltersSummary(currentReport)}
+                {getFiltersSummary(report)}
             </TableCell>
             <TableCell>
                 {isActive ? (
                     <span className="text-primary flex items-center gap-1.5">
                         <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                        <ElapsedTime
-                            createdAt={currentReport.created_at}
-                            status={currentReport.status}
-                        />
+                        <ElapsedTime createdAt={report.created_at} status={report.status} />
                     </span>
                 ) : (
                     <span className="text-muted-foreground">
-                        {formatRelativeTime(currentReport.created_at)}
+                        {formatRelativeTime(report.created_at)}
                     </span>
                 )}
             </TableCell>
@@ -121,7 +114,7 @@ const ReportRow = ({ report, onView, onDelete, isDeleting }: ReportRowProps) => 
                             variant="ghost"
                             size="sm"
                             className="h-8 px-2"
-                            onClick={() => onView(currentReport)}
+                            onClick={() => onView(report)}
                         >
                             <Eye className="mr-1 h-4 w-4" />
                             View
@@ -146,14 +139,14 @@ const ReportRow = ({ report, onView, onDelete, isDeleting }: ReportRowProps) => 
                             <AlertDialogHeader>
                                 <AlertDialogTitle>Delete Report</AlertDialogTitle>
                                 <AlertDialogDescription>
-                                    Are you sure you want to delete &ldquo;{currentReport.title}
-                                    &rdquo;? This action cannot be undone.
+                                    Are you sure you want to delete &ldquo;{report.title}&rdquo;?
+                                    This action cannot be undone.
                                 </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
                                 <AlertDialogCancel>Cancel</AlertDialogCancel>
                                 <AlertDialogAction
-                                    onClick={() => onDelete(currentReport.id)}
+                                    onClick={() => onDelete(report.id)}
                                     className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                                 >
                                     Delete
@@ -182,6 +175,19 @@ export const ReportsDataTable = ({
 }: ReportsDataTableProps) => {
     const isLoadingState = isLoading || isFetching
     const totalPages = Math.ceil(total / pageSize)
+
+    // Check if any reports need polling (case-insensitive)
+    const hasActiveReports = reports.some(r => {
+        const status = r.status?.toLowerCase()
+        return status === 'pending' || status === 'in_progress'
+    })
+
+    // Use RTK Query built-in polling - 5 seconds when active reports exist
+    // This shares cache with parent's query, so updates flow automatically
+    useGetReportsQuery(
+        { limit: pageSize, offset: (page - 1) * pageSize },
+        { pollingInterval: hasActiveReports ? 5000 : undefined }
+    )
 
     return (
         <Card className="relative">

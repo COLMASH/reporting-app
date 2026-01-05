@@ -52,16 +52,17 @@ const getTimeElapsed = (startTime: string): string => {
 export const ElapsedTime = ({ createdAt, status }: ElapsedTimeProps) => {
     const [, setTick] = useState(0)
 
-    // Re-render every second for active reports
+    // Re-render every second for active reports (case-insensitive)
+    const normalizedStatus = status?.toLowerCase()
     useEffect(() => {
-        if (status !== 'pending' && status !== 'in_progress') return
+        if (normalizedStatus !== 'pending' && normalizedStatus !== 'in_progress') return
 
         const interval = setInterval(() => {
             setTick(t => t + 1)
         }, 1000)
 
         return () => clearInterval(interval)
-    }, [status])
+    }, [normalizedStatus])
 
     return <span>{getTimeElapsed(createdAt)}</span>
 }
