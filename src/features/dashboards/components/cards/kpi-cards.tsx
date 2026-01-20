@@ -97,13 +97,13 @@ export const KpiCards = ({
             {
                 title: 'Total Return',
                 icon: TrendingUp,
-                getValue: () => formatPercentageWithSign(data?.weighted_avg_return),
+                getValue: () => formatPercentageWithSign(data?.total_return_pct),
                 getSubValue: () => {
                     const returnAmount = getReturnAmount()
                     if (returnAmount === undefined || returnAmount === null) return null
                     return formatCompactCurrency(returnAmount, currency)
                 },
-                getColorClass: () => getPerformanceColorClass(data?.weighted_avg_return)
+                getColorClass: () => getPerformanceColorClass(data?.total_return_pct)
             },
             {
                 title: 'Positions',

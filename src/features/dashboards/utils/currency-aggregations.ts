@@ -10,5 +10,5 @@ export interface EurSummary {
     total_unrealized_gain_eur: number
     total_return_amount_eur: number // NAV - Cost
     total_assets: number
-    weighted_avg_return: number | null
+    total_return_pct: number | null
 }

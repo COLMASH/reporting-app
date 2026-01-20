@@ -192,7 +192,7 @@ export const useDashboardData = (): DashboardDataState => {
             total_return_amount_eur:
                 data.total_estimated_value_eur - data.total_paid_in_capital_eur,
             total_assets: data.total_assets,
-            weighted_avg_return: data.weighted_avg_return
+            total_return_pct: data.total_return_pct
         }
     }, [isEurSelected, summaryQuery.data])
 

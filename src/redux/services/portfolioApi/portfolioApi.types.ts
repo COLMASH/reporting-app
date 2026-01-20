@@ -213,7 +213,7 @@ export interface PortfolioSummaryResponse {
     total_paid_in_capital_eur: number
     total_unfunded_commitment_eur: number
     total_unrealized_gain_eur: number
-    weighted_avg_return: number | null
+    total_return_pct: number | null
 }
 
 // ============================================================

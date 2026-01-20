@@ -435,13 +435,11 @@ export const DetailedDataTable = ({
                                                 className={cn(
                                                     'text-right',
                                                     getPerformanceColorClass(
-                                                        summary.weighted_avg_return
+                                                        summary.total_return_pct
                                                     )
                                                 )}
                                             >
-                                                {formatPercentageWithSign(
-                                                    summary.weighted_avg_return
-                                                )}
+                                                {formatPercentageWithSign(summary.total_return_pct)}
                                             </TableCell>
                                             {showUnfundedColumn && (
                                                 <TableCell className="text-right">
