@@ -263,7 +263,11 @@ export interface FlexibleAggregationGroup {
     percentage: number
     count: number
     paid_in_capital_usd: number
+    paid_in_capital_eur: number
     unfunded_commitment_usd: number
+    unfunded_commitment_eur: number
+    unrealized_gain_usd: number
+    unrealized_gain_eur: number
     avg_return: number | null
 }
 
