@@ -12,6 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ShimmerOverlay } from '@/components/ui/shimmer-overlay'
 import {
     formatCompactCurrency,
+    formatFullCurrency,
     formatPercentageWithSign,
     formatNumber,
     getPerformanceColorClass
@@ -81,27 +82,27 @@ export const KpiCards = ({
             {
                 title: `Total NAV (${currency})`,
                 icon: DollarSign,
-                getValue: () => formatCompactCurrency(getNav(), currency)
+                getValue: () => formatFullCurrency(getNav(), currency)
             },
             {
                 title: `Total Invested (${currency})`,
                 icon: PiggyBank,
-                getValue: () => formatCompactCurrency(getCost(), currency)
+                getValue: () => formatFullCurrency(getCost(), currency)
             },
             {
                 title: `Unrealized Gain/Loss (${currency})`,
                 icon: BarChart3,
-                getValue: () => formatCompactCurrency(getUnrealizedGain(), currency),
+                getValue: () => formatFullCurrency(getUnrealizedGain(), currency),
                 getColorClass: () => getPerformanceColorClass(getUnrealizedGain())
             },
             {
                 title: 'Total Return',
                 icon: TrendingUp,
-                getValue: () => formatPercentageWithSign(data?.total_return_pct),
+                getValue: () => formatPercentageWithSign(data?.total_return_pct, 2),
                 getSubValue: () => {
                     const returnAmount = getReturnAmount()
                     if (returnAmount === undefined || returnAmount === null) return null
-                    return formatCompactCurrency(returnAmount, currency)
+                    return formatFullCurrency(returnAmount, currency)
                 },
                 getColorClass: () => getPerformanceColorClass(data?.total_return_pct)
             },
@@ -135,7 +136,14 @@ export const KpiCards = ({
                             <config.icon className="text-muted-foreground h-4 w-4" />
                         </CardHeader>
                         <CardContent>
-                            <div className={cn('text-2xl font-bold', colorClass)}>{value}</div>
+                            <div
+                                className={cn(
+                                    'truncate text-lg font-bold sm:text-xl lg:text-2xl',
+                                    colorClass
+                                )}
+                            >
+                                {value}
+                            </div>
                             {subValue && (
                                 <p className="text-muted-foreground mt-1 text-xs">{subValue}</p>
                             )}

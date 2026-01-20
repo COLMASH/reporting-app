@@ -52,6 +52,7 @@ export {
     hasNonZeroValue,
     formatCompactCurrency,
     formatCurrency,
+    formatFullCurrency,
     formatPercentage,
     formatPercentageWithSign,
     formatNumber,

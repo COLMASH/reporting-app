@@ -96,6 +96,25 @@ export const formatCurrency = (
 }
 
 /**
+ * Format currency with full numbers (no abbreviations) and no decimal places.
+ * Used for main KPI cards where full precision is required.
+ * Handles null gracefully by returning 'N/A'.
+ */
+export const formatFullCurrency = (
+    value: number | null | undefined,
+    currency: 'USD' | 'EUR' = 'USD'
+): string => {
+    if (value === null || value === undefined) return 'N/A'
+
+    return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency,
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+    }).format(value)
+}
+
+/**
  * Format percentage from decimal (0.15 -> 15.0%).
  * Handles null gracefully by returning 'N/A'.
  */
