@@ -176,6 +176,7 @@ export interface AssetResponse {
     estimated_asset_value_usd: number | null
     total_asset_return_usd: number | null
     unrealized_gain_usd: number | null
+    realized_gain_usd: number | null
 
     // Financial - EUR
     total_investment_commitment_eur: number | null
@@ -184,6 +185,7 @@ export interface AssetResponse {
     estimated_asset_value_eur: number | null
     total_asset_return_eur: number | null
     unrealized_gain_eur: number | null
+    realized_gain_eur: number | null
 
     // Timestamps
     created_at: string
