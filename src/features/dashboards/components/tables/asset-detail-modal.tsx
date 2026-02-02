@@ -146,12 +146,14 @@ export const AssetDetailModal = ({
                                     value={formatCurrency(asset.paid_in_capital_usd)}
                                 />
                                 <DetailRow
-                                    label="Total Return"
-                                    value={formatCurrency(
-                                        (asset.estimated_asset_value_usd || 0) -
-                                            (asset.paid_in_capital_usd || 0)
-                                    )}
-                                    className={getPerformanceColorClass(returnPct)}
+                                    label="Unrealized Gain/Loss"
+                                    value={formatCurrency(asset.unrealized_gain_usd)}
+                                    className={getPerformanceColorClass(asset.unrealized_gain_usd)}
+                                />
+                                <DetailRow
+                                    label="Realized Gain/Loss"
+                                    value={formatCurrency(asset.realized_gain_usd)}
+                                    className={getPerformanceColorClass(asset.realized_gain_usd)}
                                 />
                                 <DetailRow
                                     label="Return %"
@@ -179,6 +181,16 @@ export const AssetDetailModal = ({
                                 <DetailRow
                                     label="Cost Basis"
                                     value={formatCurrency(asset.paid_in_capital_eur, 'EUR')}
+                                />
+                                <DetailRow
+                                    label="Unrealized Gain/Loss"
+                                    value={formatCurrency(asset.unrealized_gain_eur, 'EUR')}
+                                    className={getPerformanceColorClass(asset.unrealized_gain_eur)}
+                                />
+                                <DetailRow
+                                    label="Realized Gain/Loss"
+                                    value={formatCurrency(asset.realized_gain_eur, 'EUR')}
+                                    className={getPerformanceColorClass(asset.realized_gain_eur)}
                                 />
                                 <DetailRow
                                     label="Unfunded Commitment"

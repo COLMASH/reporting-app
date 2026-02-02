@@ -251,6 +251,8 @@ export interface AssetTypeGroup {
     unfunded_commitment_eur: number
     unrealized_gain_usd: number
     unrealized_gain_eur: number
+    realized_gain_usd: number
+    realized_gain_eur: number
 }
 
 export interface AssetTypeAggregationResponse {
@@ -272,6 +274,8 @@ export interface FlexibleAggregationGroup {
     unfunded_commitment_eur: number
     unrealized_gain_usd: number
     unrealized_gain_eur: number
+    realized_gain_usd: number
+    realized_gain_eur: number
     avg_return: number | null
 }
 

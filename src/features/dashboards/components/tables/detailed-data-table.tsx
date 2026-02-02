@@ -282,6 +282,15 @@ export const DetailedDataTable = ({
                                         />
                                         <SortableColumn
                                             column={
+                                                isEur ? 'realized_gain_eur' : 'realized_gain_usd'
+                                            }
+                                            label={`Realized G/L (${currency})`}
+                                            currentSort={currentSort}
+                                            onSort={handleSort}
+                                            align="right"
+                                        />
+                                        <SortableColumn
+                                            column={
                                                 isEur
                                                     ? 'total_asset_return_eur'
                                                     : 'total_asset_return_usd'
@@ -367,6 +376,23 @@ export const DetailedDataTable = ({
                                                 <TableCell
                                                     className={cn(
                                                         'text-right',
+                                                        getPerformanceColorClass(
+                                                            isEur
+                                                                ? asset.realized_gain_eur
+                                                                : asset.realized_gain_usd
+                                                        )
+                                                    )}
+                                                >
+                                                    {formatCompactCurrency(
+                                                        isEur
+                                                            ? asset.realized_gain_eur
+                                                            : asset.realized_gain_usd,
+                                                        currency
+                                                    )}
+                                                </TableCell>
+                                                <TableCell
+                                                    className={cn(
+                                                        'text-right',
                                                         getPerformanceColorClass(returnPct)
                                                     )}
                                                 >
@@ -428,6 +454,23 @@ export const DetailedDataTable = ({
                                                     isEur
                                                         ? summary.total_unrealized_gain_eur
                                                         : summary.total_unrealized_gain_usd,
+                                                    currency
+                                                )}
+                                            </TableCell>
+                                            <TableCell
+                                                className={cn(
+                                                    'text-right',
+                                                    getPerformanceColorClass(
+                                                        isEur
+                                                            ? summary.total_realized_gain_eur
+                                                            : summary.total_realized_gain_usd
+                                                    )
+                                                )}
+                                            >
+                                                {formatCompactCurrency(
+                                                    isEur
+                                                        ? summary.total_realized_gain_eur
+                                                        : summary.total_realized_gain_usd,
                                                     currency
                                                 )}
                                             </TableCell>

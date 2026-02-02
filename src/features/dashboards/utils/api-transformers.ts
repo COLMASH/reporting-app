@@ -153,6 +153,7 @@ export interface AssetTypeSummaryRow {
     paidInCapital: number | null
     unfundedCommitment: number | null
     unrealizedGain: number | null
+    realizedGain: number | null
 }
 
 export const transformAssetTypeForTable = (
@@ -170,7 +171,8 @@ export const transformAssetTypeForTable = (
         count: group.count,
         paidInCapital: isEur ? group.paid_in_capital_eur : group.paid_in_capital_usd,
         unfundedCommitment: isEur ? group.unfunded_commitment_eur : group.unfunded_commitment_usd,
-        unrealizedGain: isEur ? group.unrealized_gain_eur : group.unrealized_gain_usd
+        unrealizedGain: isEur ? group.unrealized_gain_eur : group.unrealized_gain_usd,
+        realizedGain: isEur ? group.realized_gain_eur : group.realized_gain_usd
     }))
 }
 
@@ -208,7 +210,8 @@ export const transformFlexibleForTable = (
         count: group.count,
         paidInCapital: isEur ? group.paid_in_capital_eur : group.paid_in_capital_usd,
         unfundedCommitment: isEur ? group.unfunded_commitment_eur : group.unfunded_commitment_usd,
-        unrealizedGain: isEur ? group.unrealized_gain_eur : group.unrealized_gain_usd
+        unrealizedGain: isEur ? group.unrealized_gain_eur : group.unrealized_gain_usd,
+        realizedGain: isEur ? group.realized_gain_eur : group.realized_gain_usd
     }))
 }
 

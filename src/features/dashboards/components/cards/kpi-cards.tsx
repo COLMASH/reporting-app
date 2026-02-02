@@ -72,8 +72,9 @@ export const KpiCards = ({
         }
 
         const getRealizedGain = () => {
-            if (isEur) return eurSummary?.total_realized_gain_eur
-            return data?.total_realized_gain_usd
+            // Default to 0 when null (no realized gains for this filter)
+            if (isEur) return eurSummary?.total_realized_gain_eur ?? 0
+            return data?.total_realized_gain_usd ?? 0
         }
 
         const getReturnAmount = () => {
