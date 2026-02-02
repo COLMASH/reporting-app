@@ -67,8 +67,9 @@ export const KpiCards = ({
         }
 
         const getUnrealizedGain = () => {
-            if (isEur) return eurSummary?.total_unrealized_gain_eur
-            return data?.total_unrealized_gain_usd
+            // Default to 0 when null (e.g., Real Estate assets)
+            if (isEur) return eurSummary?.total_unrealized_gain_eur ?? 0
+            return data?.total_unrealized_gain_usd ?? 0
         }
 
         const getRealizedGain = () => {
@@ -79,10 +80,7 @@ export const KpiCards = ({
 
         const getReturnAmount = () => {
             // Total Return = Unrealized Gain + Realized Gain
-            const unrealizedGain = getUnrealizedGain()
-            const realizedGain = getRealizedGain()
-            if (unrealizedGain == null && realizedGain == null) return null
-            return (unrealizedGain ?? 0) + (realizedGain ?? 0)
+            return getUnrealizedGain() + getRealizedGain()
         }
 
         return [
@@ -111,13 +109,9 @@ export const KpiCards = ({
             {
                 title: 'Total Return',
                 icon: TrendingUp,
-                getValue: () => formatPercentageWithSign(data?.total_return_pct, 2),
-                getSubValue: () => {
-                    const returnAmount = getReturnAmount()
-                    if (returnAmount === undefined || returnAmount === null) return null
-                    return formatFullCurrency(returnAmount, currency)
-                },
-                getColorClass: () => getPerformanceColorClass(data?.total_return_pct)
+                getValue: () => formatPercentageWithSign(data?.total_return_pct ?? 0, 2),
+                getSubValue: () => formatFullCurrency(getReturnAmount(), currency),
+                getColorClass: () => getPerformanceColorClass(data?.total_return_pct ?? 0)
             },
             {
                 title: 'Positions',
