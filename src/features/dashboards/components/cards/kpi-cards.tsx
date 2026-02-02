@@ -7,7 +7,7 @@
  */
 
 import { useMemo } from 'react'
-import { DollarSign, TrendingUp, Briefcase, PiggyBank, BarChart3 } from 'lucide-react'
+import { DollarSign, TrendingUp, Briefcase, PiggyBank, BarChart3, Banknote } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ShimmerOverlay } from '@/components/ui/shimmer-overlay'
 import {
@@ -66,16 +66,22 @@ export const KpiCards = ({
             return data?.total_unfunded_commitment_usd
         }
 
-        const getReturnAmount = () => {
-            if (isEur) return eurSummary?.total_return_amount_eur
-            const nav = data?.total_estimated_value_usd ?? 0
-            const cost = data?.total_paid_in_capital_usd ?? 0
-            return nav - cost
-        }
-
         const getUnrealizedGain = () => {
             if (isEur) return eurSummary?.total_unrealized_gain_eur
             return data?.total_unrealized_gain_usd
+        }
+
+        const getRealizedGain = () => {
+            if (isEur) return eurSummary?.total_realized_gain_eur
+            return data?.total_realized_gain_usd
+        }
+
+        const getReturnAmount = () => {
+            // Total Return = Unrealized Gain + Realized Gain
+            const unrealizedGain = getUnrealizedGain()
+            const realizedGain = getRealizedGain()
+            if (unrealizedGain == null && realizedGain == null) return null
+            return (unrealizedGain ?? 0) + (realizedGain ?? 0)
         }
 
         return [
@@ -94,6 +100,12 @@ export const KpiCards = ({
                 icon: BarChart3,
                 getValue: () => formatFullCurrency(getUnrealizedGain(), currency),
                 getColorClass: () => getPerformanceColorClass(getUnrealizedGain())
+            },
+            {
+                title: `Realized Gain/Loss (${currency})`,
+                icon: Banknote,
+                getValue: () => formatFullCurrency(getRealizedGain(), currency),
+                getColorClass: () => getPerformanceColorClass(getRealizedGain())
             },
             {
                 title: 'Total Return',
@@ -120,7 +132,7 @@ export const KpiCards = ({
     }, [data, eurSummary, currency, isEur])
 
     return (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
             {kpiConfig.map(config => {
                 const value = data || (isEur && eurSummary) ? config.getValue() : '—'
                 const subValue = data || (isEur && eurSummary) ? config.getSubValue?.() : null

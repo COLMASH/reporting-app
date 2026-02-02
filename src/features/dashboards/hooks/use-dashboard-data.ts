@@ -184,13 +184,15 @@ export const useDashboardData = (): DashboardDataState => {
         if (!isEurSelected || !summaryQuery.data) return undefined
 
         const data = summaryQuery.data
+        const unrealizedGain = data.total_unrealized_gain_eur
+        const realizedGain = data.total_realized_gain_eur ?? 0
         return {
             total_estimated_value_eur: data.total_estimated_value_eur,
             total_paid_in_capital_eur: data.total_paid_in_capital_eur,
             total_unfunded_commitment_eur: data.total_unfunded_commitment_eur,
             total_unrealized_gain_eur: data.total_unrealized_gain_eur,
-            total_return_amount_eur:
-                data.total_estimated_value_eur - data.total_paid_in_capital_eur,
+            total_realized_gain_eur: data.total_realized_gain_eur,
+            total_return_amount_eur: unrealizedGain + realizedGain,
             total_assets: data.total_assets,
             total_return_pct: data.total_return_pct
         }

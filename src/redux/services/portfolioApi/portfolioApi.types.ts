@@ -211,10 +211,12 @@ export interface PortfolioSummaryResponse {
     total_paid_in_capital_usd: number
     total_unfunded_commitment_usd: number
     total_unrealized_gain_usd: number
+    total_realized_gain_usd: number | null
     total_estimated_value_eur: number
     total_paid_in_capital_eur: number
     total_unfunded_commitment_eur: number
     total_unrealized_gain_eur: number
+    total_realized_gain_eur: number | null
     total_return_pct: number | null
 }
 
