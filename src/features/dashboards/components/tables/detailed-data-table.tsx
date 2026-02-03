@@ -320,9 +320,14 @@ export const DetailedDataTable = ({
                                         const nav = isEur
                                             ? asset.estimated_asset_value_eur
                                             : asset.estimated_asset_value_usd
-                                        // Calculate return as (Current Value - Cost) / Cost
+                                        const realizedGain = isEur
+                                            ? asset.realized_gain_eur
+                                            : asset.realized_gain_usd
+                                        // Calculate return as (NAV + Realized Gains - Cost) / Cost
                                         const returnPct =
-                                            cost && cost > 0 ? ((nav || 0) - cost) / cost : null
+                                            cost && cost > 0
+                                                ? ((nav || 0) + (realizedGain || 0) - cost) / cost
+                                                : null
 
                                         return (
                                             <TableRow
