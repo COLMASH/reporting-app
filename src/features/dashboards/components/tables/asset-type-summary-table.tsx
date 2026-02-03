@@ -273,12 +273,16 @@ export const AssetTypeSummaryTable = ({
                                                     {row.assetType}
                                                 </TableCell>
                                                 <TableCell className="text-right">
-                                                    {formatCompactCurrency(row.value, currency)}
+                                                    {formatCompactCurrency(row.value, currency, {
+                                                        fallback: '-',
+                                                        treatZeroAsFallback: true
+                                                    })}
                                                 </TableCell>
                                                 <TableCell className="text-right">
                                                     {formatCompactCurrency(
                                                         row.paidInCapital,
-                                                        currency
+                                                        currency,
+                                                        { fallback: '-', treatZeroAsFallback: true }
                                                     )}
                                                 </TableCell>
                                                 <TableCell
@@ -289,7 +293,8 @@ export const AssetTypeSummaryTable = ({
                                                 >
                                                     {formatCompactCurrency(
                                                         row.unrealizedGain,
-                                                        currency
+                                                        currency,
+                                                        { fallback: '-', treatZeroAsFallback: true }
                                                     )}
                                                 </TableCell>
                                                 <TableCell
@@ -300,11 +305,15 @@ export const AssetTypeSummaryTable = ({
                                                 >
                                                     {formatCompactCurrency(
                                                         row.realizedGain,
-                                                        currency
+                                                        currency,
+                                                        { fallback: '-', treatZeroAsFallback: true }
                                                     )}
                                                 </TableCell>
                                                 <TableCell className="text-right">
-                                                    {formatPercentage(row.percentage / 100)}
+                                                    {formatPercentage(row.percentage / 100, 1, {
+                                                        fallback: '-',
+                                                        treatZeroAsFallback: true
+                                                    })}
                                                 </TableCell>
                                                 <TableCell className="text-right">
                                                     {row.count}
@@ -317,10 +326,16 @@ export const AssetTypeSummaryTable = ({
                                     <TableRow className="font-semibold">
                                         <TableCell>Total</TableCell>
                                         <TableCell className="text-right">
-                                            {formatCompactCurrency(totals.value, currency)}
+                                            {formatCompactCurrency(totals.value, currency, {
+                                                fallback: '-',
+                                                treatZeroAsFallback: true
+                                            })}
                                         </TableCell>
                                         <TableCell className="text-right">
-                                            {formatCompactCurrency(totals.paidInCapital, currency)}
+                                            {formatCompactCurrency(totals.paidInCapital, currency, {
+                                                fallback: '-',
+                                                treatZeroAsFallback: true
+                                            })}
                                         </TableCell>
                                         <TableCell
                                             className={cn(
@@ -328,7 +343,14 @@ export const AssetTypeSummaryTable = ({
                                                 getPerformanceColorClass(totals.unrealizedGain)
                                             )}
                                         >
-                                            {formatCompactCurrency(totals.unrealizedGain, currency)}
+                                            {formatCompactCurrency(
+                                                totals.unrealizedGain,
+                                                currency,
+                                                {
+                                                    fallback: '-',
+                                                    treatZeroAsFallback: true
+                                                }
+                                            )}
                                         </TableCell>
                                         <TableCell
                                             className={cn(
@@ -336,7 +358,10 @@ export const AssetTypeSummaryTable = ({
                                                 getPerformanceColorClass(totals.realizedGain)
                                             )}
                                         >
-                                            {formatCompactCurrency(totals.realizedGain, currency)}
+                                            {formatCompactCurrency(totals.realizedGain, currency, {
+                                                fallback: '-',
+                                                treatZeroAsFallback: true
+                                            })}
                                         </TableCell>
                                         <TableCell className="text-right">100%</TableCell>
                                         <TableCell className="text-right">{totals.count}</TableCell>

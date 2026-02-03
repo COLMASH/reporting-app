@@ -53,15 +53,24 @@ export const hasNonZeroValue = (value: number | null | undefined): boolean => {
     return value !== null && value !== undefined && value !== 0
 }
 
+/** Options for formatting functions to customize null/zero display */
+export type FormatOptions = {
+    fallback?: string
+    treatZeroAsFallback?: boolean
+}
+
 /**
  * Format currency with compact notation (e.g., $1.2M, $500K).
- * Handles null gracefully by returning 'N/A'.
+ * Handles null gracefully by returning fallback (default 'N/A').
  */
 export const formatCompactCurrency = (
     value: number | null | undefined,
-    currency: 'USD' | 'EUR' = 'USD'
+    currency: 'USD' | 'EUR' = 'USD',
+    options?: FormatOptions
 ): string => {
-    if (value === null || value === undefined) return 'N/A'
+    const fallback = options?.fallback ?? 'N/A'
+    if (value === null || value === undefined) return fallback
+    if (options?.treatZeroAsFallback && value === 0) return fallback
 
     const symbol = currency === 'EUR' ? '\u20AC' : '$'
     const absValue = Math.abs(value)
@@ -79,13 +88,16 @@ export const formatCompactCurrency = (
 
 /**
  * Format currency with full precision.
- * Handles null gracefully by returning 'N/A'.
+ * Handles null gracefully by returning fallback (default 'N/A').
  */
 export const formatCurrency = (
     value: number | null | undefined,
-    currency: 'USD' | 'EUR' = 'USD'
+    currency: 'USD' | 'EUR' = 'USD',
+    options?: FormatOptions
 ): string => {
-    if (value === null || value === undefined) return 'N/A'
+    const fallback = options?.fallback ?? 'N/A'
+    if (value === null || value === undefined) return fallback
+    if (options?.treatZeroAsFallback && value === 0) return fallback
 
     return new Intl.NumberFormat('en-US', {
         style: 'currency',
@@ -98,13 +110,16 @@ export const formatCurrency = (
 /**
  * Format currency with full numbers (no abbreviations) and no decimal places.
  * Used for main KPI cards where full precision is required.
- * Handles null gracefully by returning 'N/A'.
+ * Handles null gracefully by returning fallback (default 'N/A').
  */
 export const formatFullCurrency = (
     value: number | null | undefined,
-    currency: 'USD' | 'EUR' = 'USD'
+    currency: 'USD' | 'EUR' = 'USD',
+    options?: FormatOptions
 ): string => {
-    if (value === null || value === undefined) return 'N/A'
+    const fallback = options?.fallback ?? 'N/A'
+    if (value === null || value === undefined) return fallback
+    if (options?.treatZeroAsFallback && value === 0) return fallback
 
     return new Intl.NumberFormat('en-US', {
         style: 'currency',
@@ -116,25 +131,31 @@ export const formatFullCurrency = (
 
 /**
  * Format percentage from decimal (0.15 -> 15.0%).
- * Handles null gracefully by returning 'N/A'.
+ * Handles null gracefully by returning fallback (default 'N/A').
  */
 export const formatPercentage = (
     value: number | null | undefined,
-    decimals: number = 1
+    decimals: number = 1,
+    options?: FormatOptions
 ): string => {
-    if (value === null || value === undefined) return 'N/A'
+    const fallback = options?.fallback ?? 'N/A'
+    if (value === null || value === undefined) return fallback
+    if (options?.treatZeroAsFallback && value === 0) return fallback
     return `${(value * 100).toFixed(decimals)}%`
 }
 
 /**
  * Format percentage with sign indicator (+15.0%, -5.2%).
- * Handles null gracefully by returning 'N/A'.
+ * Handles null gracefully by returning fallback (default 'N/A').
  */
 export const formatPercentageWithSign = (
     value: number | null | undefined,
-    decimals: number = 1
+    decimals: number = 1,
+    options?: FormatOptions
 ): string => {
-    if (value === null || value === undefined) return 'N/A'
+    const fallback = options?.fallback ?? 'N/A'
+    if (value === null || value === undefined) return fallback
+    if (options?.treatZeroAsFallback && value === 0) return fallback
     const formatted = `${Math.abs(value * 100).toFixed(decimals)}%`
     if (value > 0) return `+${formatted}`
     if (value < 0) return `-${formatted}`
@@ -143,10 +164,16 @@ export const formatPercentageWithSign = (
 
 /**
  * Format a number with thousand separators.
- * Handles null gracefully by returning 'N/A'.
+ * Handles null gracefully by returning fallback (default 'N/A').
  */
-export const formatNumber = (value: number | null | undefined, decimals: number = 0): string => {
-    if (value === null || value === undefined) return 'N/A'
+export const formatNumber = (
+    value: number | null | undefined,
+    decimals: number = 0,
+    options?: FormatOptions
+): string => {
+    const fallback = options?.fallback ?? 'N/A'
+    if (value === null || value === undefined) return fallback
+    if (options?.treatZeroAsFallback && value === 0) return fallback
     return value.toLocaleString('en-US', {
         minimumFractionDigits: decimals,
         maximumFractionDigits: decimals

@@ -356,10 +356,16 @@ export const DetailedDataTable = ({
                                                     {asset.geographic_focus || '—'}
                                                 </TableCell>
                                                 <TableCell className="text-right">
-                                                    {formatCompactCurrency(nav, currency)}
+                                                    {formatCompactCurrency(nav, currency, {
+                                                        fallback: '-',
+                                                        treatZeroAsFallback: true
+                                                    })}
                                                 </TableCell>
                                                 <TableCell className="text-right">
-                                                    {formatCompactCurrency(cost, currency)}
+                                                    {formatCompactCurrency(cost, currency, {
+                                                        fallback: '-',
+                                                        treatZeroAsFallback: true
+                                                    })}
                                                 </TableCell>
                                                 <TableCell
                                                     className={cn(
@@ -375,7 +381,8 @@ export const DetailedDataTable = ({
                                                         isEur
                                                             ? asset.unrealized_gain_eur
                                                             : asset.unrealized_gain_usd,
-                                                        currency
+                                                        currency,
+                                                        { fallback: '-', treatZeroAsFallback: true }
                                                     )}
                                                 </TableCell>
                                                 <TableCell
@@ -392,7 +399,8 @@ export const DetailedDataTable = ({
                                                         isEur
                                                             ? asset.realized_gain_eur
                                                             : asset.realized_gain_usd,
-                                                        currency
+                                                        currency,
+                                                        { fallback: '-', treatZeroAsFallback: true }
                                                     )}
                                                 </TableCell>
                                                 <TableCell
@@ -401,7 +409,10 @@ export const DetailedDataTable = ({
                                                         getPerformanceColorClass(returnPct)
                                                     )}
                                                 >
-                                                    {formatPercentageWithSign(returnPct)}
+                                                    {formatPercentageWithSign(returnPct, 1, {
+                                                        fallback: '-',
+                                                        treatZeroAsFallback: true
+                                                    })}
                                                 </TableCell>
                                                 {showUnfundedColumn && (
                                                     <TableCell className="text-right">
@@ -409,7 +420,11 @@ export const DetailedDataTable = ({
                                                             isEur
                                                                 ? asset.unfunded_commitment_eur
                                                                 : asset.unfunded_commitment_usd,
-                                                            currency
+                                                            currency,
+                                                            {
+                                                                fallback: '-',
+                                                                treatZeroAsFallback: true
+                                                            }
                                                         )}
                                                     </TableCell>
                                                 )}
@@ -434,7 +449,8 @@ export const DetailedDataTable = ({
                                                     isEur
                                                         ? summary.total_estimated_value_eur
                                                         : summary.total_estimated_value_usd,
-                                                    currency
+                                                    currency,
+                                                    { fallback: '-', treatZeroAsFallback: true }
                                                 )}
                                             </TableCell>
                                             <TableCell className="text-right">
@@ -442,7 +458,8 @@ export const DetailedDataTable = ({
                                                     isEur
                                                         ? summary.total_paid_in_capital_eur
                                                         : summary.total_paid_in_capital_usd,
-                                                    currency
+                                                    currency,
+                                                    { fallback: '-', treatZeroAsFallback: true }
                                                 )}
                                             </TableCell>
                                             <TableCell
@@ -459,7 +476,8 @@ export const DetailedDataTable = ({
                                                     isEur
                                                         ? summary.total_unrealized_gain_eur
                                                         : summary.total_unrealized_gain_usd,
-                                                    currency
+                                                    currency,
+                                                    { fallback: '-', treatZeroAsFallback: true }
                                                 )}
                                             </TableCell>
                                             <TableCell
@@ -476,7 +494,8 @@ export const DetailedDataTable = ({
                                                     isEur
                                                         ? summary.total_realized_gain_eur
                                                         : summary.total_realized_gain_usd,
-                                                    currency
+                                                    currency,
+                                                    { fallback: '-', treatZeroAsFallback: true }
                                                 )}
                                             </TableCell>
                                             <TableCell
@@ -487,7 +506,14 @@ export const DetailedDataTable = ({
                                                     )
                                                 )}
                                             >
-                                                {formatPercentageWithSign(summary.total_return_pct)}
+                                                {formatPercentageWithSign(
+                                                    summary.total_return_pct,
+                                                    1,
+                                                    {
+                                                        fallback: '-',
+                                                        treatZeroAsFallback: true
+                                                    }
+                                                )}
                                             </TableCell>
                                             {showUnfundedColumn && (
                                                 <TableCell className="text-right">
@@ -495,7 +521,8 @@ export const DetailedDataTable = ({
                                                         isEur
                                                             ? summary.total_unfunded_commitment_eur
                                                             : summary.total_unfunded_commitment_usd,
-                                                        currency
+                                                        currency,
+                                                        { fallback: '-', treatZeroAsFallback: true }
                                                     )}
                                                 </TableCell>
                                             )}
